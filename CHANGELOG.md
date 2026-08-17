@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.21] - 2026-08-17
+
+### Added
+- **Architecture review**: Added `plans/ARCHITECTURE_SIMPLIFICATION.md` describing simplifications and data-layout changes that can be made without losing functionality (dead command/tool modules, split `state.json`, split `RepoAgent`, one tool loop, composition-root wiring, structured Slack payloads).
+
+### Fixed
+- Package `__version__` in `src/benedict/__init__.py` now matches `pyproject.toml`.
+
 ## [0.3.17] - 2026-04-28
 
 ### Removed

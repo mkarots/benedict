@@ -1,5 +1,7 @@
 # Architecture Overview
 
+See also: [ARCHITECTURE_SIMPLIFICATION.md](ARCHITECTURE_SIMPLIFICATION.md) for simplifications that keep current behaviour.
+
 ## Entry Point
 
 **`src/benedict/main.py`** is the application entry point. Run with:
