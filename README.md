@@ -18,7 +18,8 @@ This bot provides:
 - ✅ LLM integration (Claude 3.5 Sonnet)
 - ✅ Semantic code search (ChromaDB + sentence-transformers)
 - ✅ Local repository access
-- ❌ GitHub API integration (coming in M2)
+- ✅ GitHub CLI (`gh`) during conversations, scoped to the onboarded repo
+- ❌ Remote GitHub API without a local clone (not yet)
 - ❌ Notion/GDocs access (coming in v2)
 
 ## Features
@@ -29,7 +30,7 @@ This bot provides:
    ```
    @benedict onboard repo foo/bar
    ```
-   Links the current channel to a repository.
+   Links the current channel to a local repository.
 
 2. **Check status**
    ```
@@ -37,11 +38,25 @@ This bot provides:
    ```
    Shows which repository the channel is linked to.
 
-3. **Ask questions**
+3. **Update the semantic index**
+   ```
+   @benedict update index
+   ```
+   Rebuilds the search index for the linked repository. Add `force` for a full reindex.
+
+4. **Ask questions**
    ```
    @benedict what's the architecture?
    ```
-   The bot uses semantic search and LLM to provide intelligent answers.
+   The bot uses semantic search and Claude to answer from the linked repo. During a conversation it can also run `gh` in that repo (list PRs, view issues) after you confirm mutating actions.
+
+## Community
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — setup, tests, pull requests
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Contributor Covenant
+- [SECURITY.md](SECURITY.md) — private vulnerability reporting
+- [docs/FAQ.md](docs/FAQ.md) — common questions
+- [docs/RELEASING.md](docs/RELEASING.md) — versioning and release process
 
 ## Prerequisites
 
@@ -389,39 +404,44 @@ benedict
   - Thread-safe for single-process use
 
 - **Command Detection** (`is_onboard_command`, `is_status_command`, `extract_repo_name`)
-  - Simple pattern matching
-  - Flexible parsing for natural language
+  - Pattern matching plus a declarative command classifier
+  - `extract_repo_name` accepts `org/repo` and `github.com/org/repo`
 
 - **Event Handlers** (`handle_app_mention`, `handle_onboard`, `handle_status`, `handle_conversation`)
   - Routes @mentions to appropriate handlers
   - Always replies in thread
+
+## Testing
+
+```bash
+make test          # pytest
+make test-cov      # coverage report
+make lint          # ruff (tests)
+make typecheck     # mypy
+```
+
+CI runs on Python 3.10, 3.11, and 3.12 for every pull request to `main`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Roadmap
 
 ### Current Features ✅
 - Slack connection via Socket Mode
 - Channel → Repo mapping
-- Onboard & status commands
+- Onboard, status, offboard, and update-index commands
 - LLM integration (Claude 3.5 Sonnet)
 - Semantic code search (ChromaDB + sentence-transformers)
 - Conversation history tracking
 - Local repository access
+- GitHub CLI tool (`run_github`) in onboarded workspaces
 
-### Next (M2)
-- GitHub API: read repo files remotely
-- Enhanced code understanding
+### Next
+- Remote GitHub access without a local clone
+- Broader test coverage (target 80%+)
 
-### v2 (Future)
+### Later
 - Notion integration
 - Google Docs access
-- Cursor session logs
 - Multi-repo context
-
-### v3 (Advanced)
-- Agent-to-agent communication
-- RAG/vector search over codebase
-- Proactive suggestions
-- Code review automation
 
 ## Contributing
 

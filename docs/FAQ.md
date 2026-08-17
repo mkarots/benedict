@@ -24,6 +24,10 @@ Benedict looks for the repo on disk. Set `BENEDICT_REPO_SOURCE_DIRS` to the pare
 
 Channel mappings and conversation history are stored in `state.json` (or `BENEDICT_STATE_FILE`). Workspaces live under `workspaces/` by default.
 
+## Can Benedict talk to GitHub?
+
+Yes, during a conversation, if `gh` is installed and authenticated on the host. The model can run GitHub CLI commands in the onboarded workspace. Mutating actions (create, merge, close, comment) should be confirmed first. A local clone is still required; there is no remote-only GitHub API client yet.
+
 ## Can I run this without Slack?
 
 Not as a product today. Core agent logic is testable without Slack. The runtime entry point is the Slack Socket Mode app.

@@ -155,6 +155,6 @@ Use this checklist to verify your setup:
 After completing setup:
 
 1. See [README.md](README.md) for usage instructions
-2. Onboard a channel: `@agent onboard repo your-org/your-repo`
-3. Check status: `@agent status`
-4. Start asking questions about your repository!
+2. Onboard a channel: `@benedict onboard repo your-org/your-repo`
+3. Check status: `@benedict status`
+4. Start asking questions about your repository. See [docs/FAQ.md](FAQ.md) for common issues.
