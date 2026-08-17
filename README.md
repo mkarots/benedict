@@ -278,6 +278,7 @@ Still open:
 | [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) | Slack app configuration |
 | [docs/CODE_READING_GUIDE.md](docs/CODE_READING_GUIDE.md) | How to read the codebase |
 | [plans/ARCHITECTURE.md](plans/ARCHITECTURE.md) | Current architecture overview |
+| [plans/ARCHITECTURE_SIMPLIFICATION.md](plans/ARCHITECTURE_SIMPLIFICATION.md) | Simplifications that keep current behaviour |
 | [plans/MILESTONE_STATUS.md](plans/MILESTONE_STATUS.md) | Milestone tracker (some items are stale; trust this README and CHANGELOG first) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
