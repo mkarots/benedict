@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 # Constants
 REPO_PATTERN = re.compile(r"([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)")
+GITHUB_REPO_PATTERN = re.compile(r"github\.com/([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+)")
 
 
 class RepoAgent:
@@ -218,9 +219,9 @@ class RepoAgent:
                 # Add paths from configured source directories
                 for source_dir in repo_source_dirs:
                     if source_dir.exists() and source_dir.is_dir():
-                        # Full org/repo path: {source_dir}/mkarots/hookedllm
+                        # Full org/repo path: {source_dir}/example-org/example-repo
                         possible_paths.append(source_dir / repo)
-                        # Just repo name: {source_dir}/hookedllm
+                        # Just repo name: {source_dir}/example-repo
                         possible_paths.append(source_dir / repo.split("/")[-1])
                 
                 # Add current directory as fallback
@@ -247,7 +248,7 @@ class RepoAgent:
                         f"*Next steps:*\n"
                         f"• Provide the full path to the repository\n"
                         f"• Configure `BENEDICT_REPO_SOURCE_DIRS` environment variable\n"
-                        f"• Example: `@agent onboard repo /Users/yourname/Projects/hookedllm`",
+                        f"• Example: `@agent onboard repo /path/to/example-repo`",
                     )
 
                 # Add resource to workspace
@@ -1920,6 +1921,9 @@ class RepoAgent:
         - github.com/foo/bar
         - repo foo/bar
         """
+        github_match = GITHUB_REPO_PATTERN.search(text)
+        if github_match:
+            return github_match.group(1)
         match = REPO_PATTERN.search(text)
         if match:
             return match.group(1)

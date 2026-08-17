@@ -1,0 +1,10 @@
+# Benedict includes third-party software. Runtime dependencies and typical
+# licenses (verify against the installed package metadata before redistribution):
+#
+# slack-bolt            MIT
+# python-dotenv         BSD-3-Clause
+# anthropic             MIT
+# sentence-transformers Apache-2.0
+# chromadb              Apache-2.0
+# pyyaml                MIT
+# rich                  MIT

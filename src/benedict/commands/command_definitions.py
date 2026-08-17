@@ -73,7 +73,7 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
         ],
         required_params=["repo"],
         examples=[
-            "onboard repo mkarots/benedict",
+            "onboard repo example-org/example-repo",
             "link channel to benedict",
             "connect to my-repo",
         ],

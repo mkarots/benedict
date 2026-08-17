@@ -1,9 +1,29 @@
 [project]
 name = "benedict"
-version = "0.3.19"
+version = "0.4.0"
 description = "A Slack bot that links channels to repositories and provides intelligent, repo-scoped AI agent conversations"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Michael Karotsieris" }]
+keywords = [
+    "slack-bot",
+    "ai",
+    "llm",
+    "claude",
+    "semantic-search",
+    "chromadb",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Chat",
+    "Intended Audience :: Developers",
+]
 dependencies = [
     "slack-bolt>=1.18.0",
     "python-dotenv>=1.0.0",
@@ -21,7 +41,20 @@ dev = [
     "black",
     "ruff",
     "pytest",
+    "pytest-cov",
+    "mypy",
+    "pre-commit",
+    "bandit",
+    "build",
+    "twine",
+    "types-pyyaml",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mkarots/benedict"
+Repository = "https://github.com/mkarots/benedict"
+Issues = "https://github.com/mkarots/benedict/issues"
+Changelog = "https://github.com/mkarots/benedict/blob/main/CHANGELOG.md"
 
 [project.scripts]
 benedict = "benedict.main:main"
@@ -35,11 +68,39 @@ packages = ["src/benedict"]
 
 [tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
 
+[tool.coverage.run]
+source = ["benedict"]
+branch = true
+
+[tool.coverage.report]
+omit = ["tests/*"]
+show_missing = true
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = false
+check_untyped_defs = false
+exclude = ["tests/"]
+
 [tool.pylint]
 max-line-length = 100
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101", "B404", "B603", "B607"]

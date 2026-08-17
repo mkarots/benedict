@@ -128,7 +128,7 @@ Response:
 ━━━━━━━━━━━━━━━
 🔗 Repository: foo/bar
 ⏰ Onboarded: 2026-02-01 20:30 UTC
-👤 By: @michael
+👤 By: @alice
 ```
 
 ### Ask a Question (Stub)

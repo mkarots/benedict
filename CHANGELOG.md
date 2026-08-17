@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-17
+
+### Added
+- **Open source launch**: MIT `LICENSE`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `MAINTAINERS.md`, and `NOTICE`.
+- GitHub issue templates, pull request template, CI workflow, release workflow, and Dependabot.
+- Pre-commit hooks, EditorConfig, `.env.example`, `docs/FAQ.md`, and `docs/RELEASING.md`.
+- Core unit and integration tests for agent commands, classification, workspaces, conversations, and context building.
+
+### Changed
+- Replaced personal example names (`mkarots`, `@michael`) with generic examples.
+- Documented package metadata, SemVer, and community links in `README.md` and `pyproject.toml`.
+
+### Fixed
+- `extract_repo_name` now parses `github.com/org/repo` as `org/repo` instead of `com/org`.
+
 ## [0.3.19] - 2026-08-17
 
 ### Added

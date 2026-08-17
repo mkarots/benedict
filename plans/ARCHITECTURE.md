@@ -146,3 +146,18 @@ Environment variables:
 - `@agent update index` - Update semantic index (incremental)
 - `@agent update index force` - Force full reindex
 - `@agent <question>` - Ask question about repository
+
+## Testing
+
+Unit tests live in `tests/unit/` and use mock Slack, LLM, and repository adapters.
+Integration tests in `tests/integration/` cover Slack message formatting without a live workspace.
+
+CI (`.github/workflows/ci.yml`) runs lint, type check, tests, and Bandit on Python 3.10–3.12 for every pull request to `main`.
+
+Run locally:
+
+```bash
+make test
+make test-cov
+make typecheck
+```

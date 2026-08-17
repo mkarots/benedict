@@ -1,6 +1,12 @@
 # Slack Repo Agent
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/mkarots/benedict/actions/workflows/ci.yml/badge.svg)](https://github.com/mkarots/benedict/actions/workflows/ci.yml)
+
 A Slack bot that links channels to repositories and provides intelligent, repo-scoped AI agent conversations.
+
+⭐ [Star this repo on GitHub](https://github.com/mkarots/benedict) if you find it useful.
 
 ## Overview
 
@@ -39,13 +45,13 @@ This bot provides:
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - A Slack workspace where you can create apps
 - Admin access to install apps to the workspace
 
 ## Slack App Setup
 
-**📖 See [SLACK_SETUP.md](SLACK_SETUP.md) for complete step-by-step setup instructions.**
+**📖 See [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) for complete step-by-step setup instructions.**
 
 Quick summary:
 1. Create a Slack app at [api.slack.com/apps](https://api.slack.com/apps)
@@ -60,8 +66,8 @@ Quick summary:
 ### 1. Clone or Download
 
 ```bash
-git clone <your-repo-url>
-cd slack-repo-agent
+git clone https://github.com/mkarots/benedict.git
+cd benedict
 ```
 
 Or download the files directly.
@@ -112,7 +118,7 @@ SLACK_BOT_TOKEN=xoxb-your-bot-token-here
 SLACK_APP_TOKEN=xapp-your-app-token-here
 ```
 
-Replace the values with your actual tokens from the Slack App setup (see [SLACK_SETUP.md](SLACK_SETUP.md)).
+Copy `.env.example` and replace the values with your actual tokens from the Slack App setup (see [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md)).
 
 ### 5. Run the Bot
 
@@ -183,7 +189,7 @@ Response:
 📺 Channel: #proj-foo
 🔗 Repository: foo/bar
 ⏰ Onboarded: 2026-02-01 20:30 UTC
-👤 By: @michael
+👤 By: @alice
 ```
 
 ### 4. Ask Questions
@@ -203,7 +209,7 @@ The bot will:
 Use this checklist to verify everything works:
 
 ### Basic Setup
-- [ ] Completed Slack app setup (see [SLACK_SETUP.md](SLACK_SETUP.md))
+- [ ] Completed Slack app setup (see [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md))
 - [ ] Created `.env` file with tokens
 - [ ] Installed Python dependencies (`make sync` or `make install`)
 - [ ] Started bot successfully (`make run`)
@@ -278,13 +284,17 @@ slack-repo-agent/
 │           └── context.py           # Context building utilities
 ├── Makefile                          # Development commands
 ├── pyproject.toml                    # Python project configuration and dependencies
-├── README.md                  # This file
-├── SLACK_SETUP.md             # Slack app setup guide
-├── ARCHITECTURE.md            # Architecture documentation
-├── CLEANUP_SUMMARY.md         # Cleanup documentation
-├── .env                       # Your tokens (DO NOT COMMIT)
-├── .gitignore                 # Git ignore rules
-└── state.json                 # Runtime state (created automatically)
+├── README.md                         # This file
+├── LICENSE                           # MIT license
+├── CONTRIBUTING.md                   # Contributor guide
+├── docs/
+│   ├── SLACK_SETUP.md                # Slack app setup guide
+│   └── FAQ.md                        # Common questions
+├── plans/
+│   └── ARCHITECTURE.md               # Architecture documentation
+├── .env.example                      # Token template (copy to .env)
+├── .gitignore                        # Git ignore rules
+└── state.json                        # Runtime state (created automatically, not committed)
 ```
 
 ## State File
@@ -318,7 +328,7 @@ This file is created automatically and persists across restarts.
 ### "Missing SLACK_BOT_TOKEN" or "Missing SLACK_APP_TOKEN" error
 
 **Fix:**
-See [SLACK_SETUP.md](SLACK_SETUP.md) for detailed troubleshooting steps.
+See [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) for detailed troubleshooting steps.
 
 ### Bot responds but says "This channel hasn't been onboarded yet"
 
@@ -350,9 +360,12 @@ make sync      # Sync dependencies with uv (recommended)
 make install   # Install dependencies with uv
 make deps      # Check if dependencies are installed
 make run       # Run the bot
+make test      # Run pytest
+make test-cov  # Run pytest with coverage
+make lint      # Run ruff
+make typecheck # Run mypy
+make format    # Format code
 make clean     # Remove cache files
-make lint      # Run linters (if installed)
-make format    # Format code (if black is installed)
 ```
 
 ### Running in Development
@@ -412,23 +425,26 @@ benedict
 
 ## Contributing
 
-This is a proof-of-concept. Contributions welcome!
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests, and pull request guidelines.
+
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities using [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT License - feel free to use and modify.
+MIT License. See [LICENSE](LICENSE).
 
 ## Support
 
 For issues or questions:
-1. Check the Troubleshooting section above
+1. Check the Troubleshooting section above and [docs/FAQ.md](docs/FAQ.md)
 2. Review Slack app configuration
 3. Check terminal logs for error messages
 4. Verify `.env` file is correctly formatted
+5. Open a GitHub issue using the bug or feature templates
 
 ## Architecture
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for current architecture overview.
+See [`plans/ARCHITECTURE.md`](plans/ARCHITECTURE.md) for current architecture overview.
 
 See [`plans/slack-agent-architecture.md`](plans/slack-agent-architecture.md) for detailed architecture documentation.
 
