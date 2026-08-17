@@ -119,21 +119,29 @@ uv pip install -e .
 
 **Using a virtual environment (recommended):**
 ```bash
-make venv
+make setup
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-make sync
 ```
+
+`make setup` creates `.venv` and installs production plus dev dependencies (pytest, ruff, mypy, pre-commit).
 
 ### 4. Configure Environment Variables
 
-Create a `.env` file in the project directory:
+Copy the example file and fill in tokens:
+
+```bash
+cp .env.example .env
+```
+
+Required values:
 
 ```bash
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
 SLACK_APP_TOKEN=xapp-your-app-token-here
+ANTHROPIC_API_KEY=sk-ant-your-key-here
 ```
 
-Copy `.env.example` and replace the values with your actual tokens from the Slack App setup (see [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md)).
+See [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) for Slack app tokens.
 
 ### 5. Run the Bot
 

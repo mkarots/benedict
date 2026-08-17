@@ -457,9 +457,11 @@ After reading this guide:
 ## 13. Additional Resources
 
 - `plans/ARCHITECTURE.md`: High-level architecture overview
-- `README.md`: Setup and usage instructions
+- `README.md`: Setup, usage, tests, and community links
+- `CONTRIBUTING.md`: Local development and pull requests
 - `CHANGELOG.md`: Version history and changes
-- `docs/`: Feature-specific design documents
+- `docs/`: Feature-specific design documents and FAQ
+- `tests/`: pytest suite (`tests/unit/` and `tests/integration/`)
 
 ## 14. Open Questions
 
