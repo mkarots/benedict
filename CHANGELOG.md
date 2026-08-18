@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.21] - 2026-08-18
+
+### Added
+- **Branding and marketing proposal**: Added `docs/BRAND_MARKETING_PROPOSAL.md` as an initial working document for positioning, brand identity, audience, messaging, and go-to-market decisions. Linked from the README documentation table.
+
 ## [0.3.20] - 2026-08-17
 
 ### Changed

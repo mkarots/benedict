@@ -280,6 +280,7 @@ Still open:
 | [plans/ARCHITECTURE.md](plans/ARCHITECTURE.md) | Current architecture overview |
 | [plans/MILESTONE_STATUS.md](plans/MILESTONE_STATUS.md) | Milestone tracker (some items are stale; trust this README and CHANGELOG first) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [docs/BRAND_MARKETING_PROPOSAL.md](docs/BRAND_MARKETING_PROPOSAL.md) | Initial branding and marketing proposal (working session agenda) |
 
 ## License
 
