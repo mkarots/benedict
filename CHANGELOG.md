@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Notion (`run_notion`)**: Read and write Notion during Slack conversations when `NOTION_API_KEY` is set. Supports search, page read, database/board query, create page/card, update properties (card status), and append content. `@benedict link notion <url>` / `unlink notion` store a per-channel default. Writes should be confirmed in-thread. See [docs/NOTION_INTEGRATION.md](docs/NOTION_INTEGRATION.md).
 
+## [0.5.2] - 2026-08-18
+
+### Fixed
+- Slack error Block Kit now parses `⚠️ Type` followed by a single newline and bullet details. The previous regex required a blank line, so messages like `⚠️ Some operations failed:\n- Metadata file not found` were wrapped in a second generic Error header.
+
+## [0.5.1] - 2026-08-18
+
+### Fixed
+- Asking Benedict to create a GitHub issue (or any non-metadata request) no longer dies in the metadata classifier with `Metadata file not found`. The metadata-tool shortcut only runs for explicit metadata-file wording, registers tools only when `.metadata.benedict` exists, and falls through to the conversation/`run_github` path on failure.
+
+### Changed
+- Gitignore now excludes generated coverage/cache files, watcher state, `.metadata.benedict` sidecars, nested `.worktrees/`, and local Cursor config.
+
 ## [0.5.0] - 2026-08-18
 
 ### Added
