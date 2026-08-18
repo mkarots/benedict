@@ -30,6 +30,7 @@ from benedict.commands import (
     create_tool_registry,
 )
 from benedict.commands.github_tools import RunGithubTool
+from benedict.commands.notion_tools import RunNotionTool, parse_notion_id, probe_notion_id
 from benedict.commands.tool_loop import run_tool_loop
 
 logger = logging.getLogger(__name__)
@@ -113,17 +114,109 @@ class RepoAgent:
             return channel_config.get("repo")
         return None
 
+    def get_channel_notion(self, channel_id: str) -> Dict[str, str]:
+        """Get linked Notion ids for a channel."""
+        state = self.load_state()
+        channel_config = state.get("channels", {}).get(channel_id) or {}
+        notion = channel_config.get("notion") or {}
+        return {key: value for key, value in notion.items() if value}
+
+    def set_channel_notion(self, channel_id: str, notion: Dict[str, str]) -> None:
+        """Store linked Notion ids on an onboarded channel."""
+        state = self.load_state()
+        if "channels" not in state or channel_id not in state["channels"]:
+            raise KeyError(f"Channel {channel_id} is not onboarded")
+        state["channels"][channel_id]["notion"] = {
+            key: value for key, value in notion.items() if value
+        }
+        self.save_state(state)
+
+    def clear_channel_notion(self, channel_id: str) -> None:
+        """Remove linked Notion ids without offboarding the repo."""
+        state = self.load_state()
+        channel = (state.get("channels") or {}).get(channel_id)
+        if not channel:
+            return
+        channel.pop("notion", None)
+        self.save_state(state)
+
+    def handle_link_notion(self, channel_id: str, text: str) -> Tuple[bool, str]:
+        """Link a Notion page or database URL to this channel."""
+        if not self.get_channel_repo(channel_id):
+            return (
+                False,
+                "⚠️ Not Onboarded\n\n"
+                "Onboard a repository before linking Notion.\n\n"
+                "*Next steps:*\n"
+                "• `@agent onboard repo your-org/your-repo`",
+            )
+        notion_id = parse_notion_id(text)
+        if not notion_id:
+            return (
+                False,
+                "⚠️ Notion URL Not Found\n\n"
+                "I couldn't find a Notion page or database id in your message.\n\n"
+                "*Next steps:*\n"
+                "• `@agent link notion https://www.notion.so/...`",
+            )
+        ok, message, notion_state = probe_notion_id(notion_id)
+        if not ok:
+            return False, f"⚠️ Notion Not Reachable\n\n{message}"
+        self.set_channel_notion(channel_id, notion_state)
+        title = notion_state.get("title") or message
+        kind = (
+            "database"
+            if notion_state.get("database_id") and not notion_state.get("page_id")
+            else "page"
+        )
+        if notion_state.get("page_id") and notion_state.get("database_id"):
+            kind = "card (database item)"
+        return (
+            True,
+            f"✅ Linked Notion {kind}: *{title}*\n"
+            f"I'll use this as the default for `run_notion` in this channel.",
+        )
+
+    def handle_unlink_notion(self, channel_id: str) -> Tuple[bool, str]:
+        """Forget the channel's Notion mapping. Does not revoke Notion access."""
+        if not self.get_channel_repo(channel_id):
+            return (
+                False,
+                "⚠️ Not Onboarded\n\nThis channel hasn't been onboarded yet.",
+            )
+        if not self.get_channel_notion(channel_id):
+            return True, "No Notion page is linked to this channel."
+        self.clear_channel_notion(channel_id)
+        return (
+            True,
+            "✅ Unlinked Notion from this channel. The repo mapping is unchanged.\n"
+            "Remove the integration from the page in Notion if you also want to revoke access.",
+        )
+
+    @staticmethod
+    def is_link_notion_command(text: str) -> bool:
+        lowered = text.lower()
+        return "link notion" in lowered and "unlink notion" not in lowered
+
+    @staticmethod
+    def is_unlink_notion_command(text: str) -> bool:
+        return "unlink notion" in text.lower()
+
     def set_channel_repo(self, channel_id: str, repo: str, user_id: str) -> None:
         """Associate repository with channel."""
         state = self.load_state()
         if "channels" not in state:
             state["channels"] = {}
 
-        state["channels"][channel_id] = {
+        existing = state["channels"].get(channel_id, {})
+        channel = {
             "repo": repo,
             "onboarded_at": datetime.utcnow().isoformat() + "Z",
             "onboarded_by": user_id,
         }
+        if existing.get("notion"):
+            channel["notion"] = existing["notion"]
+        state["channels"][channel_id] = channel
         self.save_state(state)
         logger.info(f"Onboarded channel {channel_id} to repo {repo}")
 
@@ -182,12 +275,12 @@ class RepoAgent:
                 # Try to resolve repository path
                 # Check multiple possible locations: absolute paths, org/repo structure, or just repo name
                 repo_source = None
-                
+
                 # Get configured repository source directories from environment variable
                 # Format: comma-separated paths, e.g., "/Users/name/Projects,/opt/repos"
                 repo_source_dirs_env = os.environ.get("BENEDICT_REPO_SOURCE_DIRS", "")
                 repo_source_dirs = []
-                
+
                 if repo_source_dirs_env:
                     # Parse comma-separated paths
                     for dir_path in repo_source_dirs_env.split(","):
@@ -204,7 +297,7 @@ class RepoAgent:
                 possible_paths = [
                     Path(repo),  # Try as-is (might be absolute path like /Users/name/Projects/repo)
                 ]
-                
+
                 # Add paths from configured source directories
                 for source_dir in repo_source_dirs:
                     if source_dir.exists() and source_dir.is_dir():
@@ -212,7 +305,7 @@ class RepoAgent:
                         possible_paths.append(source_dir / repo)
                         # Just repo name: {source_dir}/hookedllm
                         possible_paths.append(source_dir / repo.split("/")[-1])
-                
+
                 # Add current directory as fallback
                 possible_paths.append(Path.cwd() / repo.split("/")[-1])
 
@@ -313,28 +406,28 @@ class RepoAgent:
                 )
 
         self.set_channel_repo(channel_id, repo, user_id)
-        
+
         # Build success message
         message = (
             f"✅ Onboarded! This channel is now linked to `{repo}`.\n"
             f"I'll remember this repo for all our conversations here.\n"
         )
-        
+
         return True, message
 
     def handle_offboard(self, channel_id: str, user_id: str) -> Tuple[bool, str]:
         """Handle offboard command to remove channel from repository.
-        
+
         Args:
             channel_id: Slack channel ID
             user_id: User ID who requested offboarding
-            
+
         Returns:
             Tuple of (success, message)
         """
         state = self.load_state()
         channels = state.get("channels", {})
-        
+
         if channel_id not in channels:
             return (
                 False,
@@ -343,14 +436,14 @@ class RepoAgent:
                 "*To onboard:*\n"
                 "• Use `@agent onboard repo your-org/your-repo`",
             )
-        
+
         # Get repo info before removing
         channel_config = channels[channel_id]
         repo = channel_config.get("repo", "unknown")
-        
+
         # Remove channel from state
         self.remove_channel_repo(channel_id)
-        
+
         # Build success message
         message = (
             f"✅ Offboarded! This channel is no longer linked to `{repo}`.\n"
@@ -358,9 +451,8 @@ class RepoAgent:
             f"*Note:* Workspace data and conversation history are preserved.\n"
             f"To re-onboard, use `@agent onboard repo {repo}`"
         )
-        
-        return True, message
 
+        return True, message
 
     def handle_status(self, channel_id: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """Handle status command.
@@ -399,6 +491,10 @@ class RepoAgent:
             f"⏰ Onboarded: {formatted_time}\n"
             f"👤 By: <@{onboarded_by}>"
         )
+        notion = channel_config.get("notion") or {}
+        if notion.get("title") or notion.get("page_id") or notion.get("database_id"):
+            label = notion.get("title") or notion.get("page_id") or notion.get("database_id")
+            message += f"\n🔗 Notion: `{label}`"
 
         return (True, message, channel_config)
 
@@ -437,8 +533,9 @@ class RepoAgent:
             try:
                 workspace_path = self.workspace_manager.get_workspace_path(channel_id)
                 repo_path = workspace_path / repo
-                
+
                 from benedict.metadata import MetadataReader
+
                 metadata_reader = MetadataReader()
                 tool_registry = create_tool_registry(metadata_reader=metadata_reader)
 
@@ -446,62 +543,66 @@ class RepoAgent:
                     # Initialize LLM classifier with tool registry
                     if not self.llm_classifier:
                         self.llm_classifier = LLMCommandClassifier(
-                            llm=self.llm,
-                            tool_registry=tool_registry,
-                            fallback_to_query=True
+                            llm=self.llm, tool_registry=tool_registry, fallback_to_query=True
                         )
                     else:
                         # Update tool registry in case metadata changed
                         self.llm_classifier.tool_registry = tool_registry
-                    
+
                     # Get conversation history for context
                     recent_messages = conversation.get_messages(max_messages=5)
                     history = [
-                        {"role": msg.role, "content": msg.content}
-                        for msg in recent_messages
+                        {"role": msg.role, "content": msg.content} for msg in recent_messages
                     ]
-                    
+
                     # Classify with LLM
-                    logger.info(f"Attempting LLM classification for: '{text}' with {len(tool_registry.list_tools())} tools available")
+                    logger.info(
+                        f"Attempting LLM classification for: '{text}' with {len(tool_registry.list_tools())} tools available"
+                    )
                     llm_result = self.llm_classifier.classify(text, conversation_history=history)
-                    
+
                     if llm_result and llm_result.get("tool_calls"):
-                        logger.info(f"LLM returned {len(llm_result['tool_calls'])} tool calls: {[tc.get('name') for tc in llm_result['tool_calls']]}")
+                        logger.info(
+                            f"LLM returned {len(llm_result['tool_calls'])} tool calls: {[tc.get('name') for tc in llm_result['tool_calls']]}"
+                        )
                         # Execute tool calls using registry
                         tool_calls = llm_result["tool_calls"]
                         results = []
                         context = {"workspace_path": str(repo_path)}
-                        
+
                         for tool_call in tool_calls:
                             tool_name = tool_call.get("name")
                             arguments = tool_call.get("arguments") or tool_call.get("input", {})
                             result = tool_registry.execute(tool_name, arguments, context)
                             results.append(result)
-                        
+
                         # Format results
                         success_count = sum(1 for r in results if r.success)
                         if success_count == len(results):
                             messages = [r.message for r in results if r.message]
                             data_results = [r.data for r in results if r.data]
-                            
+
                             if messages:
                                 message = "\n".join(messages)
                             elif data_results:
                                 import yaml
+
                                 message = f"```yaml\n{yaml.dump(data_results[0] if len(data_results) == 1 else data_results, default_flow_style=False)}\n```"
                             else:
                                 message = "✅ Operations completed successfully."
                         else:
                             errors = [r.error or "Unknown error" for r in results if not r.success]
-                            message = f"⚠️ Some operations failed:\n" + "\n".join(f"- {e}" for e in errors)
-                        
+                            message = f"⚠️ Some operations failed:\n" + "\n".join(
+                                f"- {e}" for e in errors
+                            )
+
                         conversation.add_message("assistant", message)
                         self.conversation_manager.save_conversation(conversation)
                         return (success_count == len(results), message)
             except Exception as e:
                 logger.warning(f"LLM classification failed: {e}", exc_info=True)
                 # Fall through to regular LLM query
-        
+
         # No command detected - treat as query (fall through to LLM)
 
         # If no LLM or repo reader, return stub response
@@ -590,9 +691,7 @@ class RepoAgent:
                     # Determine date filter
                     today = date.today()
                     filter_today = (
-                        "today" in text_lower
-                        or "todays" in text_lower
-                        or "today's" in text_lower
+                        "today" in text_lower or "todays" in text_lower or "today's" in text_lower
                     )
 
                     # Filter conversations
@@ -623,12 +722,7 @@ class RepoAgent:
                                 f"=== Conversation {i+1} (Thread: {conv.thread_ts}) ===\n"
                                 f"Repo: {conv.repo}\n"
                                 f"Updated: {conv.updated_at}\n"
-                                + "\n".join(
-                                    [
-                                        f"{msg.role}: {msg.content}"
-                                        for msg in conv.messages
-                                    ]
-                                )
+                                + "\n".join([f"{msg.role}: {msg.content}" for msg in conv.messages])
                                 for i, conv in enumerate(filtered_conversations)
                             ]
                         )
@@ -662,6 +756,9 @@ class RepoAgent:
                 "- **Run GitHub CLI (`gh`)** in this repository via the `run_github` tool"
             )
         capabilities.append(
+            "- **Read and write Notion** via the `run_notion` tool when `NOTION_API_KEY` is set"
+        )
+        capabilities.append(
             "- **Access conversation history** - I can read and summarize past conversations in this channel"
         )
 
@@ -670,6 +767,16 @@ class RepoAgent:
             if capabilities
             else "- Limited access (no repository reader configured)"
         )
+
+        linked_notion = self.get_channel_notion(channel_id)
+        if linked_notion:
+            notion_ids = ", ".join(f"{key}={value}" for key, value in linked_notion.items())
+            notion_link_text = f"This channel's linked Notion: {notion_ids}. Prefer these ids."
+        else:
+            notion_link_text = (
+                "This channel has no linked Notion page. Ask the user to "
+                "`link notion <url>` or pass an explicit id."
+            )
 
         system = (
             f"You are Benedict, a helpful technical engineer assistant for the repository '{repo}'.\n\n"
@@ -685,16 +792,22 @@ class RepoAgent:
             f"- You can reference specific files, functions, and code patterns from the context.\n"
             f"- If asked about conversations, summarize them, extract key topics, decisions, and action items.\n"
             f"- If asked about your capabilities, explain that you have access to repository files, semantic search, "
-            f"workspace metadata, conversation history, and GitHub via `run_github`.\n"
+            f"workspace metadata, conversation history, GitHub via `run_github`, and Notion via `run_notion`.\n"
             f"- Be confident about your access - you are not a generic LLM without repository access, "
             f"but rather an agent with integrated repository reading capabilities.\n"
             f"- **GitHub (`run_github`)**: To inspect PRs, issues, checks, or other GitHub data, call "
             f"`run_github` with argv only (do not include `gh`). Example: "
-            f"`argv=[\"pr\", \"list\", \"--json\", \"title,url,author\"]`. Prefer `--json` so you can parse "
+            f'`argv=["pr", "list", "--json", "title,url,author"]`. Prefer `--json` so you can parse '
             f"results. This is not a general shell — only `gh` runs. Ask the user before mutating GitHub "
             f"(create, merge, close, comment). Never print tokens or secrets. If `gh` is missing or not "
             f"authenticated, explain that the host running Benedict must install GitHub CLI and run "
-            f"`gh auth login`.\n\n"
+            f"`gh auth login`.\n"
+            f"- **Notion (`run_notion`)**: {notion_link_text} "
+            f"Actions: search, get_page, query_database, create_page, update_page, append_content. "
+            f"Use query_database for boards/cards and update_page properties (e.g. Status) to move a card. "
+            f"Ask the user before creating or editing pages or cards. Never print tokens. "
+            f"If Notion returns object_not_found, the integration must be invited via Share in Notion. "
+            f"If NOTION_API_KEY is missing, tell the operator to set it.\n\n"
             f"## Response Formatting (Slack-compatible)\n\n"
             f"- Format your responses using Slack mrkdwn format:\n"
             f"  - Use `*bold*` for emphasis and headings (not `**bold**`)\n"
@@ -715,7 +828,8 @@ class RepoAgent:
         # GitHub is a conversation tool (interpret output), not a classifier command.
         try:
             github_registry = ToolRegistry()
-            tool_context: Dict[str, Any] = {}
+            tool_context: Dict[str, Any] = {"notion": self.get_channel_notion(channel_id)}
+            github_registry.register(RunNotionTool())
             if workspace_path:
                 github_registry.register(RunGithubTool())
                 tool_context["workspace_path"] = str(workspace_path / repo)
@@ -751,18 +865,15 @@ class RepoAgent:
             )
 
     def handle_architect_query(
-        self,
-        channel_id: str,
-        text: str,
-        thread_ts: str
+        self, channel_id: str, text: str, thread_ts: str
     ) -> Tuple[bool, str]:
         """Handle architect query across all projects.
-        
+
         Args:
             channel_id: Slack channel ID
             text: User message text
             thread_ts: Thread timestamp (unique conversation identifier)
-            
+
         Returns:
             Tuple of (success, message)
         """
@@ -771,15 +882,15 @@ class RepoAgent:
         architect_channel = state.get("architect", {}).get("channel_id")
         if architect_channel != channel_id:
             return False, "This channel is not the architect channel."
-        
+
         # 2. Get or create conversation for this thread
         conversation = self.conversation_manager.get_conversation(
             thread_ts=thread_ts, channel_id=channel_id, repo=None
         )
-        
+
         # 3. Add user message to conversation
         conversation.add_message("user", text)
-        
+
         # 4. Check if LLM is available
         if not self.llm:
             response_text = (
@@ -790,7 +901,7 @@ class RepoAgent:
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
             return (True, response_text)
-        
+
         # 5. Build architect context
         try:
             architect_context = build_architect_context(self, text, state)
@@ -802,7 +913,7 @@ class RepoAgent:
                 f"Error building architect context: {str(e)}\n\n"
                 f"Please try again.",
             )
-        
+
         # 6. Build system message with architect prompt
         system = (
             ARCHITECT_SYSTEM_PROMPT
@@ -822,10 +933,10 @@ class RepoAgent:
             + "- When referencing projects, use format: `project-name` (channel: `channel-id`)\n"
             + "- When showing code examples, always specify the language in code blocks"
         )
-        
+
         # 7. Get conversation history for LLM
         history_messages = conversation.get_message_history(max_messages=10)
-        
+
         # 8. Generate response
         try:
             response = self.llm.generate(
@@ -833,7 +944,7 @@ class RepoAgent:
                 system=system,
                 max_tokens=2000,
             )
-            
+
             response_text = response if isinstance(response, str) else str(response)
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
@@ -1013,11 +1124,11 @@ class RepoAgent:
         """Check if text is an offboard command."""
         text_lower = text.lower().strip()
         return (
-            "offboard" in text_lower or
-            "unonboard" in text_lower or
-            "remove channel" in text_lower or
-            "disconnect" in text_lower or
-            "unlink" in text_lower
+            "offboard" in text_lower
+            or "unonboard" in text_lower
+            or "remove channel" in text_lower
+            or "disconnect" in text_lower
+            or ("unlink" in text_lower and "notion" not in text_lower)
         )
 
     @staticmethod
@@ -1025,12 +1136,14 @@ class RepoAgent:
         """Check if text is architect onboarding command."""
         text_lower = text.lower().strip()
         return (
-            "onboard architect" in text_lower or
-            "this is the architect channel" in text_lower or
-            "architect channel" in text_lower
+            "onboard architect" in text_lower
+            or "this is the architect channel" in text_lower
+            or "architect channel" in text_lower
         )
 
-    def handle_onboard_architect(self, channel_id: str, user_id: str, text: str) -> Tuple[bool, str]:
+    def handle_onboard_architect(
+        self, channel_id: str, user_id: str, text: str
+    ) -> Tuple[bool, str]:
         """Handle architect onboarding."""
         self.set_architect_channel(channel_id, user_id)
         return True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
@@ -1069,9 +1182,7 @@ class RepoAgent:
                         timestamp_str = action.get("timestamp", "")
                         if timestamp_str:
                             try:
-                                since = datetime.fromisoformat(
-                                    timestamp_str.replace("Z", "+00:00")
-                                )
+                                since = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
                                 break
                             except Exception:
                                 pass

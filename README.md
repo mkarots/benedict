@@ -6,7 +6,7 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.0). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.0). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -19,9 +19,10 @@ Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.0). It is
 - Architect channel for cross-project questions
 - Slack conversation history indexing into the workspace
 - GitHub CLI (`gh`) during conversations, when `gh` is installed and authenticated on the host
+- Notion read/write during conversations, when `NOTION_API_KEY` is set (`link notion` per channel)
 - MCP server (`benedict-mcp`) so Cursor and Claude Code can query onboarded projects
 
-**Not implemented:** GitHub API as a `RepoReader`, Notion, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
+**Not implemented:** GitHub API as a `RepoReader`, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
 
 ## How it works
 
@@ -44,7 +45,9 @@ Mention `@benedict` (or `@agent`) in the channel.
 | --- | --- |
 | `onboard repo org/repo` | Links the channel to a local checkout. Also accepts `this channel is for org/repo` or an absolute path. |
 | `offboard` | Removes the channel mapping. |
-| `status` | Shows the linked repo and when it was onboarded. |
+| `link notion <url>` | Sets this channel's default Notion page or database for `run_notion`. |
+| `unlink notion` | Clears the Notion mapping. Does not offboard the repo. |
+| `status` | Shows the linked repo, Notion link, and when it was onboarded. |
 | `update index` | Incremental reindex. Add `force` for a full rebuild. |
 | `onboard architect` | Marks the channel as the architect channel for cross-project questions. |
 | Any other question | Repo-scoped conversation with search and LLM. |
@@ -82,6 +85,17 @@ Benedict searches the index, reads relevant files from the workspace, and replie
 
 If GitHub CLI is installed and authenticated on the host, Benedict can run `gh` in the onboarded workspace repo (list PRs, inspect issues, and similar). Mutating GitHub (create, merge, close, comment) is supposed to be confirmed with you first. This is not a general shell.
 
+### Notion
+
+If `NOTION_API_KEY` is set (internal integration token), Benedict can read and write Notion during conversations: search, read pages, query boards, create pages/cards, update card properties (status), and append content.
+
+1. Create an internal integration and copy the token into `.env` as `NOTION_API_KEY`.
+2. In Notion, Share the project page or database with that integration.
+3. In the Slack channel: `@benedict link notion <page-or-database-url>`.
+4. Ask normally. Writes should be confirmed in the thread first.
+
+Benedict acts as the integration, not as the Slack user. `unlink notion` only forgets the channel default. See [docs/NOTION_INTEGRATION.md](docs/NOTION_INTEGRATION.md).
+
 ## Prerequisites
 
 - Python 3.10 or higher
@@ -89,6 +103,7 @@ If GitHub CLI is installed and authenticated on the host, Benedict can run `gh` 
 - A Slack workspace where you can create apps
 - An Anthropic API key for LLM answers (`ANTHROPIC_API_KEY`)
 - Optional: [GitHub CLI](https://cli.github.com/) (`gh`) for GitHub tools
+- Optional: a Notion internal integration token (`NOTION_API_KEY`) for Notion tools
 - Optional: Cursor or Claude Code, to use the MCP server (`benedict-mcp`)
 - Optional: local git checkouts of the repos you want to onboard
 
@@ -145,6 +160,7 @@ SLACK_APP_TOKEN=xapp-your-app-token-here
 ANTHROPIC_API_KEY=your-anthropic-api-key
 # Optional
 # ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+# NOTION_API_KEY=secret_your-notion-integration-token
 # BENEDICT_REPO_SOURCE_DIRS=/Users/you/Projects,/opt/repos
 ```
 
@@ -163,6 +179,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_REPO_SOURCE_DIRS` | `~/Projects` | Comma-separated roots used during onboard |
 | `BENEDICT_CHUNK_SIZE` | `2000` | Index chunk size in characters |
 | `BENEDICT_METADATA_FILE` | `.metadata.benedict` | Override metadata file name/path |
+| `NOTION_API_KEY` | unset | Enables Notion read/write through `run_notion` |
 
 ## Run
 
@@ -268,16 +285,18 @@ The composition root is `src/benedict/main.py`. Concrete classes are wired there
 
 **GitHub tool fails.** Install `gh` on the host and run `gh auth login`. Benedict does not ship a GitHub token of its own.
 
+**Notion tool fails.** Set `NOTION_API_KEY`, Share the page with the integration, then `@benedict link notion <url>`. `object_not_found` almost always means the page was not shared.
+
 **Corrupt state.** Stop the bot, delete `state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
 ## Roadmap
 
-Shipped beyond the original v0/M1 plan: semantic search, workspaces, metadata, architect channel, Slack history indexing, and GitHub CLI during chat.
+Shipped beyond the original v0/M1 plan: semantic search, workspaces, metadata, architect channel, Slack history indexing, GitHub CLI during chat, and Notion via `run_notion`.
 
 Still open:
 
 - Remote GitHub `RepoReader` (original M2) so onboarding does not require a local checkout
-- External knowledge sources (Notion, Google Docs)
+- Google Docs and other external knowledge sources
 - Stronger test coverage for `agent.py` and command routing
 - Open-source packaging (LICENSE, CI, SECURITY.md). See [docs/OPEN_SOURCE_GUIDE_INDEX.md](docs/OPEN_SOURCE_GUIDE_INDEX.md).
 
@@ -286,6 +305,8 @@ Still open:
 | Doc | Use it for |
 | --- | --- |
 | [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) | Slack app configuration |
+| [docs/MCP.md](docs/MCP.md) | Cursor / Claude Code MCP server |
+| [docs/NOTION_INTEGRATION.md](docs/NOTION_INTEGRATION.md) | Notion token, Share, and `link notion` |
 | [docs/CODE_READING_GUIDE.md](docs/CODE_READING_GUIDE.md) | How to read the codebase |
 | [plans/ARCHITECTURE.md](plans/ARCHITECTURE.md) | Current architecture overview |
 | [plans/MILESTONE_STATUS.md](plans/MILESTONE_STATUS.md) | Milestone tracker (some items are stale; trust this README and CHANGELOG first) |

@@ -13,6 +13,7 @@ from .metadata_tools import (
     GetRepositorySummaryTool,
     ListKeyFilesTool,
 )
+from .notion_tools import RunNotionTool
 from .tool_framework import Tool, ToolRegistry, ToolResult
 from .tool_loop import run_tool_loop
 from .tool_registry_factory import create_tool_registry
@@ -31,5 +32,6 @@ __all__ = [
     "GetRepositorySummaryTool",
     "LLMCommandClassifier",
     "RunGithubTool",
+    "RunNotionTool",
     "run_tool_loop",
 ]

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-18
+
+### Added
+- **Notion (`run_notion`)**: Read and write Notion during Slack conversations when `NOTION_API_KEY` is set. Supports search, page read, database/board query, create page/card, update properties (card status), and append content. `@benedict link notion <url>` / `unlink notion` store a per-channel default. Writes should be confirmed in-thread. See [docs/NOTION_INTEGRATION.md](docs/NOTION_INTEGRATION.md).
+
 ## [0.5.0] - 2026-08-18
 
 ### Added
