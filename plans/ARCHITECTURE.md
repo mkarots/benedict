@@ -2,10 +2,21 @@
 
 ## Entry Point
 
-**`src/benedict/main.py`** is the application entry point. Run with:
+**`src/benedict/main.py`** is the Slack application entry point. Run with:
 ```bash
 python -m benedict.main
 ```
+
+**`src/benedict/mcp/server.py`** is the MCP server entry point (Cursor / Claude Code). Run with:
+```bash
+benedict-mcp
+```
+or:
+```bash
+python -m benedict.mcp
+```
+
+The MCP process does not start Slack. It reads the same `state.json`, workspaces, and index. See [docs/MCP.md](../docs/MCP.md).
 
 ## File Structure
 
@@ -13,6 +24,8 @@ python -m benedict.main
 - **`main.py`** - Composition root (wires all dependencies together)
 - **`slack_app.py`** - Slack Bolt app configuration and event handlers
 - **`agent.py`** - Main agent logic (handles commands and conversations)
+- **`paths.py`** - Shared data-dir and `.env` path helpers
+- **`mcp/`** - MCP server (project resolver, read-only service, stdio composition root)
 
 ### Domain Models
 - **`models/conversation.py`** - Conversation and Message models, ConversationManager
@@ -59,6 +72,8 @@ python -m benedict.main
 - **`metadata/metadata_generator.py`** - Generates METADATA files for directories
 - **`metadata/metadata_reader.py`** - Reads METADATA files
 - **`metadata/content_handlers.py`** - Content-specific handlers for metadata generation
+
+Benedict does not have a method-file subsystem. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
 
 ### Utilities
 - **`utils/context.py`** - Context building functions (uses semantic search when available)
@@ -142,6 +157,7 @@ Environment variables:
 ## Commands
 
 - `@agent onboard repo <repo>` - Link channel to repository
+- `@agent offboard` - Unlink the channel from its repository
 - `@agent status` - Show channel status and repository info
 - `@agent update index` - Update semantic index (incremental)
 - `@agent update index force` - Force full reindex

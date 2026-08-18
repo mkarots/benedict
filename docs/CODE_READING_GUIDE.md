@@ -33,7 +33,6 @@ This guide does not:
 | **Dependency Injection** | Dependencies passed to classes rather than created internally |
 | **Workspace** | Isolated directory per Slack channel containing repository resources |
 | **Metadata** | `.metadata.benedict` files providing directory summaries and context |
-| **Method File** | `.benedict.method.yaml` file defining project phases, concerns, and rules |
 | **Semantic Indexer** | Component that indexes code for semantic similarity search |
 | **Repo Reader** | Abstraction for reading repository files (local filesystem or workspace) |
 | **Conversation Repository** | Abstraction for persisting conversation state |
@@ -70,7 +69,7 @@ The codebase is organized into these layers:
 
 ### Step 1: Understand the Entry Point
 
-**Start here:** `src/benedict/main.py`
+**Start here:** `src/benedict/main.py` (Slack) or `src/benedict/mcp/server.py` (MCP)
 
 **Questions to answer:**
 - What dependencies does the system need?
@@ -78,13 +77,14 @@ The codebase is organized into these layers:
 - What happens if optional dependencies fail?
 
 **Key sections:**
-- Lines 95-217: `main()` function shows the complete dependency graph
-- Lines 116-197: Each component creation shows what it depends on
+- `main.py` `main()` function shows the Slack dependency graph
+- `mcp/server.py` `build_mcp_service()` shows the MCP dependency graph
 
 **What you'll learn:**
 - The complete system architecture in one place
 - How optional components are handled
 - Configuration via environment variables
+- How the MCP server reuses the same data directory without starting Slack
 
 ### Step 2: Understand the Core Agent
 
@@ -157,7 +157,6 @@ The codebase is organized into these layers:
 - `commands/`: Command classification and tool execution
 - `workspace/`: Workspace lifecycle management
 - `metadata/`: Metadata generation and reading
-- `method/`: Method file reading and writing
 
 ## 6. Guiding Questions for Reading Code
 
@@ -406,7 +405,6 @@ When reading a new part of the codebase:
 - `commands/`: Command classification and tool execution
 - `workspace/`: Workspace management
 - `metadata/`: Metadata generation and reading
-- `method/`: Method file handling
 - `utils/`: Utility functions (context building, formatting)
 
 ## 11. Debugging Tips

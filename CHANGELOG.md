@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-18
+
 ### Added
-- **Notion tool (`run_notion`)**: Benedict can now read from Notion during conversations when `NOTION_API_KEY` is configured on the host. The tool is intentionally read-only and supports search, page retrieval, markdown retrieval, and block-child listing so the model can inspect workspace docs without shell access.
+- **MCP server**: Cursor, Claude Code, and other MCP clients can query onboarded Benedict projects over stdio. Tools: `list_projects`, `get_repository_summary`, `search_code`, `get_recent_actions`, `ask_benedict`. Entry point: `benedict-mcp` / `python -m benedict.mcp`. See [docs/MCP.md](docs/MCP.md).
+
+## [0.4.0] - 2026-08-18
+
+### Removed
+- **Method subsystem**: Removed `.benedict.method.yaml` reading, writing, Slack create-method command, classifier method tools, prompt rhetoric, and onboard auto-create. The YAML file was not consumed as methodology (rules were never enforced), and the surrounding machinery duplicated create/read/update paths. Metadata tools and repo Q&A are unchanged.
 
 ## [0.3.20] - 2026-08-17
 

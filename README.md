@@ -1,12 +1,12 @@
 # Benedict
 
-A Slack bot that links a channel to a local git repository and answers questions about that repo with Claude, semantic search, and project method/metadata files.
+A Slack bot that links a channel to a local git repository and answers questions about that repo with Claude, semantic search, and project metadata files.
 
-Use Benedict when a Slack channel is the working surface for a codebase and you want an agent that already knows the repo, the thread history, and the project's current phase.
+Use Benedict when a Slack channel is the working surface for a codebase and you want an agent that already knows the repo and the thread history.
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.3.20). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.0). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -15,25 +15,24 @@ Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.3.20). It i
 - Claude 3.5 Sonnet (override with `ANTHROPIC_MODEL`) plus a stub mode if the API key is missing
 - Semantic code search with ChromaDB and sentence-transformers; git-based incremental reindex
 - Per-channel workspaces (symlink or copy of the local repo)
-- `.benedict.method.yaml` for phase, concerns, and rules
 - `.metadata.benedict` directory summaries that boost search
 - Architect channel for cross-project questions
 - Slack conversation history indexing into the workspace
 - GitHub CLI (`gh`) during conversations, when `gh` is installed and authenticated on the host
-- Notion read access during conversations, when `NOTION_API_KEY` is configured on the host
+- MCP server (`benedict-mcp`) so Cursor and Claude Code can query onboarded projects
 
-**Not implemented:** GitHub API as a `RepoReader`, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
+**Not implemented:** GitHub API as a `RepoReader`, Notion, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
 
 ## How it works
 
 1. You invite Benedict to a Slack channel and onboard a local repository.
 2. Benedict creates a workspace for that channel and indexes the repo on first use.
-3. A mention or a reply in an existing Benedict thread builds context (README, method file, metadata, semantic hits, recent actions) and asks Claude.
-4. Explicit commands (onboard, status, index, method file) skip the general Q&A path and run dedicated handlers.
+3. A mention or a reply in an existing Benedict thread builds context (README, metadata, semantic hits, recent actions) and asks Claude.
+4. Explicit commands (onboard, status, index) skip the general Q&A path and run dedicated handlers.
 
 ```
 Slack event → slack_app.py → RepoAgent
-  → workspace + semantic index + method/metadata context
+  → workspace + semantic index + metadata context
   → Claude (optional tools) → formatted Slack reply
 ```
 
@@ -47,11 +46,14 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `offboard` | Removes the channel mapping. |
 | `status` | Shows the linked repo and when it was onboarded. |
 | `update index` | Incremental reindex. Add `force` for a full rebuild. |
-| `create method file` | Writes a default `.benedict.method.yaml` if one is missing. |
 | `onboard architect` | Marks the channel as the architect channel for cross-project questions. |
 | Any other question | Repo-scoped conversation with search and LLM. |
 
-Natural-language method updates (`update phase`, `show method file`) go through the LLM tool classifier when a workspace and LLM are available.
+There is no method-file command. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
+
+### MCP (Cursor / Claude Code)
+
+This is not a Slack command. After a repo is onboarded, run `benedict-mcp` (or `make mcp`) so Cursor and Claude Code can call `list_projects`, `get_repository_summary`, `search_code`, `get_recent_actions`, and `ask_benedict`. Setup: [docs/MCP.md](docs/MCP.md). Use the same `BENEDICT_DATA_DIR` as the Slack bot.
 
 ### Onboard a channel
 
@@ -80,15 +82,6 @@ Benedict searches the index, reads relevant files from the workspace, and replie
 
 If GitHub CLI is installed and authenticated on the host, Benedict can run `gh` in the onboarded workspace repo (list PRs, inspect issues, and similar). Mutating GitHub (create, merge, close, comment) is supposed to be confirmed with you first. This is not a general shell.
 
-### Notion
-
-If `NOTION_API_KEY` is configured on the host, Benedict can read from Notion during conversations using the `run_notion` tool. The current integration is intentionally read-only and supports:
-
-- Searching for pages and databases
-- Retrieving a page object
-- Retrieving a page as markdown
-- Listing block children for a page or block
-
 ## Prerequisites
 
 - Python 3.10 or higher
@@ -96,7 +89,7 @@ If `NOTION_API_KEY` is configured on the host, Benedict can read from Notion dur
 - A Slack workspace where you can create apps
 - An Anthropic API key for LLM answers (`ANTHROPIC_API_KEY`)
 - Optional: [GitHub CLI](https://cli.github.com/) (`gh`) for GitHub tools
-- Optional: a Notion integration token (`NOTION_API_KEY`) for Notion tools
+- Optional: Cursor or Claude Code, to use the MCP server (`benedict-mcp`)
 - Optional: local git checkouts of the repos you want to onboard
 
 ## Slack app setup
@@ -152,7 +145,6 @@ SLACK_APP_TOKEN=xapp-your-app-token-here
 ANTHROPIC_API_KEY=your-anthropic-api-key
 # Optional
 # ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
-# NOTION_API_KEY=secret_your-notion-integration-token
 # BENEDICT_REPO_SOURCE_DIRS=/Users/you/Projects,/opt/repos
 ```
 
@@ -160,9 +152,9 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | --- | --- | --- |
 | `SLACK_BOT_TOKEN` | required | Slack bot token |
 | `SLACK_APP_TOKEN` | required | Slack Socket Mode token |
-| `ANTHROPIC_API_KEY` | optional | Claude. Without it, Benedict runs in stub mode. |
+| `ANTHROPIC_API_KEY` | optional | Claude. Without it, Slack runs in stub mode and MCP `ask_benedict` is unavailable. |
 | `ANTHROPIC_MODEL` | `claude-3-5-sonnet-20241022` | Claude model id |
-| `BENEDICT_DATA_DIR` | repo root | Root for state, workspaces, and ChromaDB |
+| `BENEDICT_DATA_DIR` | repo root | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
 | `BENEDICT_WORKSPACES_DIR` | `{data_dir}/workspaces` | Per-channel workspaces |
 | `BENEDICT_WORKSPACE_COPY_MODE` | `symlink` | `symlink` or `copy` |
 | `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Vector index |
@@ -170,9 +162,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_ENV_FILE` | `{repo}/.env` | dotenv path |
 | `BENEDICT_REPO_SOURCE_DIRS` | `~/Projects` | Comma-separated roots used during onboard |
 | `BENEDICT_CHUNK_SIZE` | `2000` | Index chunk size in characters |
-| `BENEDICT_METHOD_FILE` | `.benedict.method.yaml` | Override method file name/path |
 | `BENEDICT_METADATA_FILE` | `.metadata.benedict` | Override metadata file name/path |
-| `NOTION_API_KEY` | unset | Enables read-only Notion access through the `run_notion` conversation tool |
 
 ## Run
 
@@ -189,14 +179,22 @@ python -m benedict.main
 
 You should see: `Bot is running! Press Ctrl+C to stop.`
 
+### MCP server (Cursor / Claude Code)
+
+After a channel is onboarded, the same data can be queried from an IDE without Slack running:
+
+```bash
+benedict-mcp
+```
+
+Or `make mcp` / `python -m benedict.mcp`. Setup is in [docs/MCP.md](docs/MCP.md). Point `BENEDICT_DATA_DIR` at the directory the Slack bot uses.
+
 ## Usage
 
 1. Invite the bot: `/invite @benedict`
 2. Onboard: `@benedict onboard repo acme/widget`
 3. Confirm: `@benedict status`
 4. Ask: `@benedict what's the architecture?`
-
-If the repo has no `.benedict.method.yaml`, Benedict will push you to create one. That file is the source of truth for phase, iteration, and concerns.
 
 ## State and workspaces
 
@@ -231,7 +229,6 @@ src/benedict/
   indexers/               # Slack history indexer
   llm/                    # Claude + mock
   metadata/               # .metadata.benedict generate/read
-  method/                 # .benedict.method.yaml read/write
   models/                 # Conversation models
   protocols/              # Interfaces and factories
   repo_change_detector/   # GitChangeDetector
@@ -271,13 +268,11 @@ The composition root is `src/benedict/main.py`. Concrete classes are wired there
 
 **GitHub tool fails.** Install `gh` on the host and run `gh auth login`. Benedict does not ship a GitHub token of its own.
 
-**Notion tool fails.** Create a Notion integration, share the relevant pages/databases with it, and set `NOTION_API_KEY` on the host running Benedict.
-
 **Corrupt state.** Stop the bot, delete `state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
 ## Roadmap
 
-Shipped beyond the original v0/M1 plan: semantic search, workspaces, method files, metadata, architect channel, Slack history indexing, and GitHub CLI during chat.
+Shipped beyond the original v0/M1 plan: semantic search, workspaces, metadata, architect channel, Slack history indexing, and GitHub CLI during chat.
 
 Still open:
 
