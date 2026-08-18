@@ -20,8 +20,9 @@ Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.3.20). It i
 - Architect channel for cross-project questions
 - Slack conversation history indexing into the workspace
 - GitHub CLI (`gh`) during conversations, when `gh` is installed and authenticated on the host
+- Notion read access during conversations, when `NOTION_API_KEY` is configured on the host
 
-**Not implemented:** GitHub API as a `RepoReader`, Notion, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
+**Not implemented:** GitHub API as a `RepoReader`, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
 
 ## How it works
 
@@ -79,6 +80,15 @@ Benedict searches the index, reads relevant files from the workspace, and replie
 
 If GitHub CLI is installed and authenticated on the host, Benedict can run `gh` in the onboarded workspace repo (list PRs, inspect issues, and similar). Mutating GitHub (create, merge, close, comment) is supposed to be confirmed with you first. This is not a general shell.
 
+### Notion
+
+If `NOTION_API_KEY` is configured on the host, Benedict can read from Notion during conversations using the `run_notion` tool. The current integration is intentionally read-only and supports:
+
+- Searching for pages and databases
+- Retrieving a page object
+- Retrieving a page as markdown
+- Listing block children for a page or block
+
 ## Prerequisites
 
 - Python 3.10 or higher
@@ -86,6 +96,7 @@ If GitHub CLI is installed and authenticated on the host, Benedict can run `gh` 
 - A Slack workspace where you can create apps
 - An Anthropic API key for LLM answers (`ANTHROPIC_API_KEY`)
 - Optional: [GitHub CLI](https://cli.github.com/) (`gh`) for GitHub tools
+- Optional: a Notion integration token (`NOTION_API_KEY`) for Notion tools
 - Optional: local git checkouts of the repos you want to onboard
 
 ## Slack app setup
@@ -141,6 +152,7 @@ SLACK_APP_TOKEN=xapp-your-app-token-here
 ANTHROPIC_API_KEY=your-anthropic-api-key
 # Optional
 # ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+# NOTION_API_KEY=secret_your-notion-integration-token
 # BENEDICT_REPO_SOURCE_DIRS=/Users/you/Projects,/opt/repos
 ```
 
@@ -160,6 +172,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_CHUNK_SIZE` | `2000` | Index chunk size in characters |
 | `BENEDICT_METHOD_FILE` | `.benedict.method.yaml` | Override method file name/path |
 | `BENEDICT_METADATA_FILE` | `.metadata.benedict` | Override metadata file name/path |
+| `NOTION_API_KEY` | unset | Enables read-only Notion access through the `run_notion` conversation tool |
 
 ## Run
 
@@ -257,6 +270,8 @@ The composition root is `src/benedict/main.py`. Concrete classes are wired there
 **LLM answers are stubs.** Set `ANTHROPIC_API_KEY`. Without it, Benedict acknowledges the repo but does not call Claude.
 
 **GitHub tool fails.** Install `gh` on the host and run `gh auth login`. Benedict does not ship a GitHub token of its own.
+
+**Notion tool fails.** Create a Notion integration, share the relevant pages/databases with it, and set `NOTION_API_KEY` on the host running Benedict.
 
 **Corrupt state.** Stop the bot, delete `state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Notion tool (`run_notion`)**: Benedict can now read from Notion during conversations when `NOTION_API_KEY` is configured on the host. The tool is intentionally read-only and supports search, page retrieval, markdown retrieval, and block-child listing so the model can inspect workspace docs without shell access.
+
 ## [0.3.20] - 2026-08-17
 
 ### Changed

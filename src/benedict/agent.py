@@ -7,9 +7,9 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, date, timezone
+from datetime import datetime, date
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple, List
+from typing import Optional, Dict, Any, Tuple
 
 from benedict.protocols import (
     LLM,
@@ -31,6 +31,7 @@ from benedict.commands import (
     LLMCommandClassifier,
 )
 from benedict.commands.github_tools import RunGithubTool
+from benedict.commands.notion_tools import RunNotionTool
 from benedict.commands.tool_loop import run_tool_loop
 
 logger = logging.getLogger(__name__)
@@ -72,15 +73,12 @@ class RepoAgent:
         self.metadata_generator = MetadataGenerator() if workspace_manager else None
         self.method_reader = MethodReader() if workspace_manager else None
         self.method_writer = MethodWriter() if workspace_manager else None
-        
+
         # LLM-based classifier components
         self.tool_registry = None
         self.llm_classifier = None
-        if workspace_manager and llm:
-            from benedict.metadata import MetadataReader
-            metadata_reader = MetadataReader()
-            # Tool registry will be created per-repo as needed
-            # (to get method/metadata data for enhanced schemas)
+        # Tool registry will be created per-repo as needed
+        # (to get method/metadata data for enhanced schemas)
 
         # Create conversation repository if not provided
         if conversation_repository is None:
@@ -192,12 +190,12 @@ class RepoAgent:
                 # Try to resolve repository path
                 # Check multiple possible locations: absolute paths, org/repo structure, or just repo name
                 repo_source = None
-                
+
                 # Get configured repository source directories from environment variable
                 # Format: comma-separated paths, e.g., "/Users/name/Projects,/opt/repos"
                 repo_source_dirs_env = os.environ.get("BENEDICT_REPO_SOURCE_DIRS", "")
                 repo_source_dirs = []
-                
+
                 if repo_source_dirs_env:
                     # Parse comma-separated paths
                     for dir_path in repo_source_dirs_env.split(","):
@@ -214,7 +212,7 @@ class RepoAgent:
                 possible_paths = [
                     Path(repo),  # Try as-is (might be absolute path like /Users/name/Projects/repo)
                 ]
-                
+
                 # Add paths from configured source directories
                 for source_dir in repo_source_dirs:
                     if source_dir.exists() and source_dir.is_dir():
@@ -222,7 +220,7 @@ class RepoAgent:
                         possible_paths.append(source_dir / repo)
                         # Just repo name: {source_dir}/hookedllm
                         possible_paths.append(source_dir / repo.split("/")[-1])
-                
+
                 # Add current directory as fallback
                 possible_paths.append(Path.cwd() / repo.split("/")[-1])
 
@@ -288,10 +286,10 @@ class RepoAgent:
                         repo_path = workspace_path / repo
                         if repo_path.exists():
                             method_file = repo_path / ".benedict.method.yaml"
-                            
+
                             # Check if directory is empty (no files except .git, .metadata.benedict, etc.)
                             is_empty = self._is_directory_empty(repo_path)
-                            
+
                             # Create method file if directory is empty or method file doesn't exist
                             # If directory is empty, always create default method file
                             if is_empty or not method_file.exists():
@@ -301,7 +299,7 @@ class RepoAgent:
                                     action="create_method_file_auto",
                                     content_type="method",
                                     resource=repo,
-                                    note="Auto-created during onboarding"
+                                    note="Auto-created during onboarding",
                                 )
                                 logger.info(f"Auto-created default method file for {repo}")
                     except Exception as e:
@@ -348,28 +346,28 @@ class RepoAgent:
                 )
 
         self.set_channel_repo(channel_id, repo, user_id)
-        
+
         # Build success message
         message = (
             f"✅ Onboarded! This channel is now linked to `{repo}`.\n"
             f"I'll remember this repo for all our conversations here.\n"
         )
-        
+
         return True, message
 
     def handle_offboard(self, channel_id: str, user_id: str) -> Tuple[bool, str]:
         """Handle offboard command to remove channel from repository.
-        
+
         Args:
             channel_id: Slack channel ID
             user_id: User ID who requested offboarding
-            
+
         Returns:
             Tuple of (success, message)
         """
         state = self.load_state()
         channels = state.get("channels", {})
-        
+
         if channel_id not in channels:
             return (
                 False,
@@ -378,14 +376,14 @@ class RepoAgent:
                 "*To onboard:*\n"
                 "• Use `@agent onboard repo your-org/your-repo`",
             )
-        
+
         # Get repo info before removing
         channel_config = channels[channel_id]
         repo = channel_config.get("repo", "unknown")
-        
+
         # Remove channel from state
         self.remove_channel_repo(channel_id)
-        
+
         # Build success message
         message = (
             f"✅ Offboarded! This channel is no longer linked to `{repo}`.\n"
@@ -393,9 +391,8 @@ class RepoAgent:
             f"*Note:* Workspace data and conversation history are preserved.\n"
             f"To re-onboard, use `@agent onboard repo {repo}`"
         )
-        
-        return True, message
 
+        return True, message
 
     def handle_status(self, channel_id: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """Handle status command.
@@ -447,7 +444,7 @@ class RepoAgent:
             True if method file update is requested
         """
         text_lower = text.lower()
-        
+
         # Explicit update requests
         explicit_patterns = [
             "update method file",
@@ -462,17 +459,17 @@ class RepoAgent:
             "change pc",
             "update program counter",
         ]
-        
+
         for pattern in explicit_patterns:
             if pattern in text_lower:
                 return True
-        
+
         # Implicit requests (phase/concern updates)
         if any(word in text_lower for word in ["phase", "concern", "iteration", "step"]) and any(
             word in text_lower for word in ["update", "change", "set", "modify", "to"]
         ):
             return True
-        
+
         return False
 
     def is_explicit_update_confirmation(self, text: str) -> bool:
@@ -485,7 +482,7 @@ class RepoAgent:
             True if explicit update confirmation
         """
         text_lower = text.lower()
-        
+
         explicit_confirmations = [
             "update method file",
             "yes, update it",
@@ -495,7 +492,7 @@ class RepoAgent:
             "do it",
             "update it",
         ]
-        
+
         return any(confirmation in text_lower for confirmation in explicit_confirmations)
 
     def handle_method_update(
@@ -535,7 +532,7 @@ class RepoAgent:
 
         # Try to parse update request from current text
         updates = self._parse_method_updates(text, method_data)
-        
+
         # If no updates in current text but it's a confirmation, check recent messages
         if not updates and self.is_explicit_update_confirmation(text):
             # Get conversation to check recent messages
@@ -550,7 +547,7 @@ class RepoAgent:
                     if parsed:
                         updates = parsed
                         break
-        
+
         # Check if this is an explicit confirmation (skip confirmation prompt)
         if self.is_explicit_update_confirmation(text) and updates:
             # Apply updates directly
@@ -558,8 +555,8 @@ class RepoAgent:
                 self._apply_method_updates(repo_method_path, updates)
                 return (
                     True,
-                    f"✅ *Method file updated*\n\n"
-                    f"I've updated the method file with your requested changes.",
+                    "✅ *Method file updated*\n\n"
+                    "I've updated the method file with your requested changes.",
                 )
             except Exception as e:
                 logger.error(f"Error updating method file: {e}", exc_info=True)
@@ -569,7 +566,7 @@ class RepoAgent:
                     f"Error: {str(e)}\n\n"
                     f"Please try again or check the method file format.",
                 )
-        
+
         # If we parsed updates, show what will change
         if updates:
             changes_text = self._format_method_changes(updates, method_data)
@@ -586,12 +583,12 @@ class RepoAgent:
         pc = method.get("pc", {})
         concerns = method.get("concerns", {})
 
-        current_state = f"*Current Method File State:*\n"
+        current_state = "*Current Method File State:*\n"
         current_state += f"• Phase: {pc.get('phase', 'N/A')}\n"
         current_state += f"• Iteration: {pc.get('iteration', 'N/A')}\n"
         current_state += f"• Step: {pc.get('step', 'N/A')}\n"
         if concerns:
-            current_state += f"\n*Current Concerns:*\n"
+            current_state += "\n*Current Concerns:*\n"
             for concern, state in concerns.items():
                 current_state += f"• {concern}: {state}\n"
 
@@ -619,7 +616,7 @@ class RepoAgent:
         """
         text_lower = text.lower()
         updates = {}
-        
+
         # Parse phase updates
         phase_patterns = [
             (r"set phase to (\w+)", "phase"),
@@ -632,7 +629,7 @@ class RepoAgent:
             if match:
                 updates["pc"] = updates.get("pc", {})
                 updates["pc"]["phase"] = match.group(1)
-        
+
         # Parse iteration updates
         iteration_patterns = [
             (r"set iteration to (\d+)", "iteration"),
@@ -644,7 +641,7 @@ class RepoAgent:
             if match:
                 updates["pc"] = updates.get("pc", {})
                 updates["pc"]["iteration"] = int(match.group(1))
-        
+
         # Parse step updates
         step_patterns = [
             (r"set step to (\w+)", "step"),
@@ -656,7 +653,7 @@ class RepoAgent:
             if match:
                 updates["pc"] = updates.get("pc", {})
                 updates["pc"]["step"] = match.group(1)
-        
+
         # Parse concern updates
         concern_patterns = [
             (r"set (\w+) (?:concern )?to (\w+)", "concern"),
@@ -675,7 +672,7 @@ class RepoAgent:
                 if concern_name in concerns or concern_name in concern_definitions:
                     updates["concerns"] = updates.get("concerns", {})
                     updates["concerns"][concern_name] = concern_state
-        
+
         return updates
 
     def _format_method_changes(self, updates: Dict[str, Any], current_data: Dict[str, Any]) -> str:
@@ -691,9 +688,9 @@ class RepoAgent:
         method = current_data.get("method", {})
         pc = method.get("pc", {})
         concerns = method.get("concerns", {})
-        
+
         changes = []
-        
+
         if "pc" in updates:
             pc_updates = updates["pc"]
             if "phase" in pc_updates:
@@ -708,16 +705,16 @@ class RepoAgent:
                 old = pc.get("step", "N/A")
                 new = pc_updates["step"]
                 changes.append(f"• Step: `{old}` → `{new}`")
-        
+
         if "concerns" in updates:
             concern_updates = updates["concerns"]
             for concern, new_state in concern_updates.items():
                 old = concerns.get(concern, "N/A")
                 changes.append(f"• {concern.capitalize()}: `{old}` → `{new_state}`")
-        
+
         if not changes:
             return "*No changes detected.*"
-        
+
         return "*Proposed changes:*\n" + "\n".join(changes)
 
     def _apply_method_updates(self, directory: Path, updates: Dict[str, Any]) -> None:
@@ -729,15 +726,15 @@ class RepoAgent:
         """
         if not self.method_writer:
             raise ValueError("MethodWriter not available")
-        
+
         # Build update structure
         method_updates = {"method": {}}
-        
+
         if "pc" in updates:
             method_updates["method"]["pc"] = updates["pc"]
         if "concerns" in updates:
             method_updates["method"]["concerns"] = updates["concerns"]
-        
+
         # Apply updates
         self.method_writer.update_method_data(directory, method_updates)
 
@@ -799,20 +796,28 @@ class RepoAgent:
 
     def _is_directory_empty(self, directory: Path) -> bool:
         """Check if directory is empty (no regular files, only hidden/system files).
-        
+
         Args:
             directory: Directory path to check
-            
+
         Returns:
             True if directory is empty or only contains hidden/system files
         """
         directory = Path(directory)
         if not directory.exists() or not directory.is_dir():
             return False
-        
+
         # Files/directories to ignore when checking if empty
-        ignore_patterns = {".git", ".metadata.benedict", ".benedict.method.yaml", "__pycache__", ".venv", "venv", "node_modules"}
-        
+        ignore_patterns = {
+            ".git",
+            ".metadata.benedict",
+            ".benedict.method.yaml",
+            "__pycache__",
+            ".venv",
+            "venv",
+            "node_modules",
+        }
+
         try:
             # Check if directory has any non-ignored files
             for item in directory.iterdir():
@@ -838,128 +843,147 @@ class RepoAgent:
 
     def _create_default_method_data(self) -> Dict[str, Any]:
         """Create default method file data structure.
-        
+
         Returns:
             Dictionary with default method file structure
         """
         return {
-                "method": {
-                    "pc": {
-                        "phase": "conception",
+            "method": {
+                "pc": {
+                    "phase": "conception",
+                    "iteration": 1,
+                    "step": "define",
+                },
+                "concern_definitions": {
+                    "scope": {
+                        "description": "the boundary of what the project does and does not do",
+                        "states": ["fluid", "narrowing", "locked", "reconsidering"],
+                        "rules": [
+                            "scope must be explicitly stated in every project",
+                            "scope changes are only permitted during conception and review phases",
+                            "during sprint, scope is locked — new ideas go to BACKLOG.md",
+                            "scope must be defined in terms of what is IN and what is OUT",
+                        ],
+                    },
+                    "documentation": {
+                        "description": "all written artifacts that make the project understandable, usable, and maintainable",
+                        "states": ["not_started", "drafting", "in_progress", "complete", "stale"],
+                        "rules": [
+                            "only documented software should be delivered",
+                            "documentation gates development — no feature ships without docs",
+                            "each project must have at minimum WHY.md, README.md, ROADMAP.md",
+                            "documentation must be reviewed for staleness at every review phase",
+                            "documentation is a first-class deliverable, not an afterthought",
+                        ],
+                    },
+                    "development": {
+                        "description": "all code, configuration, and infrastructure work",
+                        "states": [
+                            "blocked",
+                            "not_started",
+                            "prototyping",
+                            "active",
+                            "stabilising",
+                            "complete",
+                        ],
+                        "rules": [
+                            "development is not allowed in conception phase",
+                            "development in design phase is limited to throwaway prototypes",
+                            "development in sprint phase must follow the roadmap — no unplanned work",
+                            "development must produce deployable output at the end of each sprint",
+                            "development is gated by documentation — build it, then document it, then communicate it",
+                        ],
+                    },
+                    "communication": {
+                        "description": "all external-facing announcements, posts, updates, and promotion of the project",
+                        "states": ["not_applicable", "pending", "drafting", "published"],
+                        "rules": [
+                            "every delivered and documented feature must be communicated",
+                            "communication is the final step in the sprint loop — it cannot be skipped",
+                            "communication is not marketing fluff — it is a factual account of what changed and why",
+                            "no communication without documentation — you cannot announce what is not written down",
+                            "communication debt is project debt — uncommunicated features are invisible features",
+                        ],
+                    },
+                    "operations": {
+                        "description": "all work related to deploying, running, monitoring, and maintaining the project",
+                        "states": [
+                            "not_applicable",
+                            "not_started",
+                            "defining",
+                            "active",
+                            "reviewing",
+                        ],
+                        "rules": [
+                            "operations strategy must be defined during design phase",
+                            "the project must be in a deployable state at the end of every sprint",
+                            "operational health must be assessed during every review phase",
+                            "operations includes CI/CD, monitoring, hosting, incident response",
+                            "if the project cannot be operated, it cannot be delivered",
+                        ],
+                    },
+                    "feedback": {
+                        "description": "all signals — internal or external — about how the project is performing against its goals",
+                        "states": [
+                            "not_applicable",
+                            "not_started",
+                            "collecting",
+                            "synthesising",
+                            "actioned",
+                        ],
+                        "rules": [
+                            "feedback must be actively sought, not passively received",
+                            "feedback is collected during sprint, synthesised during review",
+                            "feedback that challenges scope must be logged and deferred to review phase",
+                            "feedback drives the decision at the end of review — next sprint, harden, expand, or kill",
+                            "absence of feedback is itself feedback — it means no one is using it",
+                        ],
+                    },
+                },
+                "concerns": {
+                    "scope": "fluid",
+                    "documentation": "not_started",
+                    "development": "not_started",
+                    "communication": "not_applicable",
+                    "operations": "not_applicable",
+                    "feedback": "not_started",
+                },
+                "sequence": {
+                    "conception": {
+                        "status": "active",
                         "iteration": 1,
-                        "step": "define",
+                        "loop": "define → challenge → refine",
+                        "exit": "motivation, problem, and scope are stable enough to design against",
+                        "addresses": ["motivation", "problem_definition", "scope"],
+                        "artifacts": ["WHY.md", "README.md"],
                     },
-                    "concern_definitions": {
-                        "scope": {
-                            "description": "the boundary of what the project does and does not do",
-                            "states": ["fluid", "narrowing", "locked", "reconsidering"],
-                            "rules": [
-                                "scope must be explicitly stated in every project",
-                                "scope changes are only permitted during conception and review phases",
-                                "during sprint, scope is locked — new ideas go to BACKLOG.md",
-                                "scope must be defined in terms of what is IN and what is OUT",
-                            ],
-                        },
-                        "documentation": {
-                            "description": "all written artifacts that make the project understandable, usable, and maintainable",
-                            "states": ["not_started", "drafting", "in_progress", "complete", "stale"],
-                            "rules": [
-                                "only documented software should be delivered",
-                                "documentation gates development — no feature ships without docs",
-                                "each project must have at minimum WHY.md, README.md, ROADMAP.md",
-                                "documentation must be reviewed for staleness at every review phase",
-                                "documentation is a first-class deliverable, not an afterthought",
-                            ],
-                        },
-                        "development": {
-                            "description": "all code, configuration, and infrastructure work",
-                            "states": ["blocked", "not_started", "prototyping", "active", "stabilising", "complete"],
-                            "rules": [
-                                "development is not allowed in conception phase",
-                                "development in design phase is limited to throwaway prototypes",
-                                "development in sprint phase must follow the roadmap — no unplanned work",
-                                "development must produce deployable output at the end of each sprint",
-                                "development is gated by documentation — build it, then document it, then communicate it",
-                            ],
-                        },
-                        "communication": {
-                            "description": "all external-facing announcements, posts, updates, and promotion of the project",
-                            "states": ["not_applicable", "pending", "drafting", "published"],
-                            "rules": [
-                                "every delivered and documented feature must be communicated",
-                                "communication is the final step in the sprint loop — it cannot be skipped",
-                                "communication is not marketing fluff — it is a factual account of what changed and why",
-                                "no communication without documentation — you cannot announce what is not written down",
-                                "communication debt is project debt — uncommunicated features are invisible features",
-                            ],
-                        },
-                        "operations": {
-                            "description": "all work related to deploying, running, monitoring, and maintaining the project",
-                            "states": ["not_applicable", "not_started", "defining", "active", "reviewing"],
-                            "rules": [
-                                "operations strategy must be defined during design phase",
-                                "the project must be in a deployable state at the end of every sprint",
-                                "operational health must be assessed during every review phase",
-                                "operations includes CI/CD, monitoring, hosting, incident response",
-                                "if the project cannot be operated, it cannot be delivered",
-                            ],
-                        },
-                        "feedback": {
-                            "description": "all signals — internal or external — about how the project is performing against its goals",
-                            "states": ["not_applicable", "not_started", "collecting", "synthesising", "actioned"],
-                            "rules": [
-                                "feedback must be actively sought, not passively received",
-                                "feedback is collected during sprint, synthesised during review",
-                                "feedback that challenges scope must be logged and deferred to review phase",
-                                "feedback drives the decision at the end of review — next sprint, harden, expand, or kill",
-                                "absence of feedback is itself feedback — it means no one is using it",
-                            ],
-                        },
+                    "design": {
+                        "status": "pending",
+                        "iteration": 0,
+                        "loop": "sketch → evaluate → revise",
+                        "exit": "technical design and roadmap are concrete enough to build against",
+                        "addresses": ["technical_design", "roadmap"],
+                        "artifacts": ["SYSTEM_SPEC.md", "ROADMAP.md"],
                     },
-                    "concerns": {
-                        "scope": "fluid",
-                        "documentation": "not_started",
-                        "development": "not_started",
-                        "communication": "not_applicable",
-                        "operations": "not_applicable",
-                        "feedback": "not_started",
+                    "sprint": {
+                        "status": "pending",
+                        "iteration": 0,
+                        "loop": "build → document → communicate",
+                        "exit": "feature is delivered, documented, and communicated",
+                        "addresses": ["development", "documentation", "communication"],
+                        "artifacts": ["CHANGELOG.md"],
                     },
-                    "sequence": {
-                        "conception": {
-                            "status": "active",
-                            "iteration": 1,
-                            "loop": "define → challenge → refine",
-                            "exit": "motivation, problem, and scope are stable enough to design against",
-                            "addresses": ["motivation", "problem_definition", "scope"],
-                            "artifacts": ["WHY.md", "README.md"],
-                        },
-                        "design": {
-                            "status": "pending",
-                            "iteration": 0,
-                            "loop": "sketch → evaluate → revise",
-                            "exit": "technical design and roadmap are concrete enough to build against",
-                            "addresses": ["technical_design", "roadmap"],
-                            "artifacts": ["SYSTEM_SPEC.md", "ROADMAP.md"],
-                        },
-                        "sprint": {
-                            "status": "pending",
-                            "iteration": 0,
-                            "loop": "build → document → communicate",
-                            "exit": "feature is delivered, documented, and communicated",
-                            "addresses": ["development", "documentation", "communication"],
-                            "artifacts": ["CHANGELOG.md"],
-                        },
-                        "review": {
-                            "status": "pending",
-                            "iteration": 0,
-                            "loop": "measure → assess → decide",
-                            "exit": "decision made — next sprint, hardening, or expansion",
-                            "addresses": ["feedback", "operations"],
-                            "artifacts": [],
-                        },
+                    "review": {
+                        "status": "pending",
+                        "iteration": 0,
+                        "loop": "measure → assess → decide",
+                        "exit": "decision made — next sprint, hardening, or expansion",
+                        "addresses": ["feedback", "operations"],
+                        "artifacts": [],
                     },
-                }
+                },
             }
+        }
 
     def handle_create_method(self, channel_id: str, repo: str) -> Tuple[bool, str]:
         """Handle method file creation request.
@@ -1064,16 +1088,17 @@ class RepoAgent:
             try:
                 workspace_path = self.workspace_manager.get_workspace_path(channel_id)
                 repo_path = workspace_path / repo
-                
+
                 # Create tool registry from method/metadata files
                 # Read method data first to enhance tool schemas
                 method_data = None
                 if self.method_reader:
                     method_data = self.method_reader.read_method(repo_path)
-                
+
                 from benedict.metadata import MetadataReader
+
                 metadata_reader = MetadataReader()
-                
+
                 # Create registry with enhanced schemas from method data
                 tool_registry = create_tool_registry_from_method_data(
                     method_data=method_data or {},
@@ -1081,49 +1106,50 @@ class RepoAgent:
                     method_writer=self.method_writer,
                     metadata_reader=metadata_reader,
                 )
-                
+
                 if tool_registry.list_tools():
                     # Initialize LLM classifier with tool registry
                     if not self.llm_classifier:
                         self.llm_classifier = LLMCommandClassifier(
-                            llm=self.llm,
-                            tool_registry=tool_registry,
-                            fallback_to_query=True
+                            llm=self.llm, tool_registry=tool_registry, fallback_to_query=True
                         )
                     else:
                         # Update tool registry in case method/metadata changed
                         self.llm_classifier.tool_registry = tool_registry
-                    
+
                     # Get conversation history for context
                     recent_messages = conversation.get_messages(max_messages=5)
                     history = [
-                        {"role": msg.role, "content": msg.content}
-                        for msg in recent_messages
+                        {"role": msg.role, "content": msg.content} for msg in recent_messages
                     ]
-                    
+
                     # Classify with LLM
-                    logger.info(f"Attempting LLM classification for: '{text}' with {len(tool_registry.list_tools())} tools available")
+                    logger.info(
+                        f"Attempting LLM classification for: '{text}' with {len(tool_registry.list_tools())} tools available"
+                    )
                     llm_result = self.llm_classifier.classify(text, conversation_history=history)
-                    
+
                     if llm_result and llm_result.get("tool_calls"):
-                        logger.info(f"LLM returned {len(llm_result['tool_calls'])} tool calls: {[tc.get('name') for tc in llm_result['tool_calls']]}")
+                        logger.info(
+                            f"LLM returned {len(llm_result['tool_calls'])} tool calls: {[tc.get('name') for tc in llm_result['tool_calls']]}"
+                        )
                         # Execute tool calls using registry
                         tool_calls = llm_result["tool_calls"]
                         results = []
                         context = {"workspace_path": str(repo_path)}
-                        
+
                         for tool_call in tool_calls:
                             tool_name = tool_call.get("name")
                             arguments = tool_call.get("arguments") or tool_call.get("input", {})
                             result = tool_registry.execute(tool_name, arguments, context)
                             results.append(result)
-                        
+
                         # Format results
                         success_count = sum(1 for r in results if r.success)
                         if success_count == len(results):
                             messages = [r.message for r in results if r.message]
                             data_results = [r.data for r in results if r.data]
-                            
+
                             # For get_method_state, prioritize the message which has the summary
                             # but also include YAML if user wants full details
                             if messages:
@@ -1131,24 +1157,31 @@ class RepoAgent:
                                 # If we have method data, append it as YAML for reference
                                 if data_results and any("method" in str(d) for d in data_results):
                                     import yaml
-                                    yaml_content = yaml.dump(data_results[0] if len(data_results) == 1 else data_results, default_flow_style=False)
+
+                                    yaml_content = yaml.dump(
+                                        data_results[0] if len(data_results) == 1 else data_results,
+                                        default_flow_style=False,
+                                    )
                                     message += f"\n\nFull method file contents:\n```yaml\n{yaml_content}\n```"
                             elif data_results:
                                 import yaml
+
                                 message = f"```yaml\n{yaml.dump(data_results[0] if len(data_results) == 1 else data_results, default_flow_style=False)}\n```"
                             else:
                                 message = "✅ Operations completed successfully."
                         else:
                             errors = [r.error or "Unknown error" for r in results if not r.success]
-                            message = f"⚠️ Some operations failed:\n" + "\n".join(f"- {e}" for e in errors)
-                        
+                            message = "⚠️ Some operations failed:\n" + "\n".join(
+                                f"- {e}" for e in errors
+                            )
+
                         conversation.add_message("assistant", message)
                         self.conversation_manager.save_conversation(conversation)
                         return (success_count == len(results), message)
             except Exception as e:
                 logger.warning(f"LLM classification failed: {e}", exc_info=True)
                 # Fall through to regular LLM query
-        
+
         # No command detected - treat as query (fall through to LLM)
 
         # If no LLM or repo reader, return stub response
@@ -1189,15 +1222,28 @@ class RepoAgent:
                         text_lower = text.lower()
                         is_method_query = any(
                             word in text_lower
-                            for word in ["method", "phase", "concern", "sprint", "conception", "design", "review", "project state"]
+                            for word in [
+                                "method",
+                                "phase",
+                                "concern",
+                                "sprint",
+                                "conception",
+                                "design",
+                                "review",
+                                "project state",
+                            ]
                         )
-                        
+
                         # If it's the first message in thread or explicitly about method, prioritize guidance
                         recent_messages = conversation.get_messages(max_messages=3)
-                        is_first_interaction = len([m for m in recent_messages if m.role == "assistant"]) == 0
-                        
+                        is_first_interaction = (
+                            len([m for m in recent_messages if m.role == "assistant"]) == 0
+                        )
+
                         if is_first_interaction or is_method_query:
-                            guidance_message = self._get_method_guidance_message(repo, repo_method_path)
+                            guidance_message = self._get_method_guidance_message(
+                                repo, repo_method_path
+                            )
                             conversation.add_message("assistant", guidance_message)
                             self.conversation_manager.save_conversation(conversation)
                             return (True, guidance_message)
@@ -1259,9 +1305,7 @@ class RepoAgent:
                     # Determine date filter
                     today = date.today()
                     filter_today = (
-                        "today" in text_lower
-                        or "todays" in text_lower
-                        or "today's" in text_lower
+                        "today" in text_lower or "todays" in text_lower or "today's" in text_lower
                     )
 
                     # Filter conversations
@@ -1292,12 +1336,7 @@ class RepoAgent:
                                 f"=== Conversation {i+1} (Thread: {conv.thread_ts}) ===\n"
                                 f"Repo: {conv.repo}\n"
                                 f"Updated: {conv.updated_at}\n"
-                                + "\n".join(
-                                    [
-                                        f"{msg.role}: {msg.content}"
-                                        for msg in conv.messages
-                                    ]
-                                )
+                                + "\n".join([f"{msg.role}: {msg.content}" for msg in conv.messages])
                                 for i, conv in enumerate(filtered_conversations)
                             ]
                         )
@@ -1334,10 +1373,13 @@ class RepoAgent:
             capabilities.append(
                 "- **Run GitHub CLI (`gh`)** in this repository via the `run_github` tool"
             )
+            capabilities.append(
+                "- **Read Notion** via the `run_notion` tool when `NOTION_API_KEY` is configured on the host"
+            )
         capabilities.append(
             "- **Access conversation history** - I can read and summarize past conversations in this channel"
         )
-        
+
         # Check for missing method file and add priority note (FIRST PRIORITY)
         method_priority_note = ""
         if workspace_path and self.method_reader:
@@ -1385,16 +1427,22 @@ class RepoAgent:
             f"- You can reference specific files, functions, and code patterns from the context.\n"
             f"- If asked about conversations, summarize them, extract key topics, decisions, and action items.\n"
             f"- If asked about your capabilities, explain that you have access to repository files, semantic search, "
-            f"workspace metadata, conversation history, method files, and GitHub via `run_github`.\n"
+            f"workspace metadata, conversation history, method files, GitHub via `run_github`, "
+            f"and Notion via `run_notion` when configured.\n"
             f"- Be confident about your access - you are not a generic LLM without repository access, "
             f"but rather an agent with integrated repository reading capabilities.\n"
             f"- **GitHub (`run_github`)**: To inspect PRs, issues, checks, or other GitHub data, call "
             f"`run_github` with argv only (do not include `gh`). Example: "
-            f"`argv=[\"pr\", \"list\", \"--json\", \"title,url,author\"]`. Prefer `--json` so you can parse "
+            f'`argv=["pr", "list", "--json", "title,url,author"]`. Prefer `--json` so you can parse '
             f"results. This is not a general shell — only `gh` runs. Ask the user before mutating GitHub "
             f"(create, merge, close, comment). Never print tokens or secrets. If `gh` is missing or not "
             f"authenticated, explain that the host running Benedict must install GitHub CLI and run "
             f"`gh auth login`.\n"
+            f"- **Notion (`run_notion`)**: To inspect Notion content, call `run_notion` with one of these "
+            f"actions: `search`, `retrieve_page`, `retrieve_page_markdown`, or `list_block_children`. "
+            f"Use `search` first when you need to find a page, then use page or block ids returned by Notion "
+            f"for follow-up reads. This tool is read-only and requires `NOTION_API_KEY` to be configured "
+            f"on the host.\n"
             f"- **CRITICAL**: The `.benedict.method.yaml` file is your PRIMARY source for project state. "
             f"If the user asks about project phases, concerns, rules, or current state, ALWAYS refer to the method file first. "
             f"Use the `get_method_state` tool to read it if needed.\n"
@@ -1432,6 +1480,7 @@ class RepoAgent:
             tool_context: Dict[str, Any] = {}
             if workspace_path:
                 github_registry.register(RunGithubTool())
+                github_registry.register(RunNotionTool())
                 tool_context["workspace_path"] = str(workspace_path / repo)
 
             if github_registry.list_tools():
@@ -1465,18 +1514,15 @@ class RepoAgent:
             )
 
     def handle_architect_query(
-        self,
-        channel_id: str,
-        text: str,
-        thread_ts: str
+        self, channel_id: str, text: str, thread_ts: str
     ) -> Tuple[bool, str]:
         """Handle architect query across all projects.
-        
+
         Args:
             channel_id: Slack channel ID
             text: User message text
             thread_ts: Thread timestamp (unique conversation identifier)
-            
+
         Returns:
             Tuple of (success, message)
         """
@@ -1485,15 +1531,15 @@ class RepoAgent:
         architect_channel = state.get("architect", {}).get("channel_id")
         if architect_channel != channel_id:
             return False, "This channel is not the architect channel."
-        
+
         # 2. Get or create conversation for this thread
         conversation = self.conversation_manager.get_conversation(
             thread_ts=thread_ts, channel_id=channel_id, repo=None
         )
-        
+
         # 3. Add user message to conversation
         conversation.add_message("user", text)
-        
+
         # 4. Check if LLM is available
         if not self.llm:
             response_text = (
@@ -1504,7 +1550,7 @@ class RepoAgent:
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
             return (True, response_text)
-        
+
         # 5. Build architect context
         try:
             architect_context = build_architect_context(self, text, state)
@@ -1516,7 +1562,7 @@ class RepoAgent:
                 f"Error building architect context: {str(e)}\n\n"
                 f"Please try again.",
             )
-        
+
         # 6. Build system message with architect prompt
         system = (
             ARCHITECT_SYSTEM_PROMPT
@@ -1536,10 +1582,10 @@ class RepoAgent:
             + "- When referencing projects, use format: `project-name` (channel: `channel-id`)\n"
             + "- When showing code examples, always specify the language in code blocks"
         )
-        
+
         # 7. Get conversation history for LLM
         history_messages = conversation.get_message_history(max_messages=10)
-        
+
         # 8. Generate response
         try:
             response = self.llm.generate(
@@ -1547,7 +1593,7 @@ class RepoAgent:
                 system=system,
                 max_tokens=2000,
             )
-            
+
             response_text = response if isinstance(response, str) else str(response)
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
@@ -1727,11 +1773,11 @@ class RepoAgent:
         """Check if text is an offboard command."""
         text_lower = text.lower().strip()
         return (
-            "offboard" in text_lower or
-            "unonboard" in text_lower or
-            "remove channel" in text_lower or
-            "disconnect" in text_lower or
-            "unlink" in text_lower
+            "offboard" in text_lower
+            or "unonboard" in text_lower
+            or "remove channel" in text_lower
+            or "disconnect" in text_lower
+            or "unlink" in text_lower
         )
 
     @staticmethod
@@ -1739,12 +1785,14 @@ class RepoAgent:
         """Check if text is architect onboarding command."""
         text_lower = text.lower().strip()
         return (
-            "onboard architect" in text_lower or
-            "this is the architect channel" in text_lower or
-            "architect channel" in text_lower
+            "onboard architect" in text_lower
+            or "this is the architect channel" in text_lower
+            or "architect channel" in text_lower
         )
 
-    def handle_onboard_architect(self, channel_id: str, user_id: str, text: str) -> Tuple[bool, str]:
+    def handle_onboard_architect(
+        self, channel_id: str, user_id: str, text: str
+    ) -> Tuple[bool, str]:
         """Handle architect onboarding."""
         self.set_architect_channel(channel_id, user_id)
         return True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
@@ -1783,9 +1831,7 @@ class RepoAgent:
                         timestamp_str = action.get("timestamp", "")
                         if timestamp_str:
                             try:
-                                since = datetime.fromisoformat(
-                                    timestamp_str.replace("Z", "+00:00")
-                                )
+                                since = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
                                 break
                             except Exception:
                                 pass

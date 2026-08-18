@@ -21,6 +21,7 @@ from .metadata_tools import (
 )
 from .llm_classifier import LLMCommandClassifier
 from .github_tools import RunGithubTool
+from .notion_tools import RunNotionTool
 from .tool_loop import run_tool_loop
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "GetRepositorySummaryTool",
     "LLMCommandClassifier",
     "RunGithubTool",
+    "RunNotionTool",
     "run_tool_loop",
 ]
