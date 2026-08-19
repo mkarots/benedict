@@ -1,44 +1,39 @@
-# Notion integration
+# Notion (`ntn`)
 
 One-sentence summary:
-How Benedict reads and writes Notion from Slack using an internal integration token.
+How Benedict reads and writes Notion from Slack by running the Notion CLI (`ntn`) the same way it runs `gh`.
 
 ## Setup (operator, once)
 
-1. In Notion: Settings → Connections → develop or manage integrations → New internal integration. Name it Benedict.
-2. Copy the secret into the bot host `.env`:
+1. Install the CLI: `curl -fsSL https://ntn.dev | bash` then `ntn --version`.
+2. Authenticate as a full workspace member:
 
 ```bash
-NOTION_API_KEY=secret_...
+ntn login
 ```
 
-3. Restart Benedict as the same process that can read that env var.
+Or put a personal access token in `.env` as `NOTION_API_KEY`. Benedict copies it to `NOTION_API_TOKEN` for `ntn`. Create a token at [Personal access tokens](https://www.notion.so/developers/tokens).
+
+3. Restart Benedict. Confirm `ntn` is on the PATH of that process.
 
 ## Per channel (Slack)
 
-1. In Notion, open the project page or database → Share → invite the Benedict integration.
-2. In the onboarded Slack channel:
-
 ```
-@benedict link notion https://www.notion.so/...
+@benedict link notion https://www.notion.so/your-page-or-database
 ```
 
-Benedict stores the id on the channel and uses it as the default for `run_notion`.
+stores the id as the channel default. `unlink notion` forgets it and does not offboard the git repo.
 
-```
-@benedict unlink notion
-```
+## How the agent navigates
 
-forgets that mapping. It does not offboard the git repo and does not revoke the Notion share.
+`run_notion` is argv-only, like `run_github`. The model may call it many times in one reply:
 
-## What the agent can do
+1. `datasources resolve DATABASE_ID` or `datasources query DATA_SOURCE_ID`
+2. `pages get PAGE_ID` — markdown, properties, nested `<page>` and `<database>` / `collection://` links
+3. Query the nested data source, then `pages get` a task card
 
-Reads: search, get a page (title, properties, text), query a database/board.
-
-Writes (ask first in the thread): create a page or database card, update properties (for example Status to move a card), append paragraphs.
-
-The bot acts as the integration, not as the Slack user.
+Ask before mutating (`pages create`, `pages edit`, `pages trash`).
 
 ## Failures
 
-`object_not_found` means the integration cannot see the page. Share it again, then `link notion`.
+If `ntn` is missing, install it on the Benedict host. If a page is not visible, run `ntn login` as the Notion user who can open it, or set `NOTION_API_KEY`. Copy the page/database link (id in the path, before `?v=`).

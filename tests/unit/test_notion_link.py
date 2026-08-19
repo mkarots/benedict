@@ -66,3 +66,12 @@ def test_offboard_does_not_match_unlink_notion():
     assert not RepoAgent.is_offboard_command("unlink notion")
     assert RepoAgent.is_offboard_command("offboard this channel")
     assert RepoAgent.is_offboard_command("unlink this channel")
+
+
+def test_link_notion_help_does_not_use_angle_brackets(tmp_path):
+    agent = _agent(tmp_path)
+    agent.set_channel_repo("C123", "example-org/example-repo", "Ualice")
+    success, message = agent.handle_link_notion("C123", "link notion")
+    assert success is False
+    assert "link notion https://www.notion.so/" in message
+    assert "<" not in message

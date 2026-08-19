@@ -30,7 +30,12 @@ from benedict.commands import (
     create_tool_registry,
 )
 from benedict.commands.github_tools import RunGithubTool
-from benedict.commands.notion_tools import RunNotionTool, parse_notion_id, probe_notion_id
+from benedict.commands.notion_tools import (
+    LINK_NOTION_EXAMPLE,
+    RunNotionTool,
+    parse_notion_id,
+    probe_notion_id,
+)
 from benedict.commands.tool_loop import run_tool_loop
 
 logger = logging.getLogger(__name__)
@@ -157,7 +162,7 @@ class RepoAgent:
                 "⚠️ Notion URL Not Found\n\n"
                 "I couldn't find a Notion page or database id in your message.\n\n"
                 "*Next steps:*\n"
-                "• `@agent link notion https://www.notion.so/...`",
+                f"• `{LINK_NOTION_EXAMPLE}`",
             )
         ok, message, notion_state = probe_notion_id(notion_id)
         if not ok:
@@ -190,7 +195,7 @@ class RepoAgent:
         return (
             True,
             "✅ Unlinked Notion from this channel. The repo mapping is unchanged.\n"
-            "Remove the integration from the page in Notion if you also want to revoke access.",
+            "Remove the connection from the page in Notion if you also want to revoke access.",
         )
 
     @staticmethod
@@ -760,7 +765,7 @@ class RepoAgent:
                 "- **Run GitHub CLI (`gh`)** in this repository via the `run_github` tool"
             )
         capabilities.append(
-            "- **Read and write Notion** via the `run_notion` tool when `NOTION_API_KEY` is set"
+            "- **Read and write Notion** via the `run_notion` tool (`ntn` on this host)"
         )
         capabilities.append(
             "- **Access conversation history** - I can read and summarize past conversations in this channel"
@@ -778,8 +783,12 @@ class RepoAgent:
             notion_link_text = f"This channel's linked Notion: {notion_ids}. Prefer these ids."
         else:
             notion_link_text = (
-                "This channel has no linked Notion page. Ask the user to "
-                "`link notion <url>` or pass an explicit id."
+                "This channel has no linked Notion page. Tell the user to run this "
+                f"exact Slack command: `{LINK_NOTION_EXAMPLE}`. They replace the "
+                "example URL with their real Notion page or database URL. "
+                "Never wrap URLs in angle brackets in Slack replies; Slack treats "
+                "angle brackets as markup and the command disappears. "
+                "The host must have `ntn` installed and `ntn login` (or NOTION_API_KEY)."
             )
 
         system = (
@@ -807,11 +816,19 @@ class RepoAgent:
             f"authenticated, explain that the host running Benedict must install GitHub CLI and run "
             f"`gh auth login`.\n"
             f"- **Notion (`run_notion`)**: {notion_link_text} "
-            f"Actions: search, get_page, query_database, create_page, update_page, append_content. "
-            f"Use query_database for boards/cards and update_page properties (e.g. Status) to move a card. "
-            f"Ask the user before creating or editing pages or cards. Never print tokens. "
-            f"If Notion returns object_not_found, the integration must be invited via Share in Notion. "
-            f"If NOTION_API_KEY is missing, tell the operator to set it.\n\n"
+            f"Call `run_notion` with argv only (do not include `ntn`). "
+            f"You may call it many times in one reply to walk Notion. Typical path: "
+            f'`argv=["datasources", "resolve", "DATABASE_ID"]`, then '
+            f'`argv=["datasources", "query", "DATA_SOURCE_ID"]`, then '
+            f'`argv=["pages", "get", "PAGE_ID"]` for a card. '
+            f"`ntn pages get` markdown can contain `collection://uuid` (a nested data source) "
+            f"and page urls — extract those ids and query/get them next. "
+            f'Also valid: argv=["api", "v1/pages/PAGE_ID"]. '
+            f"Ask the user before mutating (pages create, pages edit, pages trash). "
+            f"This is not a general shell — only `ntn` runs. Never print tokens. "
+            f"If ntn is missing, tell the operator to install it "
+            f"(`curl -fsSL https://ntn.dev | bash`) and run `ntn login`. "
+            f"NOTION_API_KEY in .env is copied to NOTION_API_TOKEN for ntn.\n\n"
             f"## Response Formatting (Slack-compatible)\n\n"
             f"- Format your responses using Slack mrkdwn format:\n"
             f"  - Use `*bold*` for emphasis and headings (not `**bold**`)\n"
@@ -845,6 +862,7 @@ class RepoAgent:
                     system=system,
                     tool_registry=github_registry,
                     context=tool_context,
+                    max_iterations=12,
                 )
             else:
                 response = self.llm.generate(

@@ -7,11 +7,10 @@ Composition root where all dependencies are wired together.
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from benedict.agent import RepoAgent
-from benedict.paths import get_data_dir, get_env_file
+from benedict.paths import get_data_dir, load_runtime_env
 from benedict.protocols import (
     create_llm,
     create_repo_reader,
@@ -29,19 +28,22 @@ setup_logging()
 logger = get_logger(__name__)
 
 
-# Load environment variables from .env file only if not already set
-# This respects existing environment variables and falls back to .env file
-_env_path = get_env_file()
-if not os.environ.get("SLACK_BOT_TOKEN") or not os.environ.get("SLACK_APP_TOKEN"):
-    if _env_path.exists():
-        logger.info(f"Loading .env from: {_env_path}")
-        load_dotenv(
-            dotenv_path=_env_path, override=False
-        )  # override=False means don't overwrite existing env vars
-    else:
-        logger.warning(f".env file not found at: {_env_path}")
+# Always load .env for missing keys (process env wins). Slack tokens already in
+# the environment must not skip the file, or NOTION_API_KEY in .env is ignored.
+_env_path = load_runtime_env()
+if _env_path.exists():
+    logger.info(f"Loading .env from: {_env_path}")
 else:
-    logger.info("Using environment variables from system (not loading .env file)")
+    logger.warning(f".env file not found at: {_env_path}")
+_notion_key = os.environ.get("NOTION_API_KEY") or ""
+if _notion_key:
+    logger.info(
+        "NOTION_API_KEY is set (%s…, %s chars). Process env overrides .env.",
+        _notion_key[:4],
+        len(_notion_key),
+    )
+else:
+    logger.info("NOTION_API_KEY is not set")
 
 
 def main():

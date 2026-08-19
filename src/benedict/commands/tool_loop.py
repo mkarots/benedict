@@ -11,7 +11,7 @@ from .tool_framework import ToolRegistry, ToolResult
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MAX_ITERATIONS = 5
+DEFAULT_MAX_ITERATIONS = 12
 
 
 def format_tool_result(result: ToolResult) -> str:
