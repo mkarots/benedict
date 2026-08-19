@@ -291,6 +291,7 @@ Still open:
 | --- | --- |
 | [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) | Slack app configuration |
 | [docs/CODE_READING_GUIDE.md](docs/CODE_READING_GUIDE.md) | How to read the codebase |
+| [docs/LLM_COMMAND_EXECUTION_DESIGN.md](docs/LLM_COMMAND_EXECUTION_DESIGN.md) | How LLM commands execute (environment, workspace, security) |
 | [plans/ARCHITECTURE.md](plans/ARCHITECTURE.md) | Current architecture overview |
 | [plans/MILESTONE_STATUS.md](plans/MILESTONE_STATUS.md) | Milestone tracker (some items are stale; trust this README and CHANGELOG first) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
