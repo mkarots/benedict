@@ -239,6 +239,14 @@ def create_slack_app(agent: RepoAgent) -> App:
                 success, message = agent.handle_onboard(channel_id, user_id, text_clean)
                 format_and_send_message(say, message, thread_ts, message_type="command")
 
+            elif agent.is_unlink_notion_command(text_clean):
+                success, message = agent.handle_unlink_notion(channel_id)
+                format_and_send_message(say, message, thread_ts, message_type="command")
+
+            elif agent.is_link_notion_command(text_clean):
+                success, message = agent.handle_link_notion(channel_id, text_clean)
+                format_and_send_message(say, message, thread_ts, message_type="command")
+
             elif agent.is_offboard_command(text_clean):
                 success, message = agent.handle_offboard(channel_id, user_id)
                 format_and_send_message(say, message, thread_ts, message_type="command")
@@ -309,7 +317,7 @@ def create_slack_app(agent: RepoAgent) -> App:
             repo = agent.get_channel_repo(channel_id)
             architect_channel = agent.get_architect_channel()
             is_architect_channel = architect_channel == channel_id
-            
+
             if not repo and not is_architect_channel:
                 return  # Channel not onboarded, skip processing
 
@@ -320,15 +328,11 @@ def create_slack_app(agent: RepoAgent) -> App:
             if is_thread_reply and bot_user_id:
                 try:
                     # Check if bot has messages in this thread
-                    thread_replies = client.conversations_replies(
-                        channel=channel_id, ts=thread_ts
-                    )
+                    thread_replies = client.conversations_replies(channel=channel_id, ts=thread_ts)
                     if thread_replies.get("ok"):
                         messages = thread_replies.get("messages", [])
                         # Check if bot has any messages in this thread
-                        bot_has_messages = any(
-                            msg.get("user") == bot_user_id for msg in messages
-                        )
+                        bot_has_messages = any(msg.get("user") == bot_user_id for msg in messages)
                         if bot_has_messages:
                             should_respond = True
                             logger.info(
@@ -351,7 +355,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                 try:
                     # Use thread_ts if in thread, otherwise use message_ts for new conversation
                     conversation_ts = thread_ts or message_ts
-                    
+
                     # Route to architect handler if this is architect channel
                     if is_architect_channel:
                         success, message = agent.handle_architect_query(
@@ -361,7 +365,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                         success, message = agent.handle_conversation(
                             channel_id, text, conversation_ts
                         )
-                    
+
                     if not success and "⚠️" in message:
                         format_and_send_message(say, message, conversation_ts, message_type="error")
                     else:

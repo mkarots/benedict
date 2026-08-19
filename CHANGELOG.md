@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-19
+
+### Changed
+- **Notion (`run_notion`)** now runs the Notion CLI (`ntn`) with argv, the same way `run_github` runs `gh`. The model can call it repeatedly to walk a board, `pages get` a card, then query nested `collection://` data sources. Conversation tool loop allows 12 rounds. Auth is `ntn login` or `NOTION_API_KEY` (copied to `NOTION_API_TOKEN`). The `notion-client` SDK is no longer a dependency.
+
+### Fixed
+- Slack replies that asked the user to `link notion` no longer use `<url>` placeholders. Slack treats `<...>` as markup and hid the command.
+- Slack startup always loads `.env` for missing keys. Previously, if `SLACK_BOT_TOKEN` and `SLACK_APP_TOKEN` were already in the process environment, the file was skipped and `NOTION_API_KEY` in `.env` was ignored.
+- `link notion` now uses the page/database id from the URL path and ignores `?v=` view ids. Board copy-links were probing the view and returning `object_not_found`.
+
+## [0.6.0] - 2026-08-18
+
+### Added
+- **Notion (`run_notion`)**: Read and write Notion during Slack conversations when `NOTION_API_KEY` is set. Supports search, page read, database/board query, create page/card, update properties (card status), and append content. `@benedict link notion <url>` / `unlink notion` store a per-channel default. Writes should be confirmed in-thread. See [docs/NOTION_INTEGRATION.md](docs/NOTION_INTEGRATION.md).
+
 ## [0.5.2] - 2026-08-18
 
 ### Fixed
