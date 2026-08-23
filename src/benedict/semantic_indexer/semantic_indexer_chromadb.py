@@ -24,6 +24,50 @@ from benedict.metadata import MetadataGenerator
 
 logger = logging.getLogger(__name__)
 
+# Chroma $in lists are chunked so a large rebase does not overflow the filter.
+CHROMA_FILE_PATH_IN_BATCH_SIZE = 100
+
+
+def delete_chunks_for_files(
+    collection: chromadb.Collection,
+    file_paths: List[str],
+    *,
+    batch_size: int = CHROMA_FILE_PATH_IN_BATCH_SIZE,
+) -> int:
+    """Delete indexed chunks for the given file paths.
+
+    Collections are already per-repo, so the filter uses ``file_path`` ``$in``
+    only. Combining ``repo`` equality with ``$in`` is a Chroma limitation the
+    git update path used to work around with one ``get`` per file.
+
+    Returns the number of chunk IDs passed to ``delete``, or 0 if nothing was
+    removed.
+    """
+    if not file_paths:
+        return 0
+
+    unique_paths = list(dict.fromkeys(file_paths))
+    effective_batch_size = batch_size if batch_size > 0 else len(unique_paths)
+    ids_to_delete: List[str] = []
+    for start in range(0, len(unique_paths), effective_batch_size):
+        batch = unique_paths[start : start + effective_batch_size]
+        try:
+            results = collection.get(where={"file_path": {"$in": batch}})
+            ids_to_delete.extend(results.get("ids") or [])
+        except Exception as e:
+            logger.warning(f"Error querying chunks for {len(batch)} files: {e}")
+            continue
+
+    if not ids_to_delete:
+        return 0
+
+    try:
+        collection.delete(ids=ids_to_delete)
+    except Exception as e:
+        logger.warning(f"Error removing old chunks: {e}")
+        return 0
+    return len(ids_to_delete)
+
 
 class ChromaDBSemanticIndexer:
     """ChromaDB-based semantic indexer for code repositories."""
@@ -306,28 +350,9 @@ class ChromaDBSemanticIndexer:
 
         # Remove deleted and modified files from index
         files_to_remove = deleted_files + modified_files
-        if files_to_remove:
-            # Get all chunks for these files
-            # ChromaDB doesn't support combining equality with $in, so we query by repo first
-            # and filter by file_path in Python, or query each file individually
-            try:
-                ids_to_delete = []
-                # Query for each file individually to avoid ChromaDB query limitations
-                for file_path in files_to_remove:
-                    try:
-                        results = collection.get(where={"repo": repo, "file_path": file_path})
-                        ids_to_delete.extend(results.get("ids", []))
-                    except Exception as e:
-                        logger.debug(f"Error querying chunks for {file_path}: {e}")
-                        continue
-
-                if ids_to_delete:
-                    collection.delete(ids=ids_to_delete)
-                    logger.info(
-                        f"Removed {len(ids_to_delete)} chunks for deleted/modified files from {repo}"
-                    )
-            except Exception as e:
-                logger.warning(f"Error removing old chunks: {e}")
+        removed = delete_chunks_for_files(collection, files_to_remove)
+        if removed:
+            logger.info(f"Removed {removed} chunks for deleted/modified files from {repo}")
 
         # Index added and modified files
         files_to_index = self._filter_code_files(added_files + modified_files)
@@ -381,14 +406,9 @@ class ChromaDBSemanticIndexer:
         logger.info(f"Detected {len(modified_files)} modified files for {repo}")
 
         # Remove old chunks for modified files
-        try:
-            results = collection.get(where={"repo": repo, "file_path": {"$in": modified_files}})
-            ids_to_delete = results.get("ids", [])
-            if ids_to_delete:
-                collection.delete(ids=ids_to_delete)
-                logger.info(f"Removed {len(ids_to_delete)} chunks for modified files from {repo}")
-        except Exception as e:
-            logger.warning(f"Error removing old chunks: {e}")
+        removed = delete_chunks_for_files(collection, modified_files)
+        if removed:
+            logger.info(f"Removed {removed} chunks for modified files from {repo}")
 
         # Index modified files
         files_to_index = self._filter_code_files(modified_files)

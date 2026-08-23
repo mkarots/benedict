@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-08-23
+
+### Fixed
+- Git incremental index deletes old chunks with batched Chroma `$in` queries instead of one `collection.get` per changed file. The mtime path uses the same helper.
+
 ## [0.5.7] - 2026-08-23
 
 ### Changed
