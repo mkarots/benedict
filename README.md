@@ -64,7 +64,7 @@ There is no method-file command. A `.benedict.method.yaml` in a repository is an
 2. Old chunks for modified and deleted files are removed with batched Chroma `file_path $in` queries, then one `delete`. Collections are already per-repo, so the filter does not combine `repo` equality with `$in`.
 3. Added and modified files are re-chunked and embedded.
 
-A large rebase used to call `collection.get` once per changed file. That is now a constant number of Chroma round-trips (`delete_chunks_for_files` in `semantic_indexer_chromadb.py`).
+A large rebase used to call `collection.get` once per changed file. That is now a constant number of Chroma round-trips (`delete_chunks_for_files` in `semantic_indexer_chromadb.py`). Details: [docs/INCREMENTAL_INDEX.md](docs/INCREMENTAL_INDEX.md).
 
 ### MCP (Cursor / Claude Code)
 

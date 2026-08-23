@@ -367,8 +367,9 @@ First Query → agent.py.handle_conversation()
 **Files to read:**
 1. `agent.py`: Triggers indexing
 2. `semantic_indexer/semantic_indexer_chromadb.py`: Indexing logic
-3. `metadata/metadata_generator.py`: Metadata generation
-4. `repo_change_detector/git_change_detector.py`: Change detection
+3. `docs/INCREMENTAL_INDEX.md`: Incremental delete/reindex contract
+4. `metadata/metadata_generator.py`: Metadata generation
+5. `repo_change_detector/git_change_detector.py`: Change detection
 
 ## 9. Reading Checklist
 

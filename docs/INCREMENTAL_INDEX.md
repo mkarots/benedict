@@ -105,3 +105,5 @@ Issue: [Git incremental index deletes chunks with one Chroma get per changed fil
 
 Code: `src/benedict/semantic_indexer/semantic_indexer_chromadb.py`
 Tests: `tests/unit/test_semantic_indexer_chromadb.py`
+
+See also: [README incremental index](../README.md#incremental-index), [docs/CODE_READING_GUIDE.md](CODE_READING_GUIDE.md), [docs/MCP.md](MCP.md), [plans/ARCHITECTURE.md](../plans/ARCHITECTURE.md).
