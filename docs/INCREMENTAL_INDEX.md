@@ -34,6 +34,7 @@ Main components:
 
 - `GitChangeDetector` (or mtime fallback) lists added, modified, and deleted files
 - `delete_chunks_for_files` loads chunk IDs with batched `file_path $in` queries, then one `delete`
+- `_update_index_git` and `_update_index_file_mtime` both call that helper
 - `_index_files` re-embeds added and modified files
 
 Data flow:
@@ -42,8 +43,9 @@ Git (or mtime) returns path lists. The indexer deletes chunks for `deleted + mod
 Key invariants:
 
 - One `delete` (or a small constant number) per update, not one `get` per file
-- `$in` lists are chunked (`CHROMA_FILE_PATH_IN_BATCH_SIZE`, default 100)
+- `$in` lists are chunked (`CHROMA_FILE_PATH_IN_BATCH_SIZE`, default 100). `batch_size <= 0` sends all paths in one query.
 - Empty change sets do not call Chroma
+- Git deletes chunks for `deleted + modified`. Mtime deletes chunks for modified files only.
 
 ## 5. API / Interface
 
