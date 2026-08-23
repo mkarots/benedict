@@ -305,6 +305,7 @@ Still open:
 
 | Doc | Use it for |
 | --- | --- |
+| [docs/INCREMENTAL_INDEX.md](docs/INCREMENTAL_INDEX.md) | How `@benedict update index` deletes and reindexes chunks |
 | [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) | Slack app configuration |
 | [docs/CODE_READING_GUIDE.md](docs/CODE_READING_GUIDE.md) | How to read the codebase |
 | [plans/ARCHITECTURE.md](plans/ARCHITECTURE.md) | Current architecture overview |
