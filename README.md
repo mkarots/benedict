@@ -48,13 +48,23 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `onboard repo org/repo` | Links the channel to a local checkout. Also accepts `this channel is for org/repo` or an absolute path. |
 | `offboard` | Removes the channel mapping. |
 | `status` | Shows the linked repo and when it was onboarded. |
-| `update index` | Incremental reindex. Deletes old chunks with batched Chroma `$in` queries, then reindexes added and modified files. Add `force` for a full rebuild. |
+| `update index` | Incremental reindex. See [Incremental index](#incremental-index). Add `force` for a full rebuild. |
 | `onboard architect` | Marks the channel as the architect channel for cross-project questions. |
 | Any other question | Repo-scoped conversation with search, LLM, and `run_github`. |
 
 GitHub issue/PR requests stay on that conversation path. Asking for `.metadata.benedict` contents (file metadata, list key files, repository summary) may use a short metadata-tool shortcut. That shortcut does not run GitHub; if it fails, Benedict falls through to conversation.
 
 There is no method-file command. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
+
+### Incremental index
+
+`@benedict update index` is the write path for the semantic index. It does not rebuild the collection unless you add `force`.
+
+1. Git change detection lists added, modified, and deleted files. If git is unavailable, file mtimes are used.
+2. Old chunks for modified and deleted files are removed with batched Chroma `file_path $in` queries, then one `delete`. Collections are already per-repo, so the filter does not combine `repo` equality with `$in`.
+3. Added and modified files are re-chunked and embedded.
+
+A large rebase used to call `collection.get` once per changed file. That is now a constant number of Chroma round-trips (`delete_chunks_for_files` in `semantic_indexer_chromadb.py`).
 
 ### MCP (Cursor / Claude Code)
 

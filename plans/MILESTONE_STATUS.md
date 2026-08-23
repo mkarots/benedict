@@ -107,6 +107,7 @@ This document tracks planned milestones against current implementation status.
 - **Metadata System**: `.metadata.benedict` files providing structured directory summaries with file purposes, key functions, and classes
 - **Workspace Management**: Per-channel isolated workspaces with symlink/copy support for repository access
 - **Change Detection**: Git-based incremental indexing to only reindex changed files
+- **Batched chunk deletes**: Incremental updates remove old Chroma chunks with `file_path $in` batches, not one `get` per file
 - **Metadata-Enhanced Search**: Semantic search boosted by directory metadata for better relevance
 - **Update Index Command**: Manual reindexing capability via Slack commands
 

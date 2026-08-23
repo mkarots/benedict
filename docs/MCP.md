@@ -151,7 +151,7 @@ Result: the IDE answers from Benedict's index and metadata, not from a fresh uni
 |------|----------|
 | No onboarded projects | Tools return an error telling you to onboard in Slack |
 | Several projects, cwd unknown | Error lists repos; pass `repo` |
-| Repo not indexed | `search_code` returns no hits and tells you to run `@benedict update index` |
+| Repo not indexed | `search_code` returns no hits and tells you to run `@benedict update index` (incremental; batched Chroma chunk deletes, then reindex changed files) |
 | No `ANTHROPIC_API_KEY` | `ask_benedict` fails; other tools still work |
 | Missing metadata file | `get_repository_summary` returns a clear error; others still work |
 | Slack bot not running | MCP tools still work. Recorded runs stay on disk until the operator UI starts and reloads `runs.jsonl`. |
