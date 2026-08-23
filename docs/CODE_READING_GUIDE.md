@@ -356,6 +356,12 @@ First Query → agent.py.handle_conversation()
       → Change detector detects files
       → Files chunked and embedded
       → Stored in ChromaDB
+
+@benedict update index → agent.py.handle_update_index()
+  → semantic_indexer.update_index()
+    → git change detection (or file mtime fallback)
+    → delete_chunks_for_files()  # batched file_path $in, one delete
+    → reindex added and modified files
 ```
 
 **Files to read:**

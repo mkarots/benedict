@@ -6,14 +6,14 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.7). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.8). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
 - Slack `@mentions` and thread replies, with conversation history persisted in `state.json`
 - Channel → repository mapping (onboard, offboard, status)
 - Claude 3.5 Sonnet (override with `ANTHROPIC_MODEL`) plus a stub mode if the API key is missing
-- Semantic code search with ChromaDB and sentence-transformers; git-based incremental reindex
+- Semantic code search with ChromaDB and sentence-transformers; git-based incremental reindex (batched chunk deletes)
 - Per-channel workspaces (symlink or copy of the local repo)
 - `.metadata.benedict` directory summaries that boost search
 - Architect channel for cross-project questions
@@ -48,7 +48,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `onboard repo org/repo` | Links the channel to a local checkout. Also accepts `this channel is for org/repo` or an absolute path. |
 | `offboard` | Removes the channel mapping. |
 | `status` | Shows the linked repo and when it was onboarded. |
-| `update index` | Incremental reindex. Add `force` for a full rebuild. |
+| `update index` | Incremental reindex. Deletes old chunks with batched Chroma `$in` queries, then reindexes added and modified files. Add `force` for a full rebuild. |
 | `onboard architect` | Marks the channel as the architect channel for cross-project questions. |
 | Any other question | Repo-scoped conversation with search, LLM, and `run_github`. |
 

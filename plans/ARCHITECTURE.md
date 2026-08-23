@@ -124,9 +124,10 @@ main.py (entry point)
 ### Semantic Indexing Flow
 1. On first query, repository is indexed if not already indexed
 2. Uses RepoChangeDetector to detect changes for incremental updates
-3. MetadataGenerator creates METADATA files for directories
-4. Files are chunked and embedded into ChromaDB
-5. Search queries use semantic similarity to find relevant files
+3. Incremental updates delete old chunks with batched Chroma `file_path $in` queries, then reindex added and modified files
+4. MetadataGenerator creates METADATA files for directories
+5. Files are chunked and embedded into ChromaDB
+6. Search queries use semantic similarity to find relevant files
 
 ### Conversation Management
 - Each Slack thread has a unique `thread_ts` identifier
