@@ -255,7 +255,7 @@ tests/
 
 #### GitHub Features
 - [ ] Enable Issues
-- [ ] Enable Discussions (community Q&A)
+- [x] Enable Discussions (community Q&A)
 - [ ] Enable Projects (for roadmap)
 - [ ] Enable Wiki (optional)
 - [ ] Set repository topics/tags (python, slack-bot, ai, llm, etc.)
@@ -334,7 +334,7 @@ tests/
 
 ### 7.2 Communication Channels
 **Actions**:
-- [ ] Set up GitHub Discussions
+- [x] Set up GitHub Discussions
 - [ ] Create Discord/Slack community (optional)
 - [ ] Set up mailing list (optional)
 - [ ] Create Twitter/X account for announcements (optional)
@@ -434,7 +434,7 @@ tests/
 - [ ] Prepare PyPI package
 
 ### Phase 3: Community Building (Nice to Have)
-- [ ] Set up GitHub Discussions
+- [x] Set up GitHub Discussions
 - [ ] Create demo video
 - [ ] Write launch blog post
 - [ ] Create social media presence

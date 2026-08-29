@@ -6,8 +6,18 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE_DIR = REPO_ROOT / ".github" / "ISSUE_TEMPLATE"
+BUG_REPORT = TEMPLATE_DIR / "bug_report.md"
 FEATURE_REQUEST = TEMPLATE_DIR / "feature_request.md"
 CONFIG = TEMPLATE_DIR / "config.yml"
+
+BUG_HEADINGS = (
+    "## Description",
+    "## Steps to reproduce",
+    "## Expected behavior",
+    "## Actual behavior",
+    "## Environment",
+    "## Logs / screenshots",
+)
 
 FEATURE_HEADINGS = (
     "## Feature description",
@@ -15,6 +25,14 @@ FEATURE_HEADINGS = (
     "## Proposed solution",
     "## Alternatives considered",
 )
+
+
+def test_bug_report_template_has_required_sections():
+    text = BUG_REPORT.read_text(encoding="utf-8")
+    assert text.startswith("---\n")
+    missing = [heading for heading in BUG_HEADINGS if heading not in text]
+    assert missing == [], f"bug_report.md missing headings: {missing}"
+    assert "labels: bug" in text
 
 
 def test_feature_request_template_has_required_sections():
@@ -28,11 +46,18 @@ def test_feature_request_template_has_required_sections():
     assert meta["name"] == "Feature request"
 
 
+def test_issue_template_config_enables_chooser():
+    cfg = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    assert cfg["blank_issues_enabled"] is True
+    names = [link["name"] for link in cfg["contact_links"]]
+    assert "Ask a question" in names
+    assert "Report a security vulnerability" in names
+    assert "Code of Conduct" in names
+
+
 def test_feature_request_appears_in_template_dir_with_chooser():
     """GitHub lists every markdown template next to config.yml in the chooser."""
     assert FEATURE_REQUEST.is_file()
-    cfg = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
-    assert cfg["blank_issues_enabled"] is True
     names = [path.name for path in TEMPLATE_DIR.glob("*.md")]
     assert "feature_request.md" in names
     assert "bug_report.md" in names
