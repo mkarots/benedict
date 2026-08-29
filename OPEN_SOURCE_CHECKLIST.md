@@ -14,7 +14,7 @@
 | 4 | Create SECURITY.md | ☑ | | Private disclosure, supported versions, response timeline |
 | 5 | Create CODE_OF_CONDUCT.md | ☑ | | Contributor Covenant v2.1 |
 | 6 | Create CONTRIBUTING.md | ☐ | | Setup + PR guidelines |
-| 7 | Create bug report template | ☐ | | .github/ISSUE_TEMPLATE/ |
+| 7 | Create bug report template | ☑ | | .github/ISSUE_TEMPLATE/bug_report.md + config.yml. Recorded on #53 |
 | 8 | Create feature request template | ☐ | | .github/ISSUE_TEMPLATE/ |
 | 9 | Create PR template | ☐ | | .github/PULL_REQUEST_TEMPLATE.md |
 | 10 | Update README (badges, links) | ☐ | | Add license/CI badges |
@@ -73,9 +73,9 @@
 - [ ] .pre-commit-config.yaml
 
 ### .github/ Directory
-- [ ] .github/ISSUE_TEMPLATE/bug_report.md
+- [x] .github/ISSUE_TEMPLATE/bug_report.md
 - [ ] .github/ISSUE_TEMPLATE/feature_request.md
-- [ ] .github/ISSUE_TEMPLATE/config.yml
+- [x] .github/ISSUE_TEMPLATE/config.yml
 - [ ] .github/PULL_REQUEST_TEMPLATE.md
 - [x] .github/workflows/ci.yml
 - [ ] .github/workflows/release.yml

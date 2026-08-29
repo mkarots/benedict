@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/mkarots/benedict/security/advisories/new
+    about: Do not open a public issue for a vulnerability. Use private reporting (see SECURITY.md).
+  - name: Code of Conduct
+    url: https://github.com/mkarots/benedict/blob/main/CODE_OF_CONDUCT.md
+    about: Report unacceptable behavior privately. Do not open a public issue for a conduct report.

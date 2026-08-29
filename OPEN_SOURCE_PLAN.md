@@ -261,16 +261,16 @@ tests/
 - [ ] Set repository topics/tags (python, slack-bot, ai, llm, etc.)
 
 ### 5.3 Issue & PR Templates
-**Status**: ❌ MISSING
+**Status**: 🟡 PARTIAL (bug report + chooser shipped; feature request and PR templates still missing)
 
 **Actions**: Create templates
 
 #### .github/ISSUE_TEMPLATE/bug_report.md
-- [ ] Bug description
-- [ ] Steps to reproduce
-- [ ] Expected vs actual behavior
-- [ ] Environment details
-- [ ] Logs/screenshots
+- [x] Bug description
+- [x] Steps to reproduce
+- [x] Expected vs actual behavior
+- [x] Environment details
+- [x] Logs/screenshots
 
 #### .github/ISSUE_TEMPLATE/feature_request.md
 - [ ] Feature description
