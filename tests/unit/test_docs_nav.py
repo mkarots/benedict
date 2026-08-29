@@ -12,6 +12,9 @@ MKDOCS = REPO_ROOT / "mkdocs.yml"
 NOT_IN_NAV = frozenset(
     {
         "OPEN_SOURCE_GUIDE_INDEX.md",
+        "COMMAND_CLASSIFIER_DESIGN.md",
+        "COMMAND_CLASSIFIER_API_DESIGN.md",
+        "LLM_COMMAND_CLASSIFIER_DESIGN.md",
     }
 )
 
@@ -21,8 +24,6 @@ SPINE_TOP = [
     "Use",
     "How it works",
     "Reference",
-    "Decisions",
-    "Historical",
     "Maintain",
 ]
 
@@ -64,7 +65,11 @@ def test_docs_markdown_is_in_nav_or_excluded():
     cfg = yaml.safe_load(MKDOCS.read_text(encoding="utf-8"))
     listed = _nav_paths(cfg["nav"])
     on_disk = {p.relative_to(DOCS).as_posix() for p in DOCS.rglob("*.md")}
-    stray = sorted(p for p in on_disk if p not in listed and p not in NOT_IN_NAV)
+    stray = sorted(
+        p
+        for p in on_disk
+        if p not in listed and p not in NOT_IN_NAV and not p.startswith("adr/")
+    )
     assert stray == [], f"Markdown in docs/ is not in mkdocs.yml nav: {stray}"
 
 

@@ -76,7 +76,5 @@ Humans and agents should read in this order:
 5. [Progress loop](PROGRESS.md) if the question is unattended work
 6. [Code map](CODE_MAP.md) for file locations
 
-Do not treat **Historical** pages as the current API.
-
 !!! note "For agents"
     Prefer this site over the GitHub README for current behavior. The sidebar is the catalog. `plans/` is milestone history.

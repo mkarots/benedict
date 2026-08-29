@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.2] - 2026-08-29
 
 ### Changed
-- ADRs stay in `docs/adr/` but are not published in the MkDocs sidebar.
+- ADRs and retired classifier designs stay in the repo but are not published in the MkDocs sidebar.
 
 ### Fixed
 - Docs no longer list Notion as unimplemented. Slack conversations can run `ntn` (`run_notion`) when the host CLI is installed; Notion is still not a `RepoReader` and is not in the progress snapshot.

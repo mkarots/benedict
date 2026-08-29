@@ -67,10 +67,6 @@ nav:
   - Reference:
       - Configuration: configuration.md
       - Troubleshooting: troubleshooting.md
-  - Historical:
-      - Command classifier: COMMAND_CLASSIFIER_DESIGN.md
-      - Command classifier API: COMMAND_CLASSIFIER_API_DESIGN.md
-      - LLM command classifier: LLM_COMMAND_CLASSIFIER_DESIGN.md
   - Maintain:
       - Docs process: PROCESS.md
       - Changelog: changelog.md
@@ -78,3 +74,6 @@ nav:
 exclude_docs: |
   OPEN_SOURCE_GUIDE_INDEX.md
   adr/**
+  COMMAND_CLASSIFIER_DESIGN.md
+  COMMAND_CLASSIFIER_API_DESIGN.md
+  LLM_COMMAND_CLASSIFIER_DESIGN.md

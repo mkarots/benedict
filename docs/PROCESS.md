@@ -31,22 +31,21 @@ Home is `docs/index.md`. Do not add a second catalog page.
 
 ## Page types
 
-Put a **Status** line at the top: `Current`, `Decision`, `Historical`, or `Process`.
+Put a **Status** line at the top: `Current` or `Process`.
 
 | Type | Where | Rule |
 | --- | --- | --- |
 | Current | `docs/*.md` | Behavior that ships today |
-| Historical | `docs/*.md` | Design the runtime no longer implements |
 | Process | this file | How to change docs |
 
-ADRs may live under `docs/adr/` for the repo. Do not add them to `nav`. They are not published.
+ADRs and retired classifier designs may live under `docs/` for the repo. Do not add them to `nav`. They are not published.
 
 Do not mix current behavior and historical claims on one page.
 
 ## Add a page
 
 1. Write Markdown under `docs/`.
-2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, How it works, Reference, Historical, Maintain).
+2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, How it works, Reference, Maintain).
 3. Preview: `make docs` and open the page.
 4. Check: `make docs-build` must pass (strict mode).
 5. If the doc describes shipped behavior, mention it in `CHANGELOG.md`.
@@ -59,7 +58,7 @@ Follow the design-document sections in `CLAUDE.md`: overview, non-goals, terms, 
 
 Edit the file in place. If you rename it, update `mkdocs.yml` and every in-docs link. `make docs-build` fails on broken in-docs links.
 
-If behavior changed, do not leave the old claim in a current doc. Move the old page to Historical or delete the obsolete section.
+If behavior changed, do not leave the old claim in a current doc. Delete the obsolete section.
 
 ## Preview and check
 

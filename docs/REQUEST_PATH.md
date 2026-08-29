@@ -316,4 +316,3 @@ MCP ask uses a short system prompt plus the same `build_context()` output. One u
 
 - [Code map](CODE_MAP.md) — module map and composition root
 - [MCP](MCP.md) — MCP tool contract
-- [LLM command classifier](LLM_COMMAND_CLASSIFIER_DESIGN.md) — Historical. Classifier internals; metadata-only at runtime

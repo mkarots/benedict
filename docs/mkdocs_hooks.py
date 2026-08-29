@@ -20,6 +20,9 @@ INCLUDED_PAGES = {
 UNPUBLISHED_DOCS = frozenset(
     {
         "docs/OPEN_SOURCE_GUIDE_INDEX.md",
+        "docs/COMMAND_CLASSIFIER_DESIGN.md",
+        "docs/COMMAND_CLASSIFIER_API_DESIGN.md",
+        "docs/LLM_COMMAND_CLASSIFIER_DESIGN.md",
     }
 )
 
