@@ -139,6 +139,16 @@ def main():
         logger.info("Slack history indexing will not be available")
 
     from benedict.operator_ui.server import StatusMonitor, create_recorder, start_operator_ui
+    from benedict.progress import (
+        ActionDecider,
+        ActionExecutor,
+        ProgressScheduler,
+        ProgressService,
+        ProgressStore,
+        SlackWebClientPoster,
+        SnapshotCollector,
+        progress_enabled,
+    )
 
     recorder = create_recorder(data_dir)
     chroma_db_path = os.environ.get("BENEDICT_CHROMA_DB_DIR", str(data_dir / ".chroma_db"))
@@ -154,6 +164,26 @@ def main():
         conversation_history_indexer=conversation_history_indexer,
         run_recorder=recorder,
     )
+
+    progress_scheduler = None
+    if llm is not None and progress_enabled():
+        progress_store = ProgressStore(agent.load_state, agent.save_state)
+        agent.progress_service = ProgressService(
+            load_state=agent.load_state,
+            workspace_path_for=workspace_manager.get_workspace_path,
+            collector=SnapshotCollector(store=progress_store),
+            decider=ActionDecider(llm),
+            executor=ActionExecutor(SlackWebClientPoster(slack_client)),
+            store=progress_store,
+            run_recorder=recorder,
+        )
+        progress_scheduler = ProgressScheduler(agent.progress_service)
+        progress_scheduler.start()
+        logger.info("✅ Progress loop enabled")
+    elif not progress_enabled():
+        logger.info("Progress loop disabled (BENEDICT_PROGRESS=0)")
+    else:
+        logger.info("Progress loop skipped (no LLM)")
 
     start_operator_ui(
         StatusMonitor(
@@ -187,6 +217,8 @@ def main():
         handler.start()
     except KeyboardInterrupt:
         logger.info("Shutting down...")
+        if progress_scheduler is not None:
+            progress_scheduler.stop()
         logger.info("Shutdown complete")
 
 

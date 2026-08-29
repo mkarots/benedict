@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+DEFAULT_DATA_DIR_NAME = ".benedict"
+
 
 def find_repo_root() -> Path:
     """Find repository root by looking for common markers.
@@ -19,12 +21,21 @@ def find_repo_root() -> Path:
     return Path.cwd()
 
 
+def default_data_dir() -> Path:
+    """Default data directory: ~/.benedict (not the git checkout)."""
+    return Path.home() / DEFAULT_DATA_DIR_NAME
+
+
 def get_data_dir() -> Path:
-    """Get data directory from BENEDICT_DATA_DIR or the repo root."""
+    """Get data directory from BENEDICT_DATA_DIR or ~/.benedict.
+
+    Creates the directory if it does not exist. Slack and MCP must share this
+    path. .env still comes from get_env_file() (repo root unless overridden).
+    """
     data_dir = os.environ.get("BENEDICT_DATA_DIR")
-    if data_dir:
-        return Path(data_dir).resolve()
-    return find_repo_root()
+    path = Path(data_dir).resolve() if data_dir else default_data_dir()
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def get_env_file() -> Path:

@@ -53,6 +53,7 @@ class RepoAgent:
         workspace_manager: Optional[WorkspaceManager] = None,
         conversation_history_indexer: Optional[ConversationHistoryIndexer] = None,
         run_recorder=None,
+        progress_service=None,
     ):
         """Initialize repository agent.
 
@@ -65,6 +66,7 @@ class RepoAgent:
             workspace_manager: Optional workspace manager for workspace operations
             conversation_history_indexer: Optional conversation history indexer for Slack history
             run_recorder: Optional operator-UI run recorder
+            progress_service: Optional unattended progress loop
         """
         self.state_file = Path(state_file)
         self.llm = llm
@@ -72,6 +74,7 @@ class RepoAgent:
         self.semantic_indexer = semantic_indexer
         self.workspace_manager = workspace_manager
         self.conversation_history_indexer = conversation_history_indexer
+        self.progress_service = progress_service
         if run_recorder is None:
             from benedict.operator_ui.recorder import NullRunRecorder
 
@@ -410,6 +413,36 @@ class RepoAgent:
         )
 
         return (True, message, channel_config)
+
+    @staticmethod
+    def is_progress_command(text: str) -> bool:
+        """True for an explicit progress-loop command, not a question about progress."""
+        return bool(
+            re.match(
+                r"^(run\s+)?progress(\s+(now|this|all|here|force))*$",
+                text.strip(),
+                re.IGNORECASE,
+            )
+        )
+
+    def handle_progress(self, channel_id: str, text: str) -> Tuple[bool, str]:
+        """Run the unattended progress loop for this channel or all onboarded repos."""
+        if not self.progress_service:
+            return (
+                False,
+                "⚠️ Progress loop is not running\n\n"
+                "The Slack process needs an LLM (`ANTHROPIC_API_KEY`) and "
+                "`BENEDICT_PROGRESS` must not be `0`.",
+            )
+
+        from benedict.progress.cycle import format_cycle_message
+
+        force = bool(re.search(r"\b(now|force)\b", text.lower()))
+        if re.search(r"\ball\b", text.lower()):
+            results = self.progress_service.run_all(force=force)
+        else:
+            results = [self.progress_service.run_one(channel_id, force=force)]
+        return True, format_cycle_message(results)
 
     def handle_conversation(self, channel_id: str, text: str, thread_ts: str) -> Tuple[bool, str]:
         """Handle conversation with LLM, maintaining conversation history.

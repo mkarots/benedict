@@ -43,6 +43,8 @@ If `repo` is omitted, the server uses the process working directory when it matc
 
 `ask_benedict` and `list_projects` write a run to `$BENEDICT_DATA_DIR/runs.jsonl`. If the Slack bot is running, the operator console at `http://127.0.0.1:8765` reloads that file and shows the MCP call in Activity. For `ask_benedict`, **Why this answer** includes the prompt sent to the model. `search_code`, `get_repository_summary`, and `get_recent_actions` are not recorded yet.
 
+`ask_benedict` shares `build_context()` with Slack. It does not use `RepoAgent`, thread history, or `run_github`. See [REQUEST_PATH.md](REQUEST_PATH.md).
+
 ## 4. Configuration
 
 Point the MCP process at the Slack bot's data:
@@ -59,7 +61,7 @@ Optional (same as the Slack bot):
 - `BENEDICT_ENV_FILE`
 - `ANTHROPIC_API_KEY` (required for `ask_benedict`)
 
-If you run from an editable checkout of this repo, the default data dir is the repo root (same as `make run`).
+The default data dir is `~/.benedict` (same as `make run`). `.env` is still loaded from the git checkout unless `BENEDICT_ENV_FILE` is set. If you already have data in a checkout, set `BENEDICT_DATA_DIR` to that directory or move the files into `~/.benedict`.
 
 Run by hand:
 
