@@ -1,4 +1,6 @@
-# Benedict MCP Server
+Status: Current
+
+# MCP
 
 One-sentence summary:
 Benedict exposes its onboarded project memory over MCP so Cursor, Claude Code, and other MCP clients can query it without going through Slack.

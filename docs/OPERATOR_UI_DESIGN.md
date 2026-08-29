@@ -1,4 +1,6 @@
-# Operator UI
+Status: Current
+
+# Operator console
 
 A local debug console for Benedict.
 

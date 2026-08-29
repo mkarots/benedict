@@ -1,0 +1,18 @@
+/* Docs chrome: charcoal header, honey gold accent. Not Material brown. */
+:root > * {
+  --md-primary-fg-color: #101010;
+  --md-primary-fg-color--light: #2a2a2a;
+  --md-primary-fg-color--dark: #0c0c0c;
+  --md-primary-bg-color: #f4f1ea;
+  --md-accent-fg-color: #d4a574;
+  --md-accent-fg-color--transparent: rgba(212, 165, 116, 0.18);
+}
+
+/* Gold on white fails contrast; bronze for light-mode body links. */
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #8a5a32;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-typeset-a-color: #d4a574;
+}

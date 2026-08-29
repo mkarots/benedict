@@ -1,4 +1,4 @@
-"""Docs catalog and MkDocs nav stay in sync."""
+"""Docs nav follows the published spine; Markdown in docs/ is registered."""
 
 from pathlib import Path
 
@@ -15,6 +15,17 @@ NOT_IN_NAV = frozenset(
     }
 )
 
+SPINE_TOP = [
+    "Home",
+    "Get started",
+    "Use",
+    "How it works",
+    "Reference",
+    "Decisions",
+    "Historical",
+    "Maintain",
+]
+
 
 def _nav_paths(items: list) -> set[str]:
     paths: set[str] = set()
@@ -28,6 +39,16 @@ def _nav_paths(items: list) -> set[str]:
                 elif isinstance(value, list):
                     paths.update(_nav_paths(value))
     return paths
+
+
+def _top_labels(nav: list) -> list[str]:
+    labels: list[str] = []
+    for item in nav:
+        if isinstance(item, dict):
+            labels.append(next(iter(item.keys())))
+        else:
+            labels.append(item)
+    return labels
 
 
 def test_mkdocs_nav_files_exist():
@@ -45,3 +66,9 @@ def test_docs_markdown_is_in_nav_or_excluded():
     on_disk = {p.relative_to(DOCS).as_posix() for p in DOCS.rglob("*.md")}
     stray = sorted(p for p in on_disk if p not in listed and p not in NOT_IN_NAV)
     assert stray == [], f"Markdown in docs/ is not in mkdocs.yml nav: {stray}"
+
+
+def test_nav_follows_docs_spine():
+    cfg = yaml.safe_load(MKDOCS.read_text(encoding="utf-8"))
+    assert _top_labels(cfg["nav"]) == SPINE_TOP
+    assert cfg["nav"][0] == {"Home": "index.md"}

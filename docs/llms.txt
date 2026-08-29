@@ -1,0 +1,19 @@
+# Benedict documentation — reading order
+
+Prefer these pages for current behavior. Do not treat Historical pages as the current API.
+
+1. docs/index.md — what Benedict is, what it does not do, terms
+2. docs/install.md — clone, uv, .env, make run
+3. docs/SLACK_SETUP.md — Slack app tokens
+4. docs/MCP.md — Cursor / Claude Code
+5. docs/commands.md — onboard, ask, status, index, architect
+6. docs/PROGRESS.md — unattended progress loop
+7. docs/OPERATOR_UI_DESIGN.md — localhost request debugger
+8. docs/REQUEST_PATH.md — behavior source of truth
+9. docs/CODE_MAP.md — files, protocols, composition root
+10. docs/configuration.md — environment variables
+11. docs/troubleshooting.md
+12. docs/adr/0001-local-operator-ui.md
+13. docs/adr/0002-progress-loop.md
+14. docs/PROCESS.md — how to add a doc
+15. CHANGELOG.md

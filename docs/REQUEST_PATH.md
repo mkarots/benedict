@@ -1,4 +1,6 @@
-# Request Path
+Status: Current
+
+# Request path
 
 One-sentence summary:
 What Benedict does with a user request, from entry point through routing, prompt building, and tool calls, to the reply — and why each step exists.
@@ -312,7 +314,6 @@ MCP ask uses a short system prompt plus the same `build_context()` output. One u
 
 ### F. Related docs
 
-- [ARCHITECTURE.md](https://github.com/mkarots/benedict/blob/main/plans/ARCHITECTURE.md) — module map and composition root
-- [CODE_READING_GUIDE.md](CODE_READING_GUIDE.md) — how to read the repo
-- [MCP.md](MCP.md) — MCP tool contract
-- [LLM_COMMAND_CLASSIFIER_DESIGN.md](LLM_COMMAND_CLASSIFIER_DESIGN.md) — classifier internals (metadata-only at runtime)
+- [Code map](CODE_MAP.md) — module map and composition root
+- [MCP](MCP.md) — MCP tool contract
+- [LLM command classifier](LLM_COMMAND_CLASSIFIER_DESIGN.md) — Historical. Classifier internals; metadata-only at runtime

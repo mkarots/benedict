@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-29
+
+### Changed
+- Docs chrome uses charcoal (`#101010`) with gold (`#d4a574`) as the accent. Material `brown` / `amber` is no longer the docs palette.
+- Docs follow a top-to-bottom spine: Home, Get started, Use, How it works, Reference, Decisions, Historical, Maintain. The catalog page is gone. [Code map](docs/CODE_MAP.md) replaces `CODE_READING_GUIDE.md` and `plans/ARCHITECTURE.md` as the in-docs module map. The GitHub README is a short landing card; `make docs` is the full story.
+
+### Fixed
+- `make docs` reports when port 8000 is already in use instead of a Python traceback. Override with `DOCS_PORT=8001`.
+- The docs Index README and Changelog links stay in the MkDocs site. They no longer bounce to GitHub.
+
 ## [0.6.0] - 2026-08-29
 
 ### Added
