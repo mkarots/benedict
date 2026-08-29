@@ -83,7 +83,7 @@ The codebase is organized into these layers:
 **What you'll learn:**
 - The complete system architecture in one place
 - How optional components are handled
-- Configuration via environment variables
+- Configuration via environment variables (`BENEDICT_DATA_DIR` defaults to `~/.benedict`)
 - How the MCP server reuses the same data directory without starting Slack
 
 ### Step 2: Understand the Core Agent
