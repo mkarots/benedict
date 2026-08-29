@@ -15,7 +15,7 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
     Result: examples use example-org / @alice (2026-08-29). Recorded on #49
     Real GitHub URLs for this remote stay mkarots/benedict
     
-[ ] 4. Create SECURITY.md
+[x] 4. Create SECURITY.md
     Include: How to report vulnerabilities, supported versions
     
 [x] 5. Create CODE_OF_CONDUCT.md
