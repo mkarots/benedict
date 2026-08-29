@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.22] - 2026-08-29
+
+### Removed
+- Internal open-source planning notes: `OPEN_SOURCE_PLAN.md`, `OPEN_SOURCE_QUICK_START.md`, `OPEN_SOURCE_FILE_INVENTORY.md`, `OPEN_SOURCE_SUMMARY.md`, and `docs/OPEN_SOURCE_GUIDE_INDEX.md`. `OPEN_SOURCE_CHECKLIST.md` stays.
+
+## [0.6.21] - 2026-08-29
+
+### Added
+- **Maintainers**: `MAINTAINERS.md` lists the project lead, how merge decisions are made, and how to become a maintainer. README Community and CONTRIBUTING link to it ([#66](https://github.com/mkarots/benedict/issues/66)).
+
 ## [0.6.20] - 2026-08-29
 
 ### Changed

@@ -48,7 +48,7 @@
 |---|------|--------|-------|-------|
 | 21 | Comprehensive tests | ☐ | | Target: >80% coverage |
 | 22 | Create release workflow | ☐ | | .github/workflows/release.yml |
-| 23 | Create MAINTAINERS.md | ☐ | | Governance structure |
+| 23 | Create MAINTAINERS.md | ☑ | | Governance structure. Recorded on #66 |
 | 24 | Set up GitHub Discussions | ☑ | | Q&A, Ideas, Show and tell. Recorded on #67 |
 | 25 | Prepare PyPI package | ☐ | | Test with TestPyPI |
 | 26 | Create FAQ section | ☐ | | Common questions |
@@ -68,7 +68,7 @@
 - [x] SECURITY.md
 - [x] CODE_OF_CONDUCT.md
 - [x] CONTRIBUTING.md
-- [ ] MAINTAINERS.md
+- [x] MAINTAINERS.md
 - [ ] .editorconfig
 - [ ] .pre-commit-config.yaml
 
@@ -246,18 +246,6 @@
 | | | | | |
 | | | | | |
 | | | | | |
-
----
-
-## 📚 Resources
-
-**Documentation**: See OPEN_SOURCE_PLAN.md for detailed guidance
-
-**Quick Reference**: See OPEN_SOURCE_QUICK_START.md for commands
-
-**File Inventory**: See OPEN_SOURCE_FILE_INVENTORY.md for complete list
-
-**Summary**: See OPEN_SOURCE_SUMMARY.md for executive overview
 
 ---
 
