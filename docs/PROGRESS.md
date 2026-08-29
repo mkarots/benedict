@@ -1,3 +1,5 @@
+Status: Current
+
 # Progress loop
 
 One-sentence summary:
@@ -22,7 +24,7 @@ Not responsible for:
 
 - Opening or merging pull requests (no coding executor yet)
 - Calling Cursor. MCP is still Cursor → Benedict (read-only)
-- Notion, Google Docs, or Slack history in the snapshot
+- Notion pages, Google Docs, or Slack history in the snapshot (Slack chat can still use `run_notion`)
 - Replacing Slack conversation or MCP `ask_benedict`
 
 Out of scope: a general shell, force-push, closing issues, or acting on a repo that is not onboarded.
@@ -159,12 +161,10 @@ Option C — Confirm every GitHub create in Slack before executing — rejected 
 
 Q1: Should `implement` invoke the Cursor SDK (local or cloud) to open a PR?
 
-Q2: Should Notion pages join the snapshot once a Notion tool exists?
+Q2: Should Notion pages join the snapshot? `run_notion` exists on the conversation path; the snapshot still does not include Notion.
 
 Q3: Should the architect channel get a digest of every project’s action?
 
 ## 11. Appendix
-
-Decision: [ADR 0002](adr/0002-progress-loop.md).
 
 Code: `src/benedict/progress/`. Tests: `tests/unit/test_progress.py`.

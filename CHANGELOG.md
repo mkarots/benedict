@@ -7,26 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.3] - 2026-08-29
+## [0.6.4] - 2026-08-29
 
-### Fixed
-- Overlay generation no longer skips every directory when the data dir is `~/.benedict`. Skip rules only apply under the repo root, so Slack reindex and onboard can create `workspaces/<channel>/metadata/`.
+### Changed
+- Home and README lead with the product story: Benedict knows your code, knows Slack talk about those projects, and can help you plan. Progress is a next-step command, not “leave the process running.”
+
+## [0.6.3] - 2026-08-29
 
 ### Changed
 - Sidecar overlays live at `workspaces/<channel>/metadata/<org>/<repo>/`, not `workspaces/<channel>/.benedict/metadata/`.
+- ADRs and retired classifier designs stay in the repo but are not published in the MkDocs sidebar.
+
+### Fixed
+- Overlay generation no longer skips every directory when the data dir is `~/.benedict`. Skip rules only apply under the repo root, so Slack reindex and onboard can create `workspaces/<channel>/metadata/`.
+- Docs no longer list Notion as unimplemented. Slack conversations can run `ntn` (`run_notion`) when the host CLI is installed; Notion is still not a `RepoReader` and is not in the progress snapshot.
 
 ## [0.6.2] - 2026-08-29
 
 ### Fixed
-- Generated `.metadata.benedict` overlays are written to a workspace sidecar (`workspaces/<channel>/.benedict/metadata/<org>/<repo>/…`) instead of through the repo symlink into the user's clone ([#12](https://github.com/mkarots/benedict/issues/12)). Readers try the sidecar first, then leftover in-tree files. The clone is not written.
+- Generated `.metadata.benedict` overlays are written to a workspace sidecar instead of through the repo symlink into the user's clone ([#12](https://github.com/mkarots/benedict/issues/12)). Readers try the sidecar first, then leftover in-tree files. The clone is not written.
 
 ## [0.6.1] - 2026-08-29
 
 ### Changed
 - Docs chrome uses charcoal (`#101010`) with gold (`#d4a574`) as the accent. Material `brown` / `amber` is no longer the docs palette.
+- Docs follow a top-to-bottom spine: Home, Get started, Use, How it works, Reference, Decisions, Historical, Maintain. The catalog page is gone. [Code map](docs/CODE_MAP.md) replaces `CODE_READING_GUIDE.md` and `plans/ARCHITECTURE.md` as the in-docs module map. The GitHub README is a short landing card; `make docs` is the full story.
 
 ### Fixed
 - `make docs` reports when port 8000 is already in use instead of a Python traceback. Override with `DOCS_PORT=8001`.
+- The docs Index README and Changelog links stay in the MkDocs site. They no longer bounce to GitHub.
 
 ## [0.6.0] - 2026-08-29
 

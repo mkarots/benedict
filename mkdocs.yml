@@ -1,5 +1,5 @@
 site_name: Benedict
-site_description: Slack bot that answers questions about a local git checkout
+site_description: An agent that knows your code, your Slack project talk, and can help you plan
 repo_url: https://github.com/mkarots/benedict
 repo_name: mkarots/benedict
 edit_uri: edit/main/docs/
@@ -35,6 +35,9 @@ theme:
     - content.code.copy
     - toc.follow
 
+hooks:
+  - docs/mkdocs_hooks.py
+
 plugins:
   - search
 
@@ -49,24 +52,28 @@ extra_css:
   - stylesheets/extra.css
 
 nav:
-  - Index: README.md
-  - Process: PROCESS.md
-  - Setup:
+  - Home: index.md
+  - Get started:
+      - Install and run: install.md
       - Slack setup: SLACK_SETUP.md
       - MCP: MCP.md
-  - How it works:
-      - Code reading guide: CODE_READING_GUIDE.md
-      - Request path: REQUEST_PATH.md
+  - Use:
+      - Slack commands: commands.md
       - Progress loop: PROGRESS.md
-  - Design:
-      - Operator UI: OPERATOR_UI_DESIGN.md
-  - Decisions:
-      - "ADR 0001: Local operator UI": adr/0001-local-operator-ui.md
-      - "ADR 0002: Progress loop": adr/0002-progress-loop.md
-  - Historical:
-      - Command classifier: COMMAND_CLASSIFIER_DESIGN.md
-      - Command classifier API: COMMAND_CLASSIFIER_API_DESIGN.md
-      - LLM command classifier: LLM_COMMAND_CLASSIFIER_DESIGN.md
+      - Operator console: OPERATOR_UI_DESIGN.md
+  - How it works:
+      - Request path: REQUEST_PATH.md
+      - Code map: CODE_MAP.md
+  - Reference:
+      - Configuration: configuration.md
+      - Troubleshooting: troubleshooting.md
+  - Maintain:
+      - Docs process: PROCESS.md
+      - Changelog: changelog.md
 
 exclude_docs: |
   OPEN_SOURCE_GUIDE_INDEX.md
+  adr/**
+  COMMAND_CLASSIFIER_DESIGN.md
+  COMMAND_CLASSIFIER_API_DESIGN.md
+  LLM_COMMAND_CLASSIFIER_DESIGN.md

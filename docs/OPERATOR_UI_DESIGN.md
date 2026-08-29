@@ -1,10 +1,10 @@
-# Operator UI
+Status: Current
+
+# Operator console
 
 A local debug console for Benedict.
 
 One-sentence summary: Open a localhost page, pick a Slack mention or MCP call, and see the timed pipeline that produced the reply.
-
-Decisions: [ADR 0001](adr/0001-local-operator-ui.md).
 
 ## 1. Overview
 

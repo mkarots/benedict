@@ -9,7 +9,7 @@ The Slack process runs a timer that, for each onboarded repo, takes at most one 
 
 ## Context
 
-Benedict answered Slack mentions and MCP queries. It did not start work. GitHub mutations on the conversation path were supposed to be confirmed with the user first. MCP is Cursor → Benedict and read-only. Notion is not implemented.
+Benedict answered Slack mentions and MCP queries. It did not start work. GitHub mutations on the conversation path were supposed to be confirmed with the user first. MCP is Cursor → Benedict and read-only. Slack conversations can run Notion via `ntn` (`run_notion`); that is not a repo reader and is not in the progress snapshot.
 
 The product gap: after a night of the process running, project channels were unchanged. The original v3 roadmap named “proactive suggestions”; that was never built.
 

@@ -1,5 +1,8 @@
 # Architecture Overview
 
+Status: Historical pointer. The current module map is [docs/CODE_MAP.md](../docs/CODE_MAP.md). This file is milestone archaeology and may duplicate or lag that page.
+
+
 ## Entry Point
 
 **`src/benedict/main.py`** is the Slack application entry point. Run with:

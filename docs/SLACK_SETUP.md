@@ -1,6 +1,8 @@
-# Slack App Setup Guide
+Status: Current
 
-Complete step-by-step guide for setting up your Slack app for the Repo Agent bot.
+# Slack setup
+
+Create the Slack app, tokens, and Socket Mode connection Benedict needs.
 
 ## Prerequisites
 
@@ -12,7 +14,7 @@ Complete step-by-step guide for setting up your Slack app for the Repo Agent bot
 1. Go to [api.slack.com/apps](https://api.slack.com/apps)
 2. Click **"Create New App"**
 3. Choose **"From scratch"**
-4. Enter app name: `Repo Agent` (or your preferred name)
+4. Enter app name: `Benedict` (or your preferred name)
 5. Select your workspace
 6. Click **"Create App"**
 
@@ -87,7 +89,7 @@ Replace the values with your actual tokens from Steps 2 and 5.
 After starting the bot, invite it to channels where you want to use it:
 
 ```
-/invite @Repo Agent
+/invite @benedict
 ```
 
 (Use whatever name you gave your bot)
@@ -131,7 +133,7 @@ Use this checklist to verify your setup:
 
 **Check:**
 1. Is the bot running? (`python main.py` should show "Bot is running!")
-2. Is the bot invited to the channel? (`/invite @Repo Agent`)
+2. Is the bot invited to the channel? (`/invite @benedict`)
 3. Are you @mentioning the bot? (Just typing won't work)
 4. Check the terminal for error messages
 5. Verify `app_mention` event is subscribed in Event Subscriptions
@@ -154,7 +156,7 @@ Use this checklist to verify your setup:
 
 After completing setup:
 
-1. See the [root README](https://github.com/mkarots/benedict/blob/main/README.md) for usage instructions
-2. Onboard a channel: `@agent onboard repo your-org/your-repo`
-3. Check status: `@agent status`
-4. Start asking questions about your repository!
+1. [Install and run](install.md) if the bot is not running yet
+2. Onboard: `@benedict onboard repo your-org/your-repo` — [Slack commands](commands.md)
+3. Check status: `@benedict status`
+4. Ask a question about the repository

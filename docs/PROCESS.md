@@ -1,80 +1,66 @@
+Status: Process
+
 # Documentation process
 
-One-sentence summary:
-How to browse, add, and update Benedict docs so the catalog, sidebar, and pages stay in sync.
+How to add or update a Benedict doc. The MkDocs sidebar is the catalog.
 
-## 1. Overview
+## Overview
 
-**What:**
-Docs live in `docs/` as Markdown. [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) is the UI. `mkdocs.yml` is the sidebar. [README.md](README.md) is the catalog.
+Docs live in `docs/` as Markdown. [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) is the UI. `mkdocs.yml` `nav` is the reading order.
 
-**Why:**
-A folder of Markdown files is not a docs system. Readers need a sidebar and search. Writers need one place to register a page. Reviewers need a strict build that fails on missing files and broken in-docs links.
+Use this page when you add, rename, or reclassify a doc.
 
-**When to use:**
-- You are adding or renaming a doc
-- You are recording a decision
-- You are marking a design as historical
-
-## 2. Non-Goals
+## Non-goals
 
 Not responsible for:
 
-- The product README or CHANGELOG (those stay at the repository root)
+- The product README at the repository root (GitHub landing card; edit it there)
 - Milestone notes in `plans/`
 - Publishing to GitBook
 
-Out of scope: a second chat surface or the operator console. Those are product UI.
+## Structure
 
-## 3. Structure
-
-Three layers. Keep them in sync.
+Two layers. Keep them in sync.
 
 | Layer | File | Role |
 | --- | --- | --- |
-| Catalog | `docs/README.md` | Find a doc by job |
-| Sidebar | `mkdocs.yml` `nav` | Browse in the UI |
+| Sidebar | `mkdocs.yml` `nav` | Browse order. Each page once |
 | Page | one Markdown file | The content |
 
-Each page appears **once** in `nav`. The catalog may link the same page from more than one table.
+Home is `docs/index.md`. Do not add a second catalog page.
 
-## 4. Page types
+## Page types
+
+Put a **Status** line at the top: `Current` or `Process`.
 
 | Type | Where | Rule |
 | --- | --- | --- |
 | Current | `docs/*.md` | Behavior that ships today |
-| Decision | `docs/adr/NNNN-short-title.md` | One accepted choice. Status line at the top |
-| Historical | `docs/*.md` with a **Status** line at the top | Design the runtime no longer implements |
 | Process | this file | How to change docs |
 
-Do not mix current behavior and historical claims on one page. If the runtime dropped a feature, move the old design to Historical or add a Status line and stop describing it as current.
+ADRs and retired classifier designs may live under `docs/` for the repo. Do not add them to `nav`. They are not published.
 
-## 5. Add a page
+Do not mix current behavior and historical claims on one page.
 
-1. Write Markdown under `docs/` (or `docs/adr/` for a decision).
-2. Add the file **once** to `nav` in `mkdocs.yml`.
-3. Add a row to the matching table in [README.md](README.md).
-4. Preview: `make docs` and open the page.
-5. Check: `make docs-build` must pass (strict mode).
-6. If the doc describes shipped behavior, mention it in `CHANGELOG.md`.
+## Add a page
 
-### Decisions
-
-Next ADR is `docs/adr/0002-short-title.md`. Copy the shape of [ADR 0001](adr/0001-local-operator-ui.md): Status, Date, Context, Decision, Consequences.
+1. Write Markdown under `docs/`.
+2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, How it works, Reference, Maintain).
+3. Preview: `make docs` and open the page.
+4. Check: `make docs-build` must pass (strict mode).
+5. If the doc describes shipped behavior, mention it in `CHANGELOG.md`.
 
 ### Design pages
 
 Follow the design-document sections in `CLAUDE.md`: overview, non-goals, terms, happy path, failure modes.
 
-## 6. Update a page
+## Update a page
 
-Edit the file in place.
+Edit the file in place. If you rename it, update `mkdocs.yml` and every in-docs link. `make docs-build` fails on broken in-docs links.
 
-If you rename a file, update `mkdocs.yml`, the catalog, and every in-docs link. `make docs-build` fails on broken in-docs links.
+If behavior changed, do not leave the old claim in a current doc. Delete the obsolete section.
 
-If behavior changed, do not leave the old claim in a current doc. Mark the old page Historical or delete the obsolete section.
-
-## 7. Preview and check
+## Preview and check
 
 ```bash
 make docs        # UI at http://127.0.0.1:8000
@@ -89,8 +75,10 @@ DOCS_PORT=8001 make docs
 
 `make docs` needs the `docs` extra: `uv pip install -e ".[docs]"` or `make sync-dev`.
 
-## 8. Constraints
+## Constraints
 
-- Product docs stay in `docs/`. `plans/` is milestone history, not the catalog.
-- Files outside `docs/` cannot appear in the MkDocs sidebar. Link them as GitHub URLs from the catalog.
+- Product docs stay in `docs/`. `plans/` is milestone history, not the sidebar.
+- CHANGELOG is included in Maintain via `changelog.md`. Edit `CHANGELOG.md` at the repo root. A build hook copies it.
+- Files outside `docs/` (except that changelog include) cannot appear in the sidebar.
+- Do not GitHub-link in-repo current docs. Link the MkDocs path.
 - Do not edit docs in a hosted GitBook UI. This repo is the source.

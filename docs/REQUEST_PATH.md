@@ -1,4 +1,6 @@
-# Request Path
+Status: Current
+
+# Request path
 
 One-sentence summary:
 What Benedict does with a user request, from entry point through routing, prompt building, and tool calls, to the reply — and why each step exists.
@@ -34,7 +36,7 @@ Out of scope: a single unified agent that Slack and MCP both call. That is a pos
 | **Retrieve-then-stuff** | Search/read files first, then put the text in the system prompt. The model does not have a `read_file` tool |
 | **Metadata shortcut** | One-shot classifier + metadata tools. Returns YAML to the user. Does not loop |
 | **Tool loop** | Call the model, run requested tools, feed results back, repeat until text |
-| **Conversation path** | Slack Q&A for one onboarded repo. Has thread history and `run_github` |
+| **Conversation path** | Slack Q&A for one onboarded repo. Has thread history, `run_github`, and `run_notion` |
 | **Architect path** | Slack Q&A across all onboarded repos. No tools |
 | **MCP ask** | Single-turn Q&A from indexed repo context. No Slack history, no tools |
 
@@ -72,14 +74,14 @@ Slack process (main.py)                    MCP process (benedict-mcp)
 
 **Data flow**
 
-A request is routed first. Commands never call the conversational LLM. Q&A builds a system prompt from retrieved files, then calls the model. Slack conversation may loop on `run_github`. MCP ask and architect do not.
+A request is routed first. Commands never call the conversational LLM. Q&A builds a system prompt from retrieved files, then calls the model. Slack conversation may loop on `run_github` and `run_notion`. MCP ask and architect do not.
 
 **Key invariants**
 
 - Pattern match routes Slack commands. The LLM does not decide onboard/status/index/progress.
 - The metadata classifier never sees `run_github`. GitHub and code Q&A stay on the conversation path.
 - MCP `ask_benedict` does not call `RepoAgent`. It does not persist a thread. It does not run tools.
-- File reading for Q&A is retrieve-then-stuff. Tools exist only for GitHub (`run_github`) and metadata files (shortcut).
+- File reading for Q&A is retrieve-then-stuff. Tools exist for GitHub (`run_github`), Notion (`run_notion`), and metadata files (shortcut). Not a general shell.
 - The progress loop may create GitHub issues without a chat confirmation. Conversation-path `run_github` still asks before mutating.
 
 ## 5. API / Interface
@@ -312,7 +314,5 @@ MCP ask uses a short system prompt plus the same `build_context()` output. One u
 
 ### F. Related docs
 
-- [ARCHITECTURE.md](https://github.com/mkarots/benedict/blob/main/plans/ARCHITECTURE.md) — module map and composition root
-- [CODE_READING_GUIDE.md](CODE_READING_GUIDE.md) — how to read the repo
-- [MCP.md](MCP.md) — MCP tool contract
-- [LLM_COMMAND_CLASSIFIER_DESIGN.md](LLM_COMMAND_CLASSIFIER_DESIGN.md) — classifier internals (metadata-only at runtime)
+- [Code map](CODE_MAP.md) — module map and composition root
+- [MCP](MCP.md) — MCP tool contract
