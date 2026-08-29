@@ -49,7 +49,7 @@
 | 21 | Comprehensive tests | ☐ | | Target: >80% coverage |
 | 22 | Create release workflow | ☐ | | .github/workflows/release.yml |
 | 23 | Create MAINTAINERS.md | ☐ | | Governance structure |
-| 24 | Set up GitHub Discussions | ☐ | | Community Q&A |
+| 24 | Set up GitHub Discussions | ☑ | | Q&A, Ideas, Show and tell. Recorded on #67 |
 | 25 | Prepare PyPI package | ☐ | | Test with TestPyPI |
 | 26 | Create FAQ section | ☐ | | Common questions |
 | 27 | Add py.typed marker | ☐ | | Type hint distribution |

@@ -5,6 +5,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONTRIBUTING = REPO_ROOT / "CONTRIBUTING.md"
 README = REPO_ROOT / "README.md"
+ISSUE_CHOOSER = REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
 
 REQUIRED_HEADINGS = (
     "Development environment",
@@ -29,3 +30,23 @@ def test_contributing_guide_covers_required_topics():
 def test_readme_links_to_contributing_guide():
     text = README.read_text(encoding="utf-8")
     assert "[CONTRIBUTING.md](CONTRIBUTING.md)" in text, "README must link to CONTRIBUTING.md"
+
+
+def test_readme_links_to_github_discussions():
+    text = README.read_text(encoding="utf-8")
+    assert (
+        "[GitHub Discussions](https://github.com/mkarots/benedict/discussions)" in text
+    ), "README Community must link to GitHub Discussions"
+
+
+def test_contributing_sends_questions_to_discussions():
+    text = CONTRIBUTING.read_text(encoding="utf-8")
+    assert "https://github.com/mkarots/benedict/discussions" in text
+    assert "Q&A, Ideas, Show and tell" in text
+    assert "Feature or question" not in text, "questions belong in Discussions, not issues"
+
+
+def test_issue_chooser_points_questions_to_discussions():
+    text = ISSUE_CHOOSER.read_text(encoding="utf-8")
+    assert "https://github.com/mkarots/benedict/discussions" in text
+    assert "Ask a question" in text

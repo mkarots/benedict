@@ -1,6 +1,6 @@
 # Contributing to Benedict
 
-This guide is how you set up a development environment, run checks, report issues, and open a pull request.
+This guide is how you set up a development environment, run checks, report issues, use Discussions, and open a pull request.
 
 By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Report unacceptable behavior privately as that document describes. Do not open a public issue for a conduct report.
 
@@ -87,10 +87,13 @@ This repository uses [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) an
 
 Search [existing issues](https://github.com/mkarots/benedict/issues) before you open a new one.
 
+Questions, ideas, and show-and-tell posts belong in [GitHub Discussions](https://github.com/mkarots/benedict/discussions), not in issues.
+
 | Kind | Where |
 | --- | --- |
+| Question, idea, or show and tell | [Discussions](https://github.com/mkarots/benedict/discussions) (Q&A, Ideas, Show and tell) |
 | Bug | [Bug report](https://github.com/mkarots/benedict/issues/new?template=bug_report.md) template |
-| Feature or question | A new issue with a clear title and what you want to change or learn |
+| Feature | A new issue with a clear title and what you want to change |
 | Security vulnerability | [SECURITY.md](SECURITY.md) — private disclosure only |
 | Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — private report only |
 
