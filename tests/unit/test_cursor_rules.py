@@ -1,10 +1,9 @@
-"""Cursor agent rules exist and are the source of truth for CLAUDE.md."""
+"""Cursor agent rules exist and are referenced from contributor docs."""
 
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RULES_DIR = REPO_ROOT / ".cursor" / "rules"
-CLAUDE = REPO_ROOT / "CLAUDE.md"
 PROCESS = REPO_ROOT / "docs" / "PROCESS.md"
 GITIGNORE = REPO_ROOT / ".gitignore"
 
@@ -41,15 +40,6 @@ def test_design_documents_rule_requires_core_sections():
     text = (RULES_DIR / "design-documents.mdc").read_text(encoding="utf-8")
     for section in ("Overview", "Non-Goals", "Happy Path Example", "Edge Cases"):
         assert section in text, f"design-documents.mdc must include {section}"
-
-
-def test_claude_md_is_an_index_to_cursor_rules():
-    text = CLAUDE.read_text(encoding="utf-8")
-    assert ".cursor/rules/" in text
-    for name in RULE_FILES:
-        assert name in text, f"CLAUDE.md must point at {name}"
-    assert "<TECHNICAL_DOCUMENTATION>" not in text
-    assert "<DESIGN_DOCUMENT>" not in text
 
 
 def test_readme_and_contributing_point_at_cursor_rules():
