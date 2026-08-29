@@ -29,3 +29,11 @@ def test_contributing_guide_covers_required_topics():
 def test_readme_links_to_contributing_guide():
     text = README.read_text(encoding="utf-8")
     assert "[CONTRIBUTING.md](CONTRIBUTING.md)" in text, "README must link to CONTRIBUTING.md"
+
+
+def test_contributing_and_readme_link_to_feature_request_template():
+    template = "https://github.com/mkarots/benedict/issues/new?template=feature_request.md"
+    contributing = CONTRIBUTING.read_text(encoding="utf-8")
+    readme = README.read_text(encoding="utf-8")
+    assert template in contributing, "CONTRIBUTING must link to the feature request template"
+    assert template in readme, "README Community must link to the feature request template"

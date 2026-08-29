@@ -261,7 +261,7 @@ tests/
 - [ ] Set repository topics/tags (python, slack-bot, ai, llm, etc.)
 
 ### 5.3 Issue & PR Templates
-**Status**: 🟡 PARTIAL (bug report + chooser shipped; feature request and PR templates still missing)
+**Status**: 🟡 PARTIAL (bug report, feature request, and chooser shipped; PR template still missing)
 
 **Actions**: Create templates
 
@@ -273,10 +273,10 @@ tests/
 - [x] Logs/screenshots
 
 #### .github/ISSUE_TEMPLATE/feature_request.md
-- [ ] Feature description
-- [ ] Use case
-- [ ] Proposed solution
-- [ ] Alternatives considered
+- [x] Feature description
+- [x] Use case
+- [x] Proposed solution
+- [x] Alternatives considered
 
 #### .github/PULL_REQUEST_TEMPLATE.md
 - [ ] Description of changes

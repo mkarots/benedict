@@ -90,7 +90,8 @@ Search [existing issues](https://github.com/mkarots/benedict/issues) before you 
 | Kind | Where |
 | --- | --- |
 | Bug | [Bug report](https://github.com/mkarots/benedict/issues/new?template=bug_report.md) template |
-| Feature or question | A new issue with a clear title and what you want to change or learn |
+| Feature | [Feature request](https://github.com/mkarots/benedict/issues/new?template=feature_request.md) template |
+| Question | A new issue with a clear title and what you want to learn |
 | Security vulnerability | [SECURITY.md](SECURITY.md) — private disclosure only |
 | Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — private report only |
 

@@ -24,9 +24,9 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
 [x] 6. Create CONTRIBUTING.md
     Include: Setup, development workflow, PR guidelines, code style. Recorded on #52
     
-[ ] 7. Create GitHub issue templates
-    - .github/ISSUE_TEMPLATE/bug_report.md
-    - .github/ISSUE_TEMPLATE/feature_request.md
+[x] 7. Create GitHub issue templates
+    - .github/ISSUE_TEMPLATE/bug_report.md. Recorded on #53
+    - .github/ISSUE_TEMPLATE/feature_request.md. Recorded on #54
     
 [ ] 8. Create GitHub PR template
     - .github/PULL_REQUEST_TEMPLATE.md
