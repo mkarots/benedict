@@ -58,3 +58,9 @@ def test_contributing_and_readme_link_to_feature_request_template():
     readme = README.read_text(encoding="utf-8")
     assert template in contributing, "CONTRIBUTING must link to the feature request template"
     assert template in readme, "README Community must link to the feature request template"
+
+
+def test_contributing_points_at_pull_request_template():
+    text = CONTRIBUTING.read_text(encoding="utf-8")
+    assert ".github/PULL_REQUEST_TEMPLATE.md" in text
+    assert "A pull request template is not in the repository yet" not in text
