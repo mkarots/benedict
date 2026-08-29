@@ -11,10 +11,9 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
 [x] 2. Create LICENSE file (Apache-2.0)
     Official text: https://www.apache.org/licenses/LICENSE-2.0.txt
     
-[ ] 3. Remove personal information
-    Files: README.md, plans/*.md, src/benedict/workspace/workspace_manager.py,
-           src/benedict/agent.py, src/benedict/commands/command_definitions.py
-    Replace: mkarots → example-org, @michael → @alice
+[x] 3. Remove personal information
+    Result: examples use example-org / @alice (2026-08-29). Recorded on #49
+    Real GitHub URLs for this remote stay mkarots/benedict
     
 [ ] 4. Create SECURITY.md
     Include: How to report vulnerabilities, supported versions

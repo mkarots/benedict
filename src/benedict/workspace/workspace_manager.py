@@ -99,7 +99,7 @@ class WorkspaceManager:
         if not source.exists():
             raise FileNotFoundError(f"Source path does not exist: {source_path}")
 
-        # Create parent directories if name contains slashes (e.g., "mkarots/hookedllm")
+        # Create parent directories if name contains slashes (e.g., "example-org/example-repo")
         target_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Remove existing target if it exists

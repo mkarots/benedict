@@ -38,7 +38,7 @@ Benedict is a well-architected Python Slack bot with strong fundamentals for ope
 ```
 1. Create LICENSE file (MIT)
 2. Scan git history for secrets
-3. Remove personal info (mkarots → example-org, @michael → @alice)
+3. Remove personal info (done — examples use example-org / @alice; #49)
 4. Create SECURITY.md
 5. Create CODE_OF_CONDUCT.md
 ```
@@ -112,7 +112,7 @@ Benedict is a well-architected Python Slack bot with strong fundamentals for ope
 |------|----------|------------|------------|
 | Secrets in git history | 🔴 High | 🟡 Low | Thorough scan; appears clean |
 | No tests | 🔴 High | 🔴 High | Write tests before promotion |
-| Personal info exposure | 🟡 Medium | 🟢 Low | Easy find/replace fix |
+| Personal info exposure | 🟡 Medium | 🟢 None in examples | Done 2026-08-29; real GitHub URLs stay |
 | License compliance | 🟢 Low | 🟢 Low | MIT claimed; just add file |
 | Name conflicts | 🟢 Low | 🟢 Low | "Benedict" appears available |
 
@@ -166,7 +166,7 @@ If you have limited time, do these 10 things first:
 
 1. **Create LICENSE** (5 min) - Copy MIT license text
 2. **Scan git history** (15 min) - Check for secrets
-3. **Remove personal info** (20 min) - 6 files to update
+3. **Remove personal info** — done 2026-08-29. Recorded on #49
 4. **Create SECURITY.md** (15 min) - How to report vulnerabilities
 5. **Create CODE_OF_CONDUCT.md** (10 min) - Use Contributor Covenant
 6. **Create CONTRIBUTING.md** (30 min) - Setup + PR guidelines

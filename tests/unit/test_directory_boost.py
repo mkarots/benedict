@@ -43,7 +43,7 @@ def test_sidecar_path_in_relevant_dirs_does_not_boost():
         _hit("docs/deploy.md", 0.50),
     ]
     ranked = apply_directory_boost(
-        hits, {".benedict/metadata/mkarots/benedict/src/auth"}
+        hits, {".benedict/metadata/example-org/example-repo/src/auth"}
     )
     assert [row["file_path"] for row in ranked] == [
         "src/auth/session.py",
@@ -55,5 +55,5 @@ def test_sidecar_path_in_relevant_dirs_does_not_boost():
 
 def test_org_repo_prefix_does_not_match_source_dir():
     hits = [_hit("src/auth/session.py", 0.50)]
-    ranked = apply_directory_boost(hits, {"mkarots/benedict/src/auth"})
+    ranked = apply_directory_boost(hits, {"example-org/example-repo/src/auth"})
     assert ranked[0]["score"] == 0.50
