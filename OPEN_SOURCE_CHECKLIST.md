@@ -17,7 +17,7 @@
 | 7 | Create bug report template | ☑ | | .github/ISSUE_TEMPLATE/bug_report.md + config.yml. Recorded on #53 |
 | 8 | Create feature request template | ☑ | | .github/ISSUE_TEMPLATE/feature_request.md. Recorded on #54 |
 | 9 | Create PR template | ☑ | | .github/PULL_REQUEST_TEMPLATE.md. Recorded on #55 |
-| 10 | Update README (badges, links) | ☐ | | Add license/CI badges |
+| 10 | Update README (badges, links) | ☑ | | CI, license, Python 3.10+ badges. Community links. Recorded on #56 |
 
 **Completion Deadline**: _____________ | **Block Public Release**: YES ❌
 
@@ -96,7 +96,7 @@
 ## ✏️ Files to MODIFY (12 files)
 
 ### Critical Modifications
-- [ ] README.md (line 186 + badges + links)
+- [x] README.md (badges + community links). Recorded on #56
 - [ ] src/benedict/workspace/workspace_manager.py (line 102)
 - [ ] src/benedict/agent.py (line 219)
 - [ ] src/benedict/commands/command_definitions.py (line 76)

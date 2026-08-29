@@ -50,7 +50,7 @@ Benedict is a well-architected Python Slack bot with strong fundamentals for ope
 6. Create CONTRIBUTING.md (done)
 7. Create GitHub issue templates (bug, feature)
 8. Create PR template
-9. Update README (badges, links, polish)
+9. Update README (badges, links, polish) (done)
 10. Set up basic test framework
 ```
 
@@ -171,7 +171,7 @@ If you have limited time, do these 10 things first:
 5. **Create CODE_OF_CONDUCT.md** (10 min) - Use Contributor Covenant
 6. **Create CONTRIBUTING.md** (30 min) - Setup + PR guidelines
 7. **Create issue templates** (20 min) - Bug + feature request
-8. **Update README** (20 min) - Add badges, links, polish
+8. **Update README** — done. Recorded on #56
 9. **Set up basic tests** (1 hour) - Framework + 1-2 tests
 10. **Create CI workflow** (30 min) - Basic lint + test
 
