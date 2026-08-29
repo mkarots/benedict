@@ -14,18 +14,18 @@ from benedict.metadata.metadata_location import (
 
 def test_sidecar_path_org_repo_root():
     workspace = Path("/tmp/workspaces/C123")
-    assert sidecar_path(workspace, "mkarots/benedict") == (
-        workspace / "metadata" / "mkarots" / "benedict" / ".metadata.benedict"
+    assert sidecar_path(workspace, "example-org/example-repo") == (
+        workspace / "metadata" / "example-org" / "example-repo" / ".metadata.benedict"
     )
 
 
 def test_sidecar_path_nested_dir():
     workspace = Path("/tmp/workspaces/C123")
-    assert sidecar_path(workspace, "mkarots/benedict", "src/commands") == (
+    assert sidecar_path(workspace, "example-org/example-repo", "src/commands") == (
         workspace
         / "metadata"
-        / "mkarots"
-        / "benedict"
+        / "example-org"
+        / "example-repo"
         / "src"
         / "commands"
         / ".metadata.benedict"

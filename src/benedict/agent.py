@@ -220,9 +220,9 @@ class RepoAgent:
                 # Add paths from configured source directories
                 for source_dir in repo_source_dirs:
                     if source_dir.exists() and source_dir.is_dir():
-                        # Full org/repo path: {source_dir}/mkarots/hookedllm
+                        # Full org/repo path: {source_dir}/example-org/example-repo
                         possible_paths.append(source_dir / repo)
-                        # Just repo name: {source_dir}/hookedllm
+                        # Just repo name: {source_dir}/example-repo
                         possible_paths.append(source_dir / repo.split("/")[-1])
                 
                 # Add current directory as fallback
@@ -249,7 +249,7 @@ class RepoAgent:
                         f"*Next steps:*\n"
                         f"• Provide the full path to the repository\n"
                         f"• Configure `BENEDICT_REPO_SOURCE_DIRS` environment variable\n"
-                        f"• Example: `@agent onboard repo /Users/yourname/Projects/hookedllm`",
+                        f"• Example: `@agent onboard repo /Users/yourname/Projects/example-repo`",
                     )
 
                 # Add resource to workspace
