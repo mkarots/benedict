@@ -111,6 +111,6 @@ Maintainers apply labels such as `bug`, `enhancement`, `architecture`, `testing`
 6. Open a pull request against `main`. Link the issue (`Fixes #52` or `Closes #52`).
 7. GitHub pre-fills [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Complete every section: description, related issues, type of change, testing done, and the checklist (tests, docs, changelog).
 
-CI must pass. Reviewers look for correctness, a readable diff, and docs that match the code.
+CI must pass. Reviewers look for correctness, a readable diff, and docs that match the code. Who merges, and how disagreements are resolved, is in [MAINTAINERS.md](MAINTAINERS.md).
 
 If the change is something a human sees (operator UI, landing page, docs chrome, Slack Block Kit), include a screenshot in the PR body or under `docs/` and link it.

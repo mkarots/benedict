@@ -15,7 +15,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.20. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.6.21. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 
@@ -56,7 +56,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 
 ## Community
 
-How to set up a dev environment, run tests, and open a pull request: [CONTRIBUTING.md](CONTRIBUTING.md).
+How to set up a dev environment, run tests, and open a pull request: [CONTRIBUTING.md](CONTRIBUTING.md). Who maintains the project and how decisions are made: [MAINTAINERS.md](MAINTAINERS.md).
 
 Questions, ideas, and show-and-tell posts: [GitHub Discussions](https://github.com/mkarots/benedict/discussions).
 

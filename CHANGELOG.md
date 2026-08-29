@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.21] - 2026-08-29
+
+### Added
+- **Maintainers**: `MAINTAINERS.md` lists the project lead, how merge decisions are made, and how to become a maintainer. README Community and CONTRIBUTING link to it ([#66](https://github.com/mkarots/benedict/issues/66)).
+
 ## [0.6.20] - 2026-08-29
 
 ### Changed
