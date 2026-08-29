@@ -6,7 +6,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.9. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.6.10. It does not download the project from GitHub for you.
 
 **Full documentation** (what ships, install, commands, request path): run `make docs` and open `http://127.0.0.1:8000`.
 
