@@ -40,6 +40,9 @@ state.watcher.json.backup
 runs.jsonl
 mcp.pid
 
+# MkDocs build output
+site/
+
 # Tooling caches
 .pytest_cache/
 .mypy_cache/

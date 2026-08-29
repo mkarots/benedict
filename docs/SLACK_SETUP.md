@@ -154,7 +154,7 @@ Use this checklist to verify your setup:
 
 After completing setup:
 
-1. See [README.md](README.md) for usage instructions
+1. See the [root README](https://github.com/mkarots/benedict/blob/main/README.md) for usage instructions
 2. Onboard a channel: `@agent onboard repo your-org/your-repo`
 3. Check status: `@agent status`
 4. Start asking questions about your repository!

@@ -7,10 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.5.8] - 2026-08-29
+## [0.6.0] - 2026-08-29
+
+### Added
+- **Progress loop**: while the Slack process is running, Benedict surveys each onboarded repo on a timer and takes at most one next action — a Slack question, a GitHub issue, or an implement-ready note. `@benedict progress` / `progress all` / `progress now` run the same path. Decision: [docs/adr/0002-progress-loop.md](docs/adr/0002-progress-loop.md). Spec: [docs/PROGRESS.md](docs/PROGRESS.md). Disable with `BENEDICT_PROGRESS=0`.
+
+## [0.5.10] - 2026-08-29
 
 ### Changed
-- Default data directory is `~/.benedict` instead of the git checkout. `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` live there. `.env` is still loaded from the repo. Set `BENEDICT_DATA_DIR` to keep using an existing in-repo data dir, or copy those files into `~/.benedict`.
+- Default data directory is `~/.benedict` instead of the git checkout. `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` live there. `.env` is still loaded from the repo. Set `BENEDICT_DATA_DIR` to keep using an existing in-repo data dir, or move those files into `~/.benedict`.
+
+## [0.5.9] - 2026-08-29
+
+### Added
+- Documentation index at [docs/README.md](docs/README.md). Groups setup, how-it-works, design, ADRs, and historical classifier docs.
+- Docs UI, sidebar, and process: MkDocs Material (`make docs`), `mkdocs.yml` nav, and [docs/PROCESS.md](docs/PROCESS.md).
+
+## [0.5.8] - 2026-08-29
+
+### Added
+- Request-path design: routing, retrieve-then-stuff prompts, metadata shortcut vs GitHub tool loop, and Slack vs MCP. [docs/REQUEST_PATH.md](docs/REQUEST_PATH.md).
 
 ## [0.5.7] - 2026-08-23
 

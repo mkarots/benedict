@@ -57,6 +57,7 @@ The codebase is organized into these layers:
 4. **Context Building**: Uses semantic search or keyword matching to find relevant files
 5. **LLM Interaction**: Sends context + query to LLM for intelligent responses
 6. **Response**: Formats and sends response back to Slack
+7. **Progress loop** (optional): `progress/` surveys onboarded repos on a timer. Spec: [PROGRESS.md](PROGRESS.md)
 
 ### Key Invariants
 
@@ -310,6 +311,8 @@ except Exception as e:
 
 ### Path 1: User Asks a Question
 
+Canonical map (why each step exists, Slack vs MCP): [REQUEST_PATH.md](REQUEST_PATH.md).
+
 ```
 Slack Event → slack_app.py (event handler)
   → agent.py.handle_conversation()
@@ -319,9 +322,11 @@ Slack Event → slack_app.py (event handler)
     → build_context() (utils/context.py)
       → semantic_indexer.search() OR keyword matching
       → repo_reader.read_file()
-    → llm.generate() with run_github (conversation path)
+    → run_tool_loop() with run_github (conversation path)
     → Format response → Slack
 ```
+
+MCP `ask_benedict` does not enter `RepoAgent`. It calls `BenedictMcpService.ask()` → `build_context()` → one `llm.generate()` (no tools, no Slack history).
 
 **Files to read:**
 1. `slack_app.py`: Event handling
@@ -458,6 +463,7 @@ After reading this guide:
 ## 13. Additional Resources
 
 - `plans/ARCHITECTURE.md`: High-level architecture overview
+- `docs/REQUEST_PATH.md`: Request lifecycle — routing, prompts, tools, Slack vs MCP
 - `README.md`: Setup and usage instructions
 - `CHANGELOG.md`: Version history and changes
 - `docs/`: Feature-specific design documents

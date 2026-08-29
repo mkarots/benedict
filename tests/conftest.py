@@ -92,7 +92,7 @@ def mock_conversation_repository() -> ConversationRepository:
 @pytest.fixture
 def mock_workspace_manager(temp_dir) -> WorkspaceManager:
     """Create a mock workspace manager for testing."""
-    return WorkspaceManager(base_dir=str(temp_dir))
+    return WorkspaceManager(workspaces_dir=str(temp_dir))
 
 
 @pytest.fixture
