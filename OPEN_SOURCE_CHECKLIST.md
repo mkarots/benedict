@@ -1,6 +1,6 @@
 # Open Source Launch Checklist ✓
 
-**Repository**: Benedict Slack Agent | **Target**: Public MIT License | **Status**: Planning Complete
+**Repository**: Benedict Slack Agent | **Target**: Public Apache License 2.0 | **Status**: Planning Complete
 
 ---
 
@@ -8,7 +8,7 @@
 
 | # | Task | Status | Owner | Notes |
 |---|------|--------|-------|-------|
-| 1 | Create LICENSE file (MIT) | ☐ | | Copy from opensource.org |
+| 1 | Create LICENSE file (Apache-2.0) | ☑ | | Official Apache License 2.0 |
 | 2 | Scan git history for secrets | ☐ | | `git log -p \| grep -i secret` |
 | 3 | Remove personal info (6 files) | ☐ | | mkarots→example-org |
 | 4 | Create SECURITY.md | ☐ | | Vulnerability reporting |
@@ -64,7 +64,7 @@
 ## 📂 Files to CREATE (20 new files)
 
 ### Root Directory
-- [ ] LICENSE
+- [x] LICENSE
 - [ ] SECURITY.md
 - [x] CODE_OF_CONDUCT.md
 - [ ] CONTRIBUTING.md

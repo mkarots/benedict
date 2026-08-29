@@ -8,8 +8,8 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
 [ ] 1. Scan git history for secrets
     Command: git log --all -p | grep -iE '(api[_-]?key|secret|password|xoxb-|xapp-|sk-ant-)' | head -50
     
-[ ] 2. Create LICENSE file (MIT)
-    Copy from: https://opensource.org/licenses/MIT
+[x] 2. Create LICENSE file (Apache-2.0)
+    Official text: https://www.apache.org/licenses/LICENSE-2.0.txt
     
 [ ] 3. Remove personal information
     Files: README.md, plans/*.md, src/benedict/workspace/workspace_manager.py,
