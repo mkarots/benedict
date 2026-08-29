@@ -9,6 +9,9 @@ from typing import List, Dict
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_TEST_REPO = "example-org/example-repo"
+
+
 class MockRepoReader:
     """Mock repository reader with in-memory file storage."""
 
@@ -21,6 +24,12 @@ class MockRepoReader:
         """
         self.repos = repos or {}
         logger.info(f"Initialized MockRepoReader with {len(self.repos)} repos")
+
+    def add_file(self, path: str, content: str, repo: str = DEFAULT_TEST_REPO) -> None:
+        """Add or overwrite a file in a mock repository (test helper)."""
+        if repo not in self.repos:
+            self.repos[repo] = {}
+        self.repos[repo][path] = content
 
     def read_file(self, repo: str, path: str) -> str:
         """Read file from mock repository.

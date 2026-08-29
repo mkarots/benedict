@@ -93,7 +93,7 @@ class CodeHandler:
         """Analyze code directory structure."""
         files = []
         subdirectories = []
-        
+
         # Special files that should be included even though they start with "."
         special_files = {".metadata.benedict"}
 
@@ -101,7 +101,7 @@ class CodeHandler:
             # Skip hidden files except special ones
             if item.name.startswith(".") and item.name not in special_files:
                 continue
-            
+
             # Skip .metadata.benedict if it's a directory (conflict)
             if item.name == ".metadata.benedict" and item.is_dir():
                 continue

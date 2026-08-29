@@ -140,7 +140,7 @@ def build_context(
             # If a specific file was requested directly, don't add it again from semantic search
             if requested_file:
                 seen_files.add(requested_file)
-            
+
             for result in results:
                 file_path = result["file_path"]
                 if file_path in seen_files:
@@ -270,22 +270,22 @@ def truncate_file_content(content: str, max_lines: int = 1000) -> str:
 
 def _extract_file_request(question: str) -> Optional[str]:
     """Extract specific file path from question if user is asking for a file.
-    
+
     Detects patterns like:
     - "tell me the contents of README.md"
     - "show me src/agent.py"
     - "read Makefile"
     - "what's in pyproject.toml"
     - "contents of docs/ARCHITECTURE.md"
-    
+
     Args:
         question: User question
-        
+
     Returns:
         File path if detected, None otherwise
     """
     question_lower = question.lower()
-    
+
     # Patterns that indicate a file request
     file_request_patterns = [
         r"contents?\s+of\s+([^\s]+)",
@@ -297,26 +297,26 @@ def _extract_file_request(question: str) -> Optional[str]:
         r"display\s+([^\s]+)",
         r"open\s+([^\s]+)",
     ]
-    
+
     for pattern in file_request_patterns:
         match = re.search(pattern, question_lower)
         if match:
             file_path = match.group(1).strip()
             # Remove trailing punctuation
-            file_path = file_path.rstrip('.,!?;:')
+            file_path = file_path.rstrip(".,!?;:")
             # Only return if it looks like a file path (contains . or starts with .)
-            if '.' in file_path or file_path.startswith('.'):
+            if "." in file_path or file_path.startswith("."):
                 return file_path
-    
+
     # Also check for explicit file mentions in quotes or backticks
     quoted_file = re.search(r'["\']([^"\']+\.[^"\']+)["\']', question)
     if quoted_file:
         return quoted_file.group(1)
-    
-    backtick_file = re.search(r'`([^`]+\.[^`]+)`', question)
+
+    backtick_file = re.search(r"`([^`]+\.[^`]+)`", question)
     if backtick_file:
         return backtick_file.group(1)
-    
+
     return None
 
 
@@ -347,37 +347,31 @@ def truncate_to_tokens(text: str, max_tokens: int) -> str:
     return truncated + "\n\n[... context truncated to fit token limit ...]"
 
 
-def build_architect_context(
-    agent: Any,
-    query: str,
-    state: Dict[str, Any]
-) -> str:
+def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> str:
     """Build context for architect queries across all projects.
-    
+
     Args:
         agent: RepoAgent instance with semantic_indexer
         query: User query/question
         state: State dictionary with channels mapping
-        
+
     Returns:
         Formatted context string with project list and combined search results
     """
     parts = []
-    
+
     # 1. Get all channel→repo mappings
     channels = state.get("channels", {})
-    
+
     # 2. Build project list
     projects = []
     for channel_id, config in channels.items():
         repo = config.get("repo")
         if repo:
-            projects.append({
-                "channel_id": channel_id,
-                "repo": repo,
-                "onboarded_at": config.get("onboarded_at")
-            })
-    
+            projects.append(
+                {"channel_id": channel_id, "repo": repo, "onboarded_at": config.get("onboarded_at")}
+            )
+
     # 3. Add project list to context
     if projects:
         projects_context = f"# Projects Managed by Benedict ({len(projects)} total)\n\n"
@@ -386,7 +380,7 @@ def build_architect_context(
         parts.append(projects_context)
     else:
         parts.append("# Projects Managed by Benedict\n\nNo projects currently onboarded.")
-    
+
     # 4. Search across all projects' RAG
     all_results = []
     if agent.semantic_indexer and projects:
@@ -397,7 +391,7 @@ def build_architect_context(
                 if not agent.semantic_indexer.is_indexed(repo):
                     logger.debug(f"Repository {repo} not indexed, skipping for architect query")
                     continue
-                
+
                 # Perform semantic search
                 results = agent.semantic_indexer.search(repo, query, top_k=5)
                 for result in results:
@@ -406,25 +400,25 @@ def build_architect_context(
             except Exception as e:
                 logger.warning(f"Error searching repository {repo} for architect query: {e}")
                 continue
-    
+
     # 5. Combine search results into context
     if all_results:
         # Sort by score (descending) and take top 10
         all_results.sort(key=lambda x: x.get("score", 0), reverse=True)
         top_results = all_results[:10]
-        
+
         results_context = f"\n# Relevant Code Across Projects ({len(all_results)} total results, showing top {len(top_results)})\n\n"
         for result in top_results:
             project = result.get("project", "unknown")
             file_path = result.get("file_path", "unknown")
             content = result.get("content", "")
             score = result.get("score", 0)
-            
+
             results_context += f"## [{project}] {file_path} (score: {score:.2f})\n"
             results_context += f"```\n{content[:500]}{'...' if len(content) > 500 else ''}\n```\n\n"
-        
+
         parts.append(results_context)
     else:
         parts.append("\n# Relevant Code Across Projects\n\nNo relevant code found across projects.")
-    
+
     return "\n".join(parts)

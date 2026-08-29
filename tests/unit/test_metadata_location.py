@@ -34,9 +34,7 @@ def test_sidecar_path_nested_dir():
 
 def test_sidecar_root_uses_full_repo_name():
     workspace = Path("/tmp/ws")
-    assert sidecar_root(workspace, "acme/widget") == (
-        workspace / "metadata" / "acme" / "widget"
-    )
+    assert sidecar_root(workspace, "acme/widget") == (workspace / "metadata" / "acme" / "widget")
 
 
 def test_relative_source_dir(tmp_path: Path):

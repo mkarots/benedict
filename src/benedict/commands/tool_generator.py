@@ -87,9 +87,7 @@ class MetadataToolGenerator:
                 )
                 if metadata_data:
                     metadata_tools = self._generate_metadata_tools(metadata_data)
-                    logger.debug(
-                        f"Generated {len(metadata_tools)} tools from metadata file"
-                    )
+                    logger.debug(f"Generated {len(metadata_tools)} tools from metadata file")
             except Exception as e:
                 logger.warning(f"Error generating metadata tools: {e}")
 

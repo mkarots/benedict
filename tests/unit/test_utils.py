@@ -3,8 +3,6 @@
 Tests context building and other utility functions.
 """
 
-import pytest
-
 from benedict.utils.context import truncate_to_tokens
 
 
@@ -15,7 +13,7 @@ class TestContextUtilities:
         """Test truncating text that's already under limit."""
         text = "This is a short text."
         result = truncate_to_tokens(text, max_tokens=1000)
-        
+
         assert result == text
 
     def test_truncate_to_tokens_long_text(self):
@@ -23,7 +21,7 @@ class TestContextUtilities:
         # Create text that's definitely over 100 tokens (400 chars)
         text = "word " * 100  # 500 chars
         result = truncate_to_tokens(text, max_tokens=100)
-        
+
         # Result should be shorter than original
         assert len(result) < len(text)
         # Should contain truncation notice
@@ -34,7 +32,7 @@ class TestContextUtilities:
         # 400 chars = approximately 100 tokens
         text = "x" * 400
         result = truncate_to_tokens(text, max_tokens=100)
-        
+
         # Should be at or under limit
         assert len(result) <= 400 + 100  # Allow some margin for truncation message
 
@@ -47,7 +45,7 @@ class TestContextUtilities:
         """Test that truncation preserves the beginning of text."""
         text = "IMPORTANT: " + ("x" * 1000)
         result = truncate_to_tokens(text, max_tokens=50)
-        
+
         # Should preserve the important prefix
         assert result.startswith("IMPORTANT:")
 
@@ -57,16 +55,23 @@ class TestSlackFormatter:
 
     def test_format_basic_text(self):
         """Test formatting basic text for Slack."""
-        # This would test slack_formatter if it has public functions
-        # Placeholder for now
-        pass
+        from benedict.utils.slack_formatter import SlackFormatter
+
+        assert SlackFormatter.markdown_to_mrkdwn("hello") == "hello"
+        assert SlackFormatter.markdown_to_mrkdwn("") == ""
 
     def test_format_code_block(self):
         """Test formatting code blocks for Slack."""
-        # Placeholder
-        pass
+        from benedict.utils.slack_formatter import SlackFormatter
+
+        block = "```python\nprint('hi')\n```"
+        assert SlackFormatter.markdown_to_mrkdwn(block) == block
 
     def test_escape_special_characters(self):
-        """Test escaping Slack special characters."""
-        # Placeholder
-        pass
+        """Test markdown markers convert to Slack mrkdwn."""
+        from benedict.utils.slack_formatter import SlackFormatter
+
+        assert SlackFormatter.markdown_to_mrkdwn("~~old~~") == "~old~"
+        assert SlackFormatter.markdown_to_mrkdwn("[docs](https://example.com)") == (
+            "<https://example.com|docs>"
+        )

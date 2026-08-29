@@ -38,7 +38,7 @@ def test_tool_registry_without_metadata_has_no_tools():
 
 
 def test_tool_registry_registers_only_metadata_tools():
-    reader = SimpleNamespace(metadata_exists=lambda _path: True)
+    reader = SimpleNamespace(metadata_exists=lambda _path, **_kwargs: True)
     registry = create_tool_registry(metadata_reader=reader, repo_path=Path("/tmp"))
     names = {tool.name for tool in registry.list_tools()}
     assert names == {"get_file_metadata", "list_key_files", "get_repository_summary"}

@@ -240,9 +240,7 @@ class SlackConversationHistoryIndexer:
 
         # Merge new messages (avoid duplicates by timestamp)
         existing_ts_set = {msg.get("ts") for msg in existing_messages}
-        unique_new_messages = [
-            msg for msg in new_messages if msg.get("ts") not in existing_ts_set
-        ]
+        unique_new_messages = [msg for msg in new_messages if msg.get("ts") not in existing_ts_set]
 
         if not unique_new_messages:
             logger.info("No new unique messages to add")
@@ -363,9 +361,7 @@ class SlackConversationHistoryIndexer:
             List of message dictionaries in the thread
         """
         try:
-            response = self.slack_client.conversations_replies(
-                channel=channel_id, ts=thread_ts
-            )
+            response = self.slack_client.conversations_replies(channel=channel_id, ts=thread_ts)
 
             if not response.get("ok"):
                 error = response.get("error", "unknown error")
@@ -441,7 +437,6 @@ class SlackConversationHistoryIndexer:
             return
 
         try:
-            import numpy as np
 
             # Create a collection name for this channel
             collection_name = f"slack_channel_{hashlib.md5(channel_id.encode()).hexdigest()[:16]}"
@@ -451,7 +446,8 @@ class SlackConversationHistoryIndexer:
                 collection = semantic_indexer.client.get_collection(collection_name)
             except Exception:
                 collection = semantic_indexer.client.create_collection(
-                    name=collection_name, metadata={"channel_id": channel_id, "type": "slack_channel"}
+                    name=collection_name,
+                    metadata={"channel_id": channel_id, "type": "slack_channel"},
                 )
 
             # Prepare documents for indexing
@@ -468,7 +464,7 @@ class SlackConversationHistoryIndexer:
                 msg_ts = msg.get("ts", "")
                 doc_id = f"{channel_id}:{msg_ts}"
                 documents.append(text)
-                
+
                 # Build metadata, filtering out None values (ChromaDB doesn't accept None)
                 metadata = {
                     "channel_id": channel_id,
@@ -481,7 +477,7 @@ class SlackConversationHistoryIndexer:
                     metadata["thread_ts"] = msg.get("thread_ts")
                 if msg.get("user"):
                     metadata["user"] = msg.get("user")
-                
+
                 metadatas.append(metadata)
                 ids.append(doc_id)
 
@@ -495,7 +491,7 @@ class SlackConversationHistoryIndexer:
                     msg_ts = msg.get("ts", "")
                     doc_id = f"{channel_id}:{msg_ts}:thread"
                     documents.append(text)
-                    
+
                     # Build metadata, filtering out None values (ChromaDB doesn't accept None)
                     metadata = {
                         "channel_id": channel_id,
@@ -507,7 +503,7 @@ class SlackConversationHistoryIndexer:
                     # Only add optional fields if they're not None
                     if msg.get("user"):
                         metadata["user"] = msg.get("user")
-                    
+
                     metadatas.append(metadata)
                     ids.append(doc_id)
 

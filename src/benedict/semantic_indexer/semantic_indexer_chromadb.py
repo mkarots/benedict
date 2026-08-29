@@ -764,9 +764,7 @@ class ChromaDBSemanticIndexer:
                             metadata_parts.append(f"File purpose: {purpose}")
                         key_functions = file_info.get("key_functions", [])
                         if key_functions:
-                            metadata_parts.append(
-                                f"Key functions: {', '.join(key_functions)}"
-                            )
+                            metadata_parts.append(f"Key functions: {', '.join(key_functions)}")
                         key_classes = file_info.get("key_classes", [])
                         if key_classes:
                             metadata_parts.append(f"Key classes: {', '.join(key_classes)}")
