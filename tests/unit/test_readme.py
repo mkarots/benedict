@@ -26,6 +26,11 @@ def test_readme_has_ci_license_and_python_badges():
     assert "actions/workflows/ci.yml/badge.svg" in text
     assert "License-Apache_2.0" in text
     assert "python-3.10%2B" in text
+    assert "Contributor%20Covenant-2.1" in text
+    assert "](CODE_OF_CONDUCT.md)" in text
+    assert "https://github.com/mkarots/benedict/discussions" in text
+    assert "astral-sh/ruff" in text
+    assert "code%20style-black" in text
 
 
 def test_readme_links_community_files():

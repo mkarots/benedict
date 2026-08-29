@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.24] - 2026-08-29
+
+### Added
+- README badges for Contributor Covenant, GitHub Discussions, Ruff, and Black. CI, license, and Python 3.10+ stay.
+
 ## [0.6.23] - 2026-08-29
 
 ### Changed
