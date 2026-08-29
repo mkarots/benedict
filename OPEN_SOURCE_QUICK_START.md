@@ -16,7 +16,7 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
            src/benedict/agent.py, src/benedict/commands/command_definitions.py
     Replace: mkarots → example-org, @michael → @alice
     
-[ ] 4. Create SECURITY.md
+[x] 4. Create SECURITY.md
     Include: How to report vulnerabilities, supported versions
     
 [x] 5. Create CODE_OF_CONDUCT.md
