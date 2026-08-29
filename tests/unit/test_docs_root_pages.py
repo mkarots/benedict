@@ -108,3 +108,5 @@ def test_current_docs_do_not_github_link_readme():
     assert bounce not in home
     assert "(commands.md)" in setup
     assert "(install.md)" in home
+    assert 'src="assets/logo.png"' in home
+    assert "<em>repo bene(volent)dict(ator) agent</em>" in home

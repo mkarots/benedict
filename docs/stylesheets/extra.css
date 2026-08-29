@@ -16,3 +16,18 @@
 [data-md-color-scheme="slate"] {
   --md-typeset-a-color: #d4a574;
 }
+
+.hero-mark {
+  text-align: center;
+  margin: 0.5rem 0 0;
+}
+
+.hero-mark img {
+  width: min(20rem, 70vw);
+  height: auto;
+}
+
+.hero-tagline {
+  text-align: center;
+  margin: 0.25rem 0 1.25rem;
+}

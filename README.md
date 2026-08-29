@@ -1,6 +1,9 @@
-# Benedict
+<p align="center">
+  <img src="docs/assets/logo.png" alt="Benedict logo" width="320" height="320">
+</p>
+<p align="center"><em>repo bene(volent)dict(ator) agent</em></p>
 
-<img src="docs/assets/logo.png" alt="Benedict logo" width="96" height="96">
+# Benedict
 
 [![CI](https://github.com/mkarots/benedict/actions/workflows/ci.yml/badge.svg)](https://github.com/mkarots/benedict/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -12,7 +15,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.19. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.6.20. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 
