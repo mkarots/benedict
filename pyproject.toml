@@ -109,11 +109,8 @@ python_version = "3.10"
 mypy_path = "src"
 ignore_missing_imports = true
 warn_unused_ignores = true
-
-# NumPy 2 stubs use `type` statements that mypy rejects when python_version < 3.12.
-[[tool.mypy.overrides]]
-module = ["numpy", "numpy.*"]
-follow_imports = "skip"
+# Do not type-check site-packages (NumPy 2 stubs use 3.12-only syntax).
+no_site_packages = true
 
 # Existing modules with type errors. Tighten as hints land; do not grow this list.
 [[tool.mypy.overrides]]
