@@ -11,7 +11,6 @@ MKDOCS = REPO_ROOT / "mkdocs.yml"
 # In docs/ but not a published page. See docs/PROCESS.md.
 NOT_IN_NAV = frozenset(
     {
-        "OPEN_SOURCE_GUIDE_INDEX.md",
         "COMMAND_CLASSIFIER_DESIGN.md",
         "COMMAND_CLASSIFIER_API_DESIGN.md",
         "LLM_COMMAND_CLASSIFIER_DESIGN.md",

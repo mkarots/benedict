@@ -19,7 +19,6 @@ INCLUDED_PAGES = {
 # In docs/ but not a published MkDocs page (see exclude_docs in mkdocs.yml).
 UNPUBLISHED_DOCS = frozenset(
     {
-        "docs/OPEN_SOURCE_GUIDE_INDEX.md",
         "docs/COMMAND_CLASSIFIER_DESIGN.md",
         "docs/COMMAND_CLASSIFIER_API_DESIGN.md",
         "docs/LLM_COMMAND_CLASSIFIER_DESIGN.md",

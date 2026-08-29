@@ -75,7 +75,6 @@ nav:
       - Changelog: changelog.md
 
 exclude_docs: |
-  OPEN_SOURCE_GUIDE_INDEX.md
   adr/**
   COMMAND_CLASSIFIER_DESIGN.md
   COMMAND_CLASSIFIER_API_DESIGN.md

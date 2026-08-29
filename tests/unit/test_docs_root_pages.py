@@ -34,9 +34,9 @@ def test_docs_hrefs_become_in_site_paths():
 
 def test_unpublished_docs_href_stays_on_github():
     hooks = _hooks()
-    href = hooks.rewrite_root_href("docs/OPEN_SOURCE_GUIDE_INDEX.md")
+    href = hooks.rewrite_root_href("docs/COMMAND_CLASSIFIER_DESIGN.md")
     assert href.startswith("https://github.com/mkarots/benedict/blob/main/")
-    assert href.endswith("docs/OPEN_SOURCE_GUIDE_INDEX.md")
+    assert href.endswith("docs/COMMAND_CLASSIFIER_DESIGN.md")
 
 
 def test_external_and_passthrough_hrefs_are_unchanged():
@@ -50,12 +50,12 @@ def test_rewrite_root_markdown_rewrites_only_links():
     hooks = _hooks()
     src = (
         "See [MCP](docs/MCP.md) and `docs/MCP.md` and "
-        "[guide](docs/OPEN_SOURCE_GUIDE_INDEX.md) and [log](CHANGELOG.md)."
+        "[guide](docs/COMMAND_CLASSIFIER_DESIGN.md) and [log](CHANGELOG.md)."
     )
     out = hooks.rewrite_root_markdown(src)
     assert "[MCP](MCP.md)" in out
     assert "`docs/MCP.md`" in out
-    assert "https://github.com/mkarots/benedict/blob/main/docs/OPEN_SOURCE_GUIDE_INDEX.md" in out
+    assert "https://github.com/mkarots/benedict/blob/main/docs/COMMAND_CLASSIFIER_DESIGN.md" in out
     assert "[log](changelog.md)" in out
 
 
