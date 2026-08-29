@@ -5,7 +5,7 @@
 This document outlines the complete process for open sourcing the Benedict repository - a Slack bot that provides intelligent, repo-scoped AI agent conversations. The plan covers security review, documentation, licensing, community guidelines, CI/CD setup, and launch strategy.
 
 **Current Status**: Private repository at `mkarots/benedict`
-**Target Status**: Public open source project with MIT License
+**Target Status**: Public open source project with Apache License 2.0
 **Estimated Effort**: 15-20 implementation steps across multiple categories
 
 ---
@@ -63,21 +63,12 @@ git log --all -p | grep -i 'api[_-]key\|secret\|token' | head -20
 ## 2. Legal & Licensing
 
 ### 2.1 Create LICENSE File
-**Status**: ❌ MISSING
+**Status**: ✅ PRESENT (Apache License 2.0)
 
-**Action**: Create `LICENSE` file with MIT License text
-- README claims MIT License but file doesn't exist
-- MIT is appropriate for this type of project
-- Include copyright holder and year
-
-**Template**:
-```
-MIT License
-
-Copyright (c) 2026 [Copyright Holder Name]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy...
-```
+**Action**: Create `LICENSE` file with Apache License 2.0 text
+- [x] Use the official Apache License 2.0
+- [x] Include copyright holder and year in `NOTICE`
+- [x] Link `LICENSE` from the README
 
 ### 2.2 Add License Headers
 **Status**: OPTIONAL
@@ -435,7 +426,7 @@ tests/
 ## Implementation Checklist
 
 ### Phase 1: Critical Pre-Release (Must Complete)
-- [ ] Create LICENSE file
+- [x] Create LICENSE file
 - [ ] Remove personal information from code/docs
 - [ ] Scan git history for secrets
 - [ ] Create CONTRIBUTING.md
