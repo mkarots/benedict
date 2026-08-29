@@ -25,6 +25,7 @@ Use Benedict when Slack is the working surface for a codebase and you want an ag
 - MCP tools: `list_projects`, `get_repository_summary`, `search_code`, `get_recent_actions`, `ask_benedict`
 - Local operator console at `http://127.0.0.1:8765`
 - Progress loop: Slack question, GitHub issue, or implement-ready note
+- Notion during Slack conversations via the host CLI (`ntn` / `run_notion`), when it is installed and the channel is linked
 
 It does **not** clone from GitHub. Onboard needs a directory on the host. It is not a remote GitHub-hosted reader.
 
@@ -32,8 +33,9 @@ It does **not** clone from GitHub. Onboard needs a directory on the host. It is 
 
 - Open or merge pull requests from the progress loop
 - Read GitHub as the repo source (`RepoReader` is local / workspace only)
-- Notion, Google Docs, or Cursor session logs
-- A general shell
+- Use Notion as a repo source or put Notion pages in the progress snapshot
+- Google Docs or Cursor session logs
+- A general shell (`gh` and `ntn` only)
 
 ## Terms
 

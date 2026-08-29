@@ -36,23 +36,20 @@ Put a **Status** line at the top: `Current`, `Decision`, `Historical`, or `Proce
 | Type | Where | Rule |
 | --- | --- | --- |
 | Current | `docs/*.md` | Behavior that ships today |
-| Decision | `docs/adr/NNNN-short-title.md` | One accepted choice |
 | Historical | `docs/*.md` | Design the runtime no longer implements |
 | Process | this file | How to change docs |
+
+ADRs may live under `docs/adr/` for the repo. Do not add them to `nav`. They are not published.
 
 Do not mix current behavior and historical claims on one page.
 
 ## Add a page
 
-1. Write Markdown under `docs/` (or `docs/adr/` for a decision).
-2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, How it works, Reference, Decisions, Historical, Maintain).
+1. Write Markdown under `docs/`.
+2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, How it works, Reference, Historical, Maintain).
 3. Preview: `make docs` and open the page.
 4. Check: `make docs-build` must pass (strict mode).
 5. If the doc describes shipped behavior, mention it in `CHANGELOG.md`.
-
-### Decisions
-
-Next ADR is `docs/adr/0003-short-title.md`. Copy [ADR 0001](adr/0001-local-operator-ui.md): Status, Date, Context, Decision, Consequences.
 
 ### Design pages
 

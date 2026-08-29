@@ -23,7 +23,7 @@ def test_docs_hrefs_become_in_site_paths():
     hooks = _hooks()
     assert hooks.rewrite_root_href("docs/MCP.md") == "MCP.md"
     assert hooks.rewrite_root_href("docs/adr/0001-local-operator-ui.md") == (
-        "adr/0001-local-operator-ui.md"
+        "https://github.com/mkarots/benedict/blob/main/docs/adr/0001-local-operator-ui.md"
     )
     assert hooks.rewrite_root_href("docs/PROGRESS.md#overview") == "PROGRESS.md#overview"
     assert hooks.rewrite_root_href("CHANGELOG.md") == "changelog.md"

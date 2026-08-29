@@ -11,6 +11,7 @@ Clone Benedict, install dependencies, set tokens, and start the Slack process.
 - A Slack workspace where you can create apps
 - An Anthropic API key for LLM answers (`ANTHROPIC_API_KEY`)
 - Optional: [GitHub CLI](https://cli.github.com/) (`gh`)
+- Optional: [Notion CLI](https://ntn.dev) (`ntn`) for Slack `run_notion` (`ntn login` or `NOTION_API_KEY`)
 - Optional: Cursor or Claude Code, for `benedict-mcp`
 - Optional: local git checkouts of the repos you want to onboard
 

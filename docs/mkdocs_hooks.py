@@ -49,7 +49,7 @@ def rewrite_root_href(href: str, *, blob_base: str = DEFAULT_BLOB_BASE) -> str:
 
     path, frag = _split_href(href)
 
-    if path in UNPUBLISHED_DOCS:
+    if path in UNPUBLISHED_DOCS or path.startswith("docs/adr/"):
         return f"{blob_base}{path}{frag}"
 
     if path.startswith("docs/"):

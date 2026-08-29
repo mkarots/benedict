@@ -136,7 +136,7 @@ When you open a file: identify protocol vs implementation vs core logic, list co
 
 ## Common paths
 
-**Question (Slack).** `slack_app.py` → `RepoAgent.handle_conversation` → optional metadata shortcut → `build_context()` → optional `run_github` tool loop → Slack reply. Canonical write-up: [Request path](REQUEST_PATH.md).
+**Question (Slack).** `slack_app.py` → `RepoAgent.handle_conversation` → optional metadata shortcut → `build_context()` → optional `run_github` / `run_notion` tool loop → Slack reply. Canonical write-up: [Request path](REQUEST_PATH.md).
 
 **Onboard.** `slack_app.py` → `handle_onboard` → `workspace_manager` → channel mapping in `state.json`.
 

@@ -67,9 +67,6 @@ nav:
   - Reference:
       - Configuration: configuration.md
       - Troubleshooting: troubleshooting.md
-  - Decisions:
-      - "ADR 0001: Local operator UI": adr/0001-local-operator-ui.md
-      - "ADR 0002: Progress loop": adr/0002-progress-loop.md
   - Historical:
       - Command classifier: COMMAND_CLASSIFIER_DESIGN.md
       - Command classifier API: COMMAND_CLASSIFIER_API_DESIGN.md
@@ -80,3 +77,4 @@ nav:
 
 exclude_docs: |
   OPEN_SOURCE_GUIDE_INDEX.md
+  adr/**

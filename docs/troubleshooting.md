@@ -14,6 +14,8 @@ Status: Current
 
 **GitHub tool fails.** Install `gh` on the host and run `gh auth login`. Benedict does not ship a GitHub token of its own.
 
+**Notion tool fails.** Install `ntn` on the host (`curl -fsSL https://ntn.dev | bash`) and run `ntn login`, or set `NOTION_API_KEY`. Then `@benedict link notion https://www.notion.so/your-page-or-database`.
+
 **Corrupt state.** Stop the bot, delete `~/.benedict/state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
 **Wrong or empty Slack reply.** Open the operator console at `http://127.0.0.1:8765` and inspect the run. Spec: [Operator console](OPERATOR_UI_DESIGN.md). Request routing: [Request path](REQUEST_PATH.md).

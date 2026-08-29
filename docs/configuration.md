@@ -34,5 +34,6 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_PROGRESS` | `1` | Unattended progress loop. Set `0` to disable. |
 | `BENEDICT_PROGRESS_INTERVAL_S` | `21600` | Seconds between full progress cycles |
 | `BENEDICT_PROGRESS_START_DELAY_S` | `120` | Seconds to wait after startup before the first cycle |
+| `NOTION_API_KEY` | unset | Optional. Copied to `NOTION_API_TOKEN` for `ntn` if that var is unset. `ntn login` also works. |
 
 Install and start: [Install and run](install.md). Slack tokens: [Slack setup](SLACK_SETUP.md).

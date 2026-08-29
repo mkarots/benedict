@@ -10,9 +10,11 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `offboard` | Removes the channel mapping. |
 | `status` | Shows the linked repo and when it was onboarded. |
 | `update index` | Incremental reindex. Add `force` for a full rebuild. |
+| `link notion <url>` | Sets this channel's default Notion page or database for `run_notion`. |
+| `unlink notion` | Clears the Notion mapping. Does not offboard the repo. |
 | `onboard architect` | Marks the channel as the architect channel for cross-project questions. |
 | `progress` | Run the progress loop for this channel. Add `all` for every onboarded repo, `now` to ignore a pending question. |
-| Any other question | Repo-scoped conversation with search, LLM, and `run_github`. |
+| Any other question | Repo-scoped conversation with search, LLM, `run_github`, and `run_notion`. |
 
 GitHub issue/PR requests stay on the conversation path. Asking for `.metadata.benedict` contents (file metadata, list key files, repository summary) may use a short metadata-tool shortcut. That shortcut does not run GitHub; if it fails, Benedict falls through to conversation.
 
@@ -56,6 +58,10 @@ How that request is routed: [Request path](REQUEST_PATH.md).
 ## GitHub CLI
 
 If GitHub CLI is installed and authenticated on the host, Benedict can run `gh` in the onboarded workspace repo (list PRs, inspect issues, and similar). Mutating GitHub (create, merge, close, comment) is supposed to be confirmed with you first. This is not a general shell.
+
+## Notion CLI
+
+If [`ntn`](https://ntn.dev) is installed on the host (or `NOTION_API_KEY` is set), Benedict can walk Notion during conversations with `run_notion`, the same argv-only pattern as `run_github`. Link a page or database with `@benedict link notion <url>`. Notion is not a `RepoReader` and is not in the progress-loop snapshot.
 
 ## State and workspaces
 
