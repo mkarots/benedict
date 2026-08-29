@@ -2,9 +2,11 @@ Status: Current
 
 # Troubleshooting
 
-**Bot does not respond.** Confirm the process is running, the bot is in the channel, and you @mentioned it (or replied in a thread Benedict already joined). Check the terminal log.
+**Bot does not respond.** Confirm the process is running, the bot is in the channel, and you @mentioned it (or replied in a thread Benedict already joined). Check the terminal log. Event Subscriptions must include `app_mention`.
 
-**Missing `SLACK_BOT_TOKEN` or `SLACK_APP_TOKEN`.** See [Slack setup](SLACK_SETUP.md).
+**Missing `SLACK_BOT_TOKEN` or `SLACK_APP_TOKEN`.** `.env` must exist in the project directory (or at `BENEDICT_ENV_FILE`). Names must match, with no spaces around `=`. Restart after you edit. Tokens come from [Slack setup](SLACK_SETUP.md).
+
+**Bot cannot read channel history.** Add `channels:history` under Bot Token Scopes, reinstall the app, and invite the bot to the channel.
 
 **Channel is not onboarded.** Run `@benedict onboard repo org/repo` against a directory that exists locally.
 
