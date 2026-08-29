@@ -32,7 +32,7 @@ This guide does not:
 | **Composition Root** | `main.py` where all concrete classes are instantiated |
 | **Dependency Injection** | Dependencies passed to classes rather than created internally |
 | **Workspace** | Isolated directory per Slack channel containing repository resources |
-| **Metadata** | `.metadata.benedict` files providing directory summaries and context |
+| **Metadata** | Directory overlays (`.metadata.benedict`) stored under `workspaces/<channel>/metadata/<org>/<repo>/`, not in the clone |
 | **Semantic Indexer** | Component that indexes code for semantic similarity search |
 | **Repo Reader** | Abstraction for reading repository files (local filesystem or workspace) |
 | **Conversation Repository** | Abstraction for persisting conversation state |
@@ -157,7 +157,7 @@ The codebase is organized into these layers:
 **Key modules:**
 - `commands/`: Command classification and tool execution
 - `workspace/`: Workspace lifecycle management
-- `metadata/`: Metadata generation and reading
+- `metadata/`: Overlay generate/read; writes go to the workspace sidecar
 
 ## 6. Guiding Questions for Reading Code
 
@@ -357,7 +357,7 @@ Slack Command → slack_app.py
 First Query → agent.py.handle_conversation()
   → semantic_indexer.search() (not indexed yet)
     → semantic_indexer.index_repository()
-      → metadata_generator.generate_metadata()
+      → metadata_generator.generate_and_write() (workspace sidecar)
       → Change detector detects files
       → Files chunked and embedded
       → Stored in ChromaDB
@@ -366,7 +366,7 @@ First Query → agent.py.handle_conversation()
 **Files to read:**
 1. `agent.py`: Triggers indexing
 2. `semantic_indexer/semantic_indexer_chromadb.py`: Indexing logic
-3. `metadata/metadata_generator.py`: Metadata generation
+3. `metadata/metadata_location.py` + `metadata_generator.py`: Sidecar path and write
 4. `repo_change_detector/git_change_detector.py`: Change detection
 
 ## 9. Reading Checklist
@@ -412,7 +412,7 @@ When reading a new part of the codebase:
 ### Feature Modules
 - `commands/`: Command classification and tool execution
 - `workspace/`: Workspace management
-- `metadata/`: Metadata generation and reading
+- `metadata/`: Overlay generate/read; writes go to the workspace sidecar
 - `utils/`: Utility functions (context building, formatting)
 
 ## 11. Debugging Tips

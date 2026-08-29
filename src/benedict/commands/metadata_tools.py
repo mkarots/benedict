@@ -66,7 +66,11 @@ class GetFileMetadataTool(Tool):
             )
         
         try:
-            metadata_data = self.metadata_reader.read_metadata(Path(workspace_path))
+            metadata_data = self.metadata_reader.read_metadata(
+                Path(workspace_path),
+                workspace_root=context.get("workspace_root"),
+                repo=context.get("repo"),
+            )
             if not metadata_data:
                 return ToolResult(
                     success=False,
@@ -135,7 +139,11 @@ class ListKeyFilesTool(Tool):
             )
         
         try:
-            metadata_data = self.metadata_reader.read_metadata(Path(workspace_path))
+            metadata_data = self.metadata_reader.read_metadata(
+                Path(workspace_path),
+                workspace_root=context.get("workspace_root"),
+                repo=context.get("repo"),
+            )
             if not metadata_data:
                 return ToolResult(
                     success=False,
@@ -196,7 +204,11 @@ class GetRepositorySummaryTool(Tool):
             )
         
         try:
-            metadata_data = self.metadata_reader.read_metadata(Path(workspace_path))
+            metadata_data = self.metadata_reader.read_metadata(
+                Path(workspace_path),
+                workspace_root=context.get("workspace_root"),
+                repo=context.get("repo"),
+            )
             if not metadata_data:
                 return ToolResult(
                     success=False,

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-08-29
+
+### Fixed
+- Overlay generation no longer skips every directory when the data dir is `~/.benedict`. Skip rules only apply under the repo root, so Slack reindex and onboard can create `workspaces/<channel>/metadata/`.
+
+### Changed
+- Sidecar overlays live at `workspaces/<channel>/metadata/<org>/<repo>/`, not `workspaces/<channel>/.benedict/metadata/`.
+
+## [0.6.2] - 2026-08-29
+
+### Fixed
+- Generated `.metadata.benedict` overlays are written to a workspace sidecar (`workspaces/<channel>/.benedict/metadata/<org>/<repo>/…`) instead of through the repo symlink into the user's clone ([#12](https://github.com/mkarots/benedict/issues/12)). Readers try the sidecar first, then leftover in-tree files. The clone is not written.
+
 ## [0.6.1] - 2026-08-29
 
 ### Changed

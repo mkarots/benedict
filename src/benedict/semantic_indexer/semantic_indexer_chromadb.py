@@ -7,7 +7,6 @@ import logging
 import hashlib
 import os
 import time
-import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Optional, Any
@@ -20,7 +19,9 @@ from chromadb.config import Settings
 
 from benedict.protocols.repo_reader import RepoReader
 from benedict.protocols.repo_change_detector import RepoChangeDetector
-from benedict.metadata import MetadataGenerator
+from benedict.metadata import MetadataGenerator, MetadataReader
+from benedict.metadata.directory_boost import apply_directory_boost
+from benedict.metadata.source_dir_skip import should_skip_source_directory
 
 logger = logging.getLogger(__name__)
 
@@ -182,13 +183,11 @@ class ChromaDBSemanticIndexer:
             try:
                 metadata_matches = metadata_reader.search_metadata(workspace_path, query, repo=repo)
                 for match in metadata_matches:
-                    # Store relative paths from repo root
                     rel_path = match["path"]
                     if rel_path.startswith(repo + "/"):
                         rel_path = rel_path[len(repo) + 1 :]
                     relevant_dir_paths.add(rel_path)
-                    # Also add parent directories
-                    path_parts = rel_path.split("/")
+                    path_parts = [part for part in rel_path.split("/") if part]
                     for i in range(1, len(path_parts)):
                         relevant_dir_paths.add("/".join(path_parts[:i]))
                 logger.debug(
@@ -219,23 +218,10 @@ class ChromaDBSemanticIndexer:
                 score = 1.0 / (1.0 + distance)
 
                 file_path = metadata.get("file_path", "unknown")
-
-                # Boost score if file is in a relevant directory
-                if relevant_dir_paths:
-                    file_dir = str(Path(file_path).parent)
-                    # Check if file's directory or any parent matches relevant directories
-                    for rel_dir in relevant_dir_paths:
-                        if file_dir == rel_dir or file_dir.startswith(rel_dir + "/"):
-                            score *= 1.2  # 20% boost for files in relevant directories
-                            logger.debug(
-                                f"Boosted score for {file_path} (in relevant directory: {rel_dir})"
-                            )
-                            break
-
                 formatted_results.append({"file_path": file_path, "content": doc, "score": score})
 
-        # Re-sort by boosted score and return top_k
-        formatted_results.sort(key=lambda x: x["score"], reverse=True)
+        if relevant_dir_paths:
+            formatted_results = apply_directory_boost(formatted_results, relevant_dir_paths)
         formatted_results = formatted_results[:top_k]
 
         logger.debug(
@@ -760,59 +746,38 @@ class ChromaDBSemanticIndexer:
             if not file_full_path.exists():
                 return None
 
-            # Find .metadata.benedict file in the file's directory or parent directories
+            reader = MetadataReader()
             current_dir = file_full_path.parent
+            file_name = file_full_path.name
 
-            # Walk up the directory tree looking for .metadata.benedict files
-            while current_dir != repo_path.parent:
-                metadata_file = current_dir / ".metadata.benedict"
-                if metadata_file.exists():
-                    try:
-                        with open(metadata_file, "r", encoding="utf-8") as f:
-                            metadata = yaml.safe_load(f)
-
-                        if not metadata:
-                            current_dir = current_dir.parent
+            while True:
+                metadata = reader.read_metadata(
+                    current_dir, workspace_root=workspace_path, repo=repo
+                )
+                if metadata:
+                    for file_info in metadata.get("files", []):
+                        if file_info.get("name") != file_name:
                             continue
-
-                        # Look for this file in the metadata
-                        files = metadata.get("files", [])
-                        file_name = file_full_path.name
-
-                        for file_info in files:
-                            if file_info.get("name") == file_name:
-                                # Build metadata text
-                                metadata_parts = []
-
-                                purpose = file_info.get("purpose", "")
-                                if purpose:
-                                    metadata_parts.append(f"File purpose: {purpose}")
-
-                                key_functions = file_info.get("key_functions", [])
-                                if key_functions:
-                                    metadata_parts.append(
-                                        f"Key functions: {', '.join(key_functions)}"
-                                    )
-
-                                key_classes = file_info.get("key_classes", [])
-                                if key_classes:
-                                    metadata_parts.append(f"Key classes: {', '.join(key_classes)}")
-
-                                if metadata_parts:
-                                    return "\n".join(metadata_parts)
-
-                                break
-
-                        # If file not found in this .metadata.benedict, check parent
-                        current_dir = current_dir.parent
-                        continue
-
-                    except Exception as e:
-                        logger.debug(f"Error reading .metadata.benedict file {metadata_file}: {e}")
-                        current_dir = current_dir.parent
-                        continue
-
-                current_dir = current_dir.parent
+                        metadata_parts = []
+                        purpose = file_info.get("purpose", "")
+                        if purpose:
+                            metadata_parts.append(f"File purpose: {purpose}")
+                        key_functions = file_info.get("key_functions", [])
+                        if key_functions:
+                            metadata_parts.append(
+                                f"Key functions: {', '.join(key_functions)}"
+                            )
+                        key_classes = file_info.get("key_classes", [])
+                        if key_classes:
+                            metadata_parts.append(f"Key classes: {', '.join(key_classes)}")
+                        if metadata_parts:
+                            return "\n".join(metadata_parts)
+                if current_dir.resolve() == repo_path.resolve():
+                    break
+                parent = current_dir.parent
+                if parent == current_dir:
+                    break
+                current_dir = parent
 
             return None
 
@@ -840,70 +805,13 @@ class ChromaDBSemanticIndexer:
 
             logger.info(f"Generating metadata overlays for {repo} in {repo_path}")
 
-            # Common directories to skip (venv, cache, build artifacts, etc.)
-            skip_patterns = {
-                "venv",
-                ".venv",
-                "env",
-                ".env",
-                "ENV",
-                "virtualenv",
-                "build-env",  # Common build environment directory
-                "env-build",  # Alternative naming
-                "__pycache__",
-                ".mypy_cache",
-                ".pytest_cache",
-                "node_modules",
-                ".git",
-                ".hg",
-                ".svn",
-                "build",
-                "dist",
-                ".tox",
-                ".coverage",
-                "htmlcov",
-                ".eggs",
-                ".idea",
-                ".vscode",
-                ".DS_Store",
-                "site-packages",  # Python virtual environment packages
-            }
-
-            def should_skip_directory(directory: Path) -> bool:
-                """Check if directory should be skipped."""
-                # Skip hidden directories (check current and all parents)
-                if directory.name.startswith("."):
-                    return True
-
-                # Check if any parent directory is hidden (e.g., .venv)
-                for parent in directory.parents:
-                    if parent.name.startswith("."):
-                        return True
-
-                # Skip common build/cache directories
-                if directory.name in skip_patterns:
-                    return True
-
-                # Skip .egg-info directories
-                if directory.name.endswith(".egg-info"):
-                    return True
-
-                # Skip .dist-info directories (Python package metadata)
-                if directory.name.endswith(".dist-info"):
-                    return True
-
-                # Skip if any parent is in skip patterns
-                for parent in directory.parents:
-                    if parent.name in skip_patterns:
-                        return True
-
-                return False
-
             # Generate metadata recursively for all directories
             for directory in [repo_path] + list(repo_path.rglob("*")):
-                if directory.is_dir() and not should_skip_directory(directory):
+                if directory.is_dir() and not should_skip_source_directory(directory, repo_path):
                     try:
-                        self.metadata_generator.generate_and_write(directory)
+                        self.metadata_generator.generate_and_write(
+                            directory, workspace_root=workspace_path, repo=repo
+                        )
                     except Exception as e:
                         logger.warning(f"Error generating metadata for {directory}: {e}")
                         continue

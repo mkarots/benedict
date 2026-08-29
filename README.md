@@ -6,7 +6,7 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.1). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.3). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -15,7 +15,7 @@ Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.1). It is
 - Claude 3.5 Sonnet (override with `ANTHROPIC_MODEL`) plus a stub mode if the API key is missing
 - Semantic code search with ChromaDB and sentence-transformers; git-based incremental reindex
 - Per-channel workspaces (symlink or copy of the local repo)
-- `.metadata.benedict` directory summaries that boost search
+- Directory overlays (`.metadata.benedict`) stored under `workspaces/<channel>/metadata/`, not in the clone; they can boost search
 - Architect channel for cross-project questions
 - Slack conversation history indexing into the workspace
 - GitHub CLI (`gh`) during conversations, when `gh` is installed and authenticated on the host
@@ -230,7 +230,7 @@ Channel mappings and thread conversations live in `state.json`:
 }
 ```
 
-Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. Channel mappings live in `~/.benedict/state.json`. If you previously ran Benedict from this checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
+Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. Generated `.metadata.benedict` overlays live under `workspaces/<channel>/metadata/<org>/<repo>/`, not in the clone. Channel mappings live in `~/.benedict/state.json`. If you previously ran Benedict from this checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
 
 ## Project layout
 

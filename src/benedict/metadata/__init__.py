@@ -10,7 +10,9 @@ from .content_handlers import (
     DocumentHandler,
     DataHandler,
 )
+from .directory_boost import apply_directory_boost
 from .metadata_generator import MetadataGenerator
+from .metadata_location import sidecar_path
 from .metadata_reader import MetadataReader
 
 __all__ = [
@@ -21,4 +23,6 @@ __all__ = [
     "DataHandler",
     "MetadataGenerator",
     "MetadataReader",
+    "apply_directory_boost",
+    "sidecar_path",
 ]

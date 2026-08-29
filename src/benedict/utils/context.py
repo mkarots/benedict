@@ -59,7 +59,9 @@ def build_context(
     if metadata_reader and workspace_path:
         try:
             repo_metadata_path = workspace_path / repo
-            metadata = metadata_reader.read_metadata(repo_metadata_path)
+            metadata = metadata_reader.read_metadata(
+                repo_metadata_path, workspace_root=workspace_path, repo=repo
+            )
             if metadata:
                 metadata_summary = f"# Repository Metadata: {repo}\n"
                 metadata_summary += f"Summary: {metadata.get('summary', 'N/A')}\n"
