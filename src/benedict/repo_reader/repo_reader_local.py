@@ -79,7 +79,7 @@ class LocalRepoReader:
                 if p.is_file():
                     rel_path = p.relative_to(full_path)
                     files.append(str(rel_path))
-            
+
             # Also include .metadata.* files (dotfiles)
             # These need explicit globbing since rglob("*") skips them
             for pattern in [".metadata.*"]:
@@ -95,7 +95,7 @@ class LocalRepoReader:
                         rel_path = p.relative_to(full_path)
                         if str(rel_path) not in files:
                             files.append(str(rel_path))
-            
+
             return sorted(files)
         except Exception as e:
             logger.error(f"Error listing files in {path} for repo {repo}: {e}")

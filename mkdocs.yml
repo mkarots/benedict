@@ -69,6 +69,7 @@ nav:
       - Troubleshooting: troubleshooting.md
   - Maintain:
       - Docs process: PROCESS.md
+      - Continuous integration: ci.md
       - Changelog: changelog.md
 
 exclude_docs: |

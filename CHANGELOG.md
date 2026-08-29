@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.11] - 2026-08-29
+## [0.6.12] - 2026-08-29
 
 ### Added
 - GitHub **bug report** issue template (`.github/ISSUE_TEMPLATE/bug_report.md`) and template chooser (`config.yml`). Blank issues stay enabled. Security and Code of Conduct reports stay on private channels ([#53](https://github.com/mkarots/benedict/issues/53)).
+
+## [0.6.11] - 2026-08-29
+
+### Added
+- GitHub Actions CI (`.github/workflows/ci.yml`) runs lint (Ruff, Black), mypy, and pytest with coverage on pull requests and on pushes to `main`. Tests run on Python 3.10, 3.11, and 3.12. Ruff, Black, and mypy versions are pinned so CI matches local `make sync-dev` ([#57](https://github.com/mkarots/benedict/issues/57)).
+
+### Fixed
+- Unit and integration tests now call the current conversation, LLM, workspace, and repo-reader APIs instead of removed method names. `make test` and `make lint` / `make type-check` run through `uv` and fail when a check fails.
 
 ## [0.6.10] - 2026-08-29
 

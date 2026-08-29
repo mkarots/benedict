@@ -6,7 +6,6 @@ do not enter the user's clone.
 
 from pathlib import Path
 
-
 METADATA_FILENAME = ".metadata.benedict"
 SIDECAR_METADATA_NAME = "metadata"
 

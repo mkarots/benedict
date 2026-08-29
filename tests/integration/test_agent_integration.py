@@ -3,10 +3,23 @@
 Tests the agent with multiple components working together.
 """
 
-import pytest
-
 from benedict.agent import RepoAgent
-from benedict.models import Conversation
+from benedict.repo_reader.repo_reader_mock import DEFAULT_TEST_REPO
+
+
+def _get_conversation(agent, thread_ts, channel_id, repo):
+    return agent.conversation_manager.get_conversation(
+        thread_ts=thread_ts,
+        channel_id=channel_id,
+        repo=repo,
+    )
+
+
+def _add_message(agent, thread_ts, channel_id, repo, role, content):
+    conv = _get_conversation(agent, thread_ts, channel_id, repo)
+    conv.add_message(role, content)
+    agent.conversation_manager.save_conversation(conv)
+    return conv
 
 
 class TestRepoAgentIntegration:
@@ -26,7 +39,7 @@ class TestRepoAgentIntegration:
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
+
         assert agent.llm is not None
         assert agent.repo_reader is not None
 
@@ -44,30 +57,23 @@ class TestRepoAgentIntegration:
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        # 1. Onboard channel
-        agent.set_channel_repo("C123456", "example-org/repo", "U123456")
-        
-        # 2. Verify channel is onboarded
+
+        agent.set_channel_repo("C123456", DEFAULT_TEST_REPO, "U123456")
+
         repo = agent.get_channel_repo("C123456")
-        assert repo == "example-org/repo"
-        
-        # 3. Create conversation
-        conv = agent.conversation_manager.create_conversation(
-            thread_ts="1234567890.123456",
-            channel_id="C123456",
-            repo="example-org/repo",
-        )
-        
-        # 4. Add user message
-        agent.conversation_manager.add_message(
+        assert repo == DEFAULT_TEST_REPO
+
+        _get_conversation(agent, "1234567890.123456", "C123456", DEFAULT_TEST_REPO)
+        _add_message(
+            agent,
             "1234567890.123456",
+            "C123456",
+            DEFAULT_TEST_REPO,
             "user",
             "What is the architecture?",
         )
-        
-        # 5. Verify conversation state
-        retrieved = agent.conversation_manager.get_conversation("1234567890.123456")
+
+        retrieved = _get_conversation(agent, "1234567890.123456", "C123456", DEFAULT_TEST_REPO)
         assert retrieved is not None
         assert len(retrieved.messages) == 1
 
@@ -85,30 +91,18 @@ class TestRepoAgentIntegration:
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        # Onboard channel
-        agent.set_channel_repo("C123456", "example-org/repo", "U123456")
-        
-        # Create two conversations
-        conv1 = agent.conversation_manager.create_conversation(
-            thread_ts="1111111111.111111",
-            channel_id="C123456",
-            repo="example-org/repo",
-        )
-        conv2 = agent.conversation_manager.create_conversation(
-            thread_ts="2222222222.222222",
-            channel_id="C123456",
-            repo="example-org/repo",
-        )
-        
-        # Add different messages to each
-        agent.conversation_manager.add_message("1111111111.111111", "user", "Question 1")
-        agent.conversation_manager.add_message("2222222222.222222", "user", "Question 2")
-        
-        # Verify they're separate
-        retrieved1 = agent.conversation_manager.get_conversation("1111111111.111111")
-        retrieved2 = agent.conversation_manager.get_conversation("2222222222.222222")
-        
+
+        agent.set_channel_repo("C123456", DEFAULT_TEST_REPO, "U123456")
+
+        _get_conversation(agent, "1111111111.111111", "C123456", DEFAULT_TEST_REPO)
+        _get_conversation(agent, "2222222222.222222", "C123456", DEFAULT_TEST_REPO)
+
+        _add_message(agent, "1111111111.111111", "C123456", DEFAULT_TEST_REPO, "user", "Question 1")
+        _add_message(agent, "2222222222.222222", "C123456", DEFAULT_TEST_REPO, "user", "Question 2")
+
+        retrieved1 = _get_conversation(agent, "1111111111.111111", "C123456", DEFAULT_TEST_REPO)
+        retrieved2 = _get_conversation(agent, "2222222222.222222", "C123456", DEFAULT_TEST_REPO)
+
         assert retrieved1.messages[0].content == "Question 1"
         assert retrieved2.messages[0].content == "Question 2"
 
@@ -128,11 +122,10 @@ class TestRepoAgentIntegration:
             semantic_indexer=mock_semantic_indexer,
             conversation_repository=mock_conversation_repository,
         )
-        
+
         assert agent.semantic_indexer is not None
-        
-        # Semantic indexer should be able to find relevant files
-        relevant_files = mock_semantic_indexer.search("architecture", top_k=5)
+
+        relevant_files = mock_semantic_indexer.search(DEFAULT_TEST_REPO, "architecture", top_k=5)
         assert len(relevant_files) > 0
 
     def test_conversation_persistence(
@@ -143,35 +136,31 @@ class TestRepoAgentIntegration:
         mock_conversation_repository,
     ):
         """Test that conversations persist across agent restarts."""
-        # First agent creates conversation
         agent1 = RepoAgent(
             state_file=str(temp_state_file),
             llm=mock_llm,
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        agent1.set_channel_repo("C123456", "example-org/repo", "U123456")
-        agent1.conversation_manager.create_conversation(
-            thread_ts="1234567890.123456",
-            channel_id="C123456",
-            repo="example-org/repo",
-        )
-        agent1.conversation_manager.add_message(
+
+        agent1.set_channel_repo("C123456", DEFAULT_TEST_REPO, "U123456")
+        _add_message(
+            agent1,
             "1234567890.123456",
+            "C123456",
+            DEFAULT_TEST_REPO,
             "user",
             "Question",
         )
-        
-        # Second agent retrieves conversation
+
         agent2 = RepoAgent(
             state_file=str(temp_state_file),
             llm=mock_llm,
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        conv = agent2.conversation_manager.get_conversation("1234567890.123456")
+
+        conv = _get_conversation(agent2, "1234567890.123456", "C123456", DEFAULT_TEST_REPO)
         assert conv is not None
         assert len(conv.messages) == 1
         assert conv.messages[0].content == "Question"

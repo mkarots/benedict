@@ -95,3 +95,13 @@ make docs
 ```
 
 Serves this site at `http://127.0.0.1:8000`. If that port is busy: `DOCS_PORT=8001 make docs`.
+
+## Checks
+
+Pull requests and pushes to `main` run lint, type check, and tests. See [Continuous integration](ci.md).
+
+```bash
+make lint
+make type-check
+make test
+```

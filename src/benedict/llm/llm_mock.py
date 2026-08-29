@@ -20,7 +20,12 @@ class MockLLM:
                       If None, returns generic mock response.
         """
         self.responses = responses or {}
+        self._fixed_response = None
         logger.info("Initialized MockLLM")
+
+    def set_response(self, response: str) -> None:
+        """Return this string from every generate() call (test helper)."""
+        self._fixed_response = response
 
     def generate(
         self,
@@ -40,6 +45,9 @@ class MockLLM:
         Returns:
             Mock response text (never returns tool calls)
         """
+        if self._fixed_response is not None:
+            return self._fixed_response
+
         if not messages:
             return "[Mock LLM Response] No messages provided"
 

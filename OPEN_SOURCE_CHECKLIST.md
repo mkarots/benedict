@@ -27,7 +27,7 @@
 
 | # | Task | Status | Owner | Notes |
 |---|------|--------|-------|-------|
-| 11 | Create CI workflow | ☐ | | .github/workflows/ci.yml |
+| 11 | Create CI workflow | ☑ | | .github/workflows/ci.yml. Recorded on #57 |
 | 12 | Set up test framework | ☐ | | pytest + conftest.py |
 | 13 | Write core unit tests | ☐ | | Target: >50% coverage |
 | 14 | Add type hints | ☐ | | Use mypy |
@@ -77,7 +77,7 @@
 - [ ] .github/ISSUE_TEMPLATE/feature_request.md
 - [x] .github/ISSUE_TEMPLATE/config.yml
 - [ ] .github/PULL_REQUEST_TEMPLATE.md
-- [ ] .github/workflows/ci.yml
+- [x] .github/workflows/ci.yml
 - [ ] .github/workflows/release.yml
 - [ ] .github/dependabot.yml
 

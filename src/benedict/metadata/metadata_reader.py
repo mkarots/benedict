@@ -91,9 +91,7 @@ class MetadataReader:
         # Check if any part of the path is in excluded directories
         path_parts = path.parts
         if any(
-            part in _EXCLUDE_DIRS
-            or part.endswith(".egg-info")
-            or part.endswith(".dist-info")
+            part in _EXCLUDE_DIRS or part.endswith(".egg-info") or part.endswith(".dist-info")
             for part in path_parts
         ):
             return True
@@ -160,7 +158,11 @@ class MetadataReader:
             return None
 
     def search_metadata(
-        self, workspace_path: Path, query: str, content_type: Optional[str] = None, repo: Optional[str] = None
+        self,
+        workspace_path: Path,
+        query: str,
+        content_type: Optional[str] = None,
+        repo: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Search overlays and return source-relative directory paths.
 
@@ -190,9 +192,7 @@ class MetadataReader:
         logger.debug(f"Found {len(results)} metadata matches for query '{query}'")
         return results
 
-    def _iter_overlay_files(
-        self, workspace_path: Path, repo: Optional[str]
-    ) -> List[tuple]:
+    def _iter_overlay_files(self, workspace_path: Path, repo: Optional[str]) -> List[tuple]:
         """Yield (repo-relative dir, file path). Sidecar first, then in-tree."""
         found: List[tuple] = []
         if repo:

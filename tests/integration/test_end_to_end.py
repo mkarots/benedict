@@ -3,9 +3,23 @@
 Tests complete workflows from user interaction to response.
 """
 
-import pytest
-
 from benedict.agent import RepoAgent
+from benedict.repo_reader.repo_reader_mock import DEFAULT_TEST_REPO
+
+
+def _get_conversation(agent, thread_ts, channel_id, repo):
+    return agent.conversation_manager.get_conversation(
+        thread_ts=thread_ts,
+        channel_id=channel_id,
+        repo=repo,
+    )
+
+
+def _add_message(agent, thread_ts, channel_id, repo, role, content):
+    conv = _get_conversation(agent, thread_ts, channel_id, repo)
+    conv.add_message(role, content)
+    agent.conversation_manager.save_conversation(conv)
+    return conv
 
 
 class TestEndToEnd:
@@ -21,29 +35,23 @@ class TestEndToEnd:
             state_file=str(temp_state_file),
             conversation_repository=mock_conversation_repository,
         )
-        
-        # Step 1: User onboards channel
+
         text = "onboard repo example-org/example-repo"
-        
-        # Agent detects onboard command
+
         assert agent.is_onboard_command(text)
-        
-        # Extract repository name
+
         repo = agent.extract_repo_name(text)
         assert repo == "example-org/example-repo"
-        
-        # Set channel repository
+
         agent.set_channel_repo(
             channel_id="C123456",
             repo=repo,
             user_id="U123456",
         )
-        
-        # Step 2: User checks status
+
         status_text = "status"
         assert agent.is_status_command(status_text)
-        
-        # Agent retrieves channel info
+
         channel_repo = agent.get_channel_repo("C123456")
         assert channel_repo == "example-org/example-repo"
 
@@ -61,42 +69,30 @@ class TestEndToEnd:
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        # Step 1: Onboard channel
-        agent.set_channel_repo("C123456", "example-org/repo", "U123456")
-        
-        # Step 2: User asks question
+
+        agent.set_channel_repo("C123456", DEFAULT_TEST_REPO, "U123456")
+
         thread_ts = "1234567890.123456"
         channel_id = "C123456"
         user_message = "What files are in the repository?"
-        
-        # Step 3: Get or create conversation
-        conv = agent.conversation_manager.get_or_create_conversation(
-            thread_ts=thread_ts,
-            channel_id=channel_id,
-            repo="example-org/repo",
-        )
-        
-        # Step 4: Add user message
-        agent.conversation_manager.add_message(thread_ts, "user", user_message)
-        
-        # Step 5: Get repository files (for context)
+
+        _get_conversation(agent, thread_ts, channel_id, DEFAULT_TEST_REPO)
+        _add_message(agent, thread_ts, channel_id, DEFAULT_TEST_REPO, "user", user_message)
+
         if agent.repo_reader:
-            files = agent.repo_reader.list_files()
+            files = agent.repo_reader.list_files(DEFAULT_TEST_REPO)
             assert len(files) > 0
-        
-        # Step 6: Generate response (LLM would be called here)
-        # In real flow, this would involve context building and LLM generation
-        
-        # Step 7: Add assistant response
-        agent.conversation_manager.add_message(
+
+        _add_message(
+            agent,
             thread_ts,
+            channel_id,
+            DEFAULT_TEST_REPO,
             "assistant",
             "The repository contains several files including README.md and source files.",
         )
-        
-        # Verify final state
-        final_conv = agent.conversation_manager.get_conversation(thread_ts)
+
+        final_conv = _get_conversation(agent, thread_ts, channel_id, DEFAULT_TEST_REPO)
         assert len(final_conv.messages) == 2
         assert final_conv.messages[0].role == "user"
         assert final_conv.messages[1].role == "assistant"
@@ -115,49 +111,57 @@ class TestEndToEnd:
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        # Setup
+
         thread_ts = "1234567890.123456"
-        agent.set_channel_repo("C123456", "example-org/repo", "U123456")
-        
-        conv = agent.conversation_manager.get_or_create_conversation(
-            thread_ts=thread_ts,
-            channel_id="C123456",
-            repo="example-org/repo",
-        )
-        
-        # Turn 1
-        agent.conversation_manager.add_message(thread_ts, "user", "What is in README?")
-        agent.conversation_manager.add_message(
+        agent.set_channel_repo("C123456", DEFAULT_TEST_REPO, "U123456")
+
+        conv = _get_conversation(agent, thread_ts, "C123456", DEFAULT_TEST_REPO)
+
+        _add_message(agent, thread_ts, "C123456", DEFAULT_TEST_REPO, "user", "What is in README?")
+        _add_message(
+            agent,
             thread_ts,
+            "C123456",
+            DEFAULT_TEST_REPO,
             "assistant",
             "The README describes an example project.",
         )
-        
-        # Turn 2
-        agent.conversation_manager.add_message(thread_ts, "user", "What about src/main.py?")
-        agent.conversation_manager.add_message(
+
+        _add_message(
+            agent,
             thread_ts,
+            "C123456",
+            DEFAULT_TEST_REPO,
+            "user",
+            "What about src/main.py?",
+        )
+        _add_message(
+            agent,
+            thread_ts,
+            "C123456",
+            DEFAULT_TEST_REPO,
             "assistant",
             "The main.py file contains the entry point.",
         )
-        
-        # Turn 3 - Follow-up question
-        agent.conversation_manager.add_message(thread_ts, "user", "Can you explain more?")
-        
-        # Get conversation history for context
+
+        _add_message(
+            agent, thread_ts, "C123456", DEFAULT_TEST_REPO, "user", "Can you explain more?"
+        )
+
+        conv = _get_conversation(agent, thread_ts, "C123456", DEFAULT_TEST_REPO)
         history = conv.get_message_history()
-        assert len(history) == 5  # 3 user + 2 assistant messages
-        
-        # Assistant would use history to understand "more" refers to main.py
-        agent.conversation_manager.add_message(
+        assert len(history) == 5
+
+        _add_message(
+            agent,
             thread_ts,
+            "C123456",
+            DEFAULT_TEST_REPO,
             "assistant",
             "Sure, main.py is the entry point that prints 'Hello, World!'",
         )
-        
-        # Verify complete conversation
-        final_conv = agent.conversation_manager.get_conversation(thread_ts)
+
+        final_conv = _get_conversation(agent, thread_ts, "C123456", DEFAULT_TEST_REPO)
         assert len(final_conv.messages) == 6
 
     def test_multiple_channels_workflow(
@@ -174,46 +178,36 @@ class TestEndToEnd:
             repo_reader=populated_mock_repo_reader,
             conversation_repository=mock_conversation_repository,
         )
-        
-        # Onboard two different channels to different repos
+
         agent.set_channel_repo("C111111", "org1/repo1", "U123456")
         agent.set_channel_repo("C222222", "org2/repo2", "U123456")
-        
-        # Create conversations in each channel
-        conv1 = agent.conversation_manager.create_conversation(
-            thread_ts="1111111111.111111",
-            channel_id="C111111",
-            repo="org1/repo1",
-        )
-        conv2 = agent.conversation_manager.create_conversation(
-            thread_ts="2222222222.222222",
-            channel_id="C222222",
-            repo="org2/repo2",
-        )
-        
-        # Add messages to each
-        agent.conversation_manager.add_message(
+
+        _add_message(
+            agent,
             "1111111111.111111",
+            "C111111",
+            "org1/repo1",
             "user",
             "Question about repo1",
         )
-        agent.conversation_manager.add_message(
+        _add_message(
+            agent,
             "2222222222.222222",
+            "C222222",
+            "org2/repo2",
             "user",
             "Question about repo2",
         )
-        
-        # Verify channels are independent
+
         repo1 = agent.get_channel_repo("C111111")
         repo2 = agent.get_channel_repo("C222222")
-        
+
         assert repo1 == "org1/repo1"
         assert repo2 == "org2/repo2"
-        
-        # Verify conversations are separate
-        retrieved1 = agent.conversation_manager.get_conversation("1111111111.111111")
-        retrieved2 = agent.conversation_manager.get_conversation("2222222222.222222")
-        
+
+        retrieved1 = _get_conversation(agent, "1111111111.111111", "C111111", "org1/repo1")
+        retrieved2 = _get_conversation(agent, "2222222222.222222", "C222222", "org2/repo2")
+
         assert retrieved1.repo == "org1/repo1"
         assert retrieved2.repo == "org2/repo2"
         assert retrieved1.messages[0].content == "Question about repo1"
