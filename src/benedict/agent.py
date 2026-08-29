@@ -8,9 +8,9 @@ import logging
 import os
 import re
 import time
-from datetime import datetime, date, timezone
+from datetime import datetime, date
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple, List
+from typing import Optional, Dict, Any, Tuple
 
 from benedict.protocols import (
     LLM,
@@ -194,12 +194,12 @@ class RepoAgent:
                 # Try to resolve repository path
                 # Check multiple possible locations: absolute paths, org/repo structure, or just repo name
                 repo_source = None
-                
+
                 # Get configured repository source directories from environment variable
                 # Format: comma-separated paths, e.g., "/Users/name/Projects,/opt/repos"
                 repo_source_dirs_env = os.environ.get("BENEDICT_REPO_SOURCE_DIRS", "")
                 repo_source_dirs = []
-                
+
                 if repo_source_dirs_env:
                     # Parse comma-separated paths
                     for dir_path in repo_source_dirs_env.split(","):
@@ -216,7 +216,7 @@ class RepoAgent:
                 possible_paths = [
                     Path(repo),  # Try as-is (might be absolute path like /Users/name/Projects/repo)
                 ]
-                
+
                 # Add paths from configured source directories
                 for source_dir in repo_source_dirs:
                     if source_dir.exists() and source_dir.is_dir():
@@ -224,7 +224,7 @@ class RepoAgent:
                         possible_paths.append(source_dir / repo)
                         # Just repo name: {source_dir}/example-repo
                         possible_paths.append(source_dir / repo.split("/")[-1])
-                
+
                 # Add current directory as fallback
                 possible_paths.append(Path.cwd() / repo.split("/")[-1])
 
@@ -328,28 +328,28 @@ class RepoAgent:
                 )
 
         self.set_channel_repo(channel_id, repo, user_id)
-        
+
         # Build success message
         message = (
             f"✅ Onboarded! This channel is now linked to `{repo}`.\n"
             f"I'll remember this repo for all our conversations here.\n"
         )
-        
+
         return True, message
 
     def handle_offboard(self, channel_id: str, user_id: str) -> Tuple[bool, str]:
         """Handle offboard command to remove channel from repository.
-        
+
         Args:
             channel_id: Slack channel ID
             user_id: User ID who requested offboarding
-            
+
         Returns:
             Tuple of (success, message)
         """
         state = self.load_state()
         channels = state.get("channels", {})
-        
+
         if channel_id not in channels:
             return (
                 False,
@@ -358,14 +358,14 @@ class RepoAgent:
                 "*To onboard:*\n"
                 "• Use `@agent onboard repo your-org/your-repo`",
             )
-        
+
         # Get repo info before removing
         channel_config = channels[channel_id]
         repo = channel_config.get("repo", "unknown")
-        
+
         # Remove channel from state
         self.remove_channel_repo(channel_id)
-        
+
         # Build success message
         message = (
             f"✅ Offboarded! This channel is no longer linked to `{repo}`.\n"
@@ -373,9 +373,8 @@ class RepoAgent:
             f"*Note:* Workspace data and conversation history are preserved.\n"
             f"To re-onboard, use `@agent onboard repo {repo}`"
         )
-        
-        return True, message
 
+        return True, message
 
     def handle_status(self, channel_id: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         """Handle status command.
@@ -490,8 +489,9 @@ class RepoAgent:
             try:
                 workspace_path = self.workspace_manager.get_workspace_path(channel_id)
                 repo_path = workspace_path / repo
-                
+
                 from benedict.metadata import MetadataReader
+
                 metadata_reader = MetadataReader()
                 tool_registry = create_tool_registry(
                     metadata_reader=metadata_reader,
@@ -504,27 +504,28 @@ class RepoAgent:
                     # Initialize LLM classifier with tool registry
                     if not self.llm_classifier:
                         self.llm_classifier = LLMCommandClassifier(
-                            llm=self.llm,
-                            tool_registry=tool_registry,
-                            fallback_to_query=True
+                            llm=self.llm, tool_registry=tool_registry, fallback_to_query=True
                         )
                     else:
                         # Update tool registry in case metadata changed
                         self.llm_classifier.tool_registry = tool_registry
-                    
+
                     # Get conversation history for context
                     recent_messages = conversation.get_messages(max_messages=5)
                     history = [
-                        {"role": msg.role, "content": msg.content}
-                        for msg in recent_messages
+                        {"role": msg.role, "content": msg.content} for msg in recent_messages
                     ]
-                    
+
                     # Classify with LLM
-                    logger.info(f"Attempting LLM classification for: '{text}' with {len(tool_registry.list_tools())} tools available")
+                    logger.info(
+                        f"Attempting LLM classification for: '{text}' with {len(tool_registry.list_tools())} tools available"
+                    )
                     llm_result = self.llm_classifier.classify(text, conversation_history=history)
-                    
+
                     if llm_result and llm_result.get("tool_calls"):
-                        logger.info(f"LLM returned {len(llm_result['tool_calls'])} tool calls: {[tc.get('name') for tc in llm_result['tool_calls']]}")
+                        logger.info(
+                            f"LLM returned {len(llm_result['tool_calls'])} tool calls: {[tc.get('name') for tc in llm_result['tool_calls']]}"
+                        )
                         record_stage(
                             "classify",
                             duration_ms=int((time.perf_counter() - classify_started) * 1000),
@@ -541,7 +542,7 @@ class RepoAgent:
                             "workspace_root": str(workspace_path),
                             "repo": repo,
                         }
-                        
+
                         for tool_call in tool_calls:
                             tool_name = tool_call.get("name")
                             arguments = tool_call.get("arguments") or tool_call.get("input", {})
@@ -556,17 +557,18 @@ class RepoAgent:
                                 child=True,
                             )
                             results.append(result)
-                        
+
                         # Format results
                         success_count = sum(1 for r in results if r.success)
                         if success_count == len(results):
                             messages = [r.message for r in results if r.message]
                             data_results = [r.data for r in results if r.data]
-                            
+
                             if messages:
                                 message = "\n".join(messages)
                             elif data_results:
                                 import yaml
+
                                 message = f"```yaml\n{yaml.dump(data_results[0] if len(data_results) == 1 else data_results, default_flow_style=False)}\n```"
                             else:
                                 message = "✅ Operations completed successfully."
@@ -602,7 +604,7 @@ class RepoAgent:
                 label="skipped — not metadata wording",
                 detail={"is_metadata_command": False},
             )
-        
+
         # No command detected - treat as query (fall through to LLM)
 
         # If no LLM or repo reader, return stub response
@@ -692,9 +694,7 @@ class RepoAgent:
                     # Determine date filter
                     today = date.today()
                     filter_today = (
-                        "today" in text_lower
-                        or "todays" in text_lower
-                        or "today's" in text_lower
+                        "today" in text_lower or "todays" in text_lower or "today's" in text_lower
                     )
 
                     # Filter conversations
@@ -725,12 +725,7 @@ class RepoAgent:
                                 f"=== Conversation {i+1} (Thread: {conv.thread_ts}) ===\n"
                                 f"Repo: {conv.repo}\n"
                                 f"Updated: {conv.updated_at}\n"
-                                + "\n".join(
-                                    [
-                                        f"{msg.role}: {msg.content}"
-                                        for msg in conv.messages
-                                    ]
-                                )
+                                + "\n".join([f"{msg.role}: {msg.content}" for msg in conv.messages])
                                 for i, conv in enumerate(filtered_conversations)
                             ]
                         )
@@ -792,7 +787,7 @@ class RepoAgent:
             f"but rather an agent with integrated repository reading capabilities.\n"
             f"- **GitHub (`run_github`)**: To inspect PRs, issues, checks, or other GitHub data, call "
             f"`run_github` with argv only (do not include `gh`). Example: "
-            f"`argv=[\"pr\", \"list\", \"--json\", \"title,url,author\"]`. Prefer `--json` so you can parse "
+            f'`argv=["pr", "list", "--json", "title,url,author"]`. Prefer `--json` so you can parse '
             f"results. This is not a general shell — only `gh` runs. Ask the user before mutating GitHub "
             f"(create, merge, close, comment). Never print tokens or secrets. If `gh` is missing or not "
             f"authenticated, explain that the host running Benedict must install GitHub CLI and run "
@@ -860,18 +855,15 @@ class RepoAgent:
             )
 
     def handle_architect_query(
-        self,
-        channel_id: str,
-        text: str,
-        thread_ts: str
+        self, channel_id: str, text: str, thread_ts: str
     ) -> Tuple[bool, str]:
         """Handle architect query across all projects.
-        
+
         Args:
             channel_id: Slack channel ID
             text: User message text
             thread_ts: Thread timestamp (unique conversation identifier)
-            
+
         Returns:
             Tuple of (success, message)
         """
@@ -880,15 +872,15 @@ class RepoAgent:
         architect_channel = state.get("architect", {}).get("channel_id")
         if architect_channel != channel_id:
             return False, "This channel is not the architect channel."
-        
+
         # 2. Get or create conversation for this thread
         conversation = self.conversation_manager.get_conversation(
             thread_ts=thread_ts, channel_id=channel_id, repo=None
         )
-        
+
         # 3. Add user message to conversation
         conversation.add_message("user", text)
-        
+
         # 4. Check if LLM is available
         if not self.llm:
             response_text = (
@@ -899,7 +891,7 @@ class RepoAgent:
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
             return (True, response_text)
-        
+
         # 5. Build architect context
         try:
             architect_context = build_architect_context(self, text, state)
@@ -911,7 +903,7 @@ class RepoAgent:
                 f"Error building architect context: {str(e)}\n\n"
                 f"Please try again.",
             )
-        
+
         # 6. Build system message with architect prompt
         system = (
             ARCHITECT_SYSTEM_PROMPT
@@ -931,10 +923,10 @@ class RepoAgent:
             + "- When referencing projects, use format: `project-name` (channel: `channel-id`)\n"
             + "- When showing code examples, always specify the language in code blocks"
         )
-        
+
         # 7. Get conversation history for LLM
         history_messages = conversation.get_message_history(max_messages=10)
-        
+
         # 8. Generate response
         try:
             llm_started = time.perf_counter()
@@ -1129,11 +1121,11 @@ class RepoAgent:
         """Check if text is an offboard command."""
         text_lower = text.lower().strip()
         return (
-            "offboard" in text_lower or
-            "unonboard" in text_lower or
-            "remove channel" in text_lower or
-            "disconnect" in text_lower or
-            "unlink" in text_lower
+            "offboard" in text_lower
+            or "unonboard" in text_lower
+            or "remove channel" in text_lower
+            or "disconnect" in text_lower
+            or "unlink" in text_lower
         )
 
     @staticmethod
@@ -1141,12 +1133,14 @@ class RepoAgent:
         """Check if text is architect onboarding command."""
         text_lower = text.lower().strip()
         return (
-            "onboard architect" in text_lower or
-            "this is the architect channel" in text_lower or
-            "architect channel" in text_lower
+            "onboard architect" in text_lower
+            or "this is the architect channel" in text_lower
+            or "architect channel" in text_lower
         )
 
-    def handle_onboard_architect(self, channel_id: str, user_id: str, text: str) -> Tuple[bool, str]:
+    def handle_onboard_architect(
+        self, channel_id: str, user_id: str, text: str
+    ) -> Tuple[bool, str]:
         """Handle architect onboarding."""
         self.set_architect_channel(channel_id, user_id)
         return True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
@@ -1205,9 +1199,7 @@ class RepoAgent:
                         timestamp_str = action.get("timestamp", "")
                         if timestamp_str:
                             try:
-                                since = datetime.fromisoformat(
-                                    timestamp_str.replace("Z", "+00:00")
-                                )
+                                since = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
                                 break
                             except Exception:
                                 pass

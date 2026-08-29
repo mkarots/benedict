@@ -56,7 +56,9 @@ class MetadataToolCallingLLM:
         return f"[conversation] {last}"
 
 
-def _onboarded_agent(tmp_path: Path, llm, with_metadata: bool = False, run_recorder=None) -> RepoAgent:
+def _onboarded_agent(
+    tmp_path: Path, llm, with_metadata: bool = False, run_recorder=None
+) -> RepoAgent:
     repo = "example-org/example-repo"
     workspace_manager = WorkspaceManager(
         workspaces_dir=str(tmp_path / "workspaces"), copy_mode="copy"
@@ -109,9 +111,7 @@ def test_missing_metadata_does_not_register_classifier_tools(tmp_path):
     """repo_path wiring: no sidecar means the classifier has no tools to call."""
     llm = MetadataToolCallingLLM()
     agent = _onboarded_agent(tmp_path, llm, with_metadata=False)
-    success, message = agent.handle_conversation(
-        "C123", "show metadata for README.md", "111.224"
-    )
+    success, message = agent.handle_conversation("C123", "show metadata for README.md", "111.224")
 
     assert success is True
     assert "Metadata file not found" not in message
@@ -124,9 +124,7 @@ def test_failed_metadata_tools_fall_through_to_conversation(tmp_path):
         metadata_input={"file_path": "missing.py"},
     )
     agent = _onboarded_agent(tmp_path, llm, with_metadata=True)
-    success, message = agent.handle_conversation(
-        "C123", "show metadata for missing.py", "111.225"
-    )
+    success, message = agent.handle_conversation("C123", "show metadata for missing.py", "111.225")
 
     assert success is True
     assert "Some operations failed" not in message
@@ -156,6 +154,6 @@ def test_conversation_records_llm_prompt(tmp_path):
 
 
 def test_tool_registry_skips_tools_when_metadata_missing():
-    reader = SimpleNamespace(metadata_exists=lambda _path: False)
+    reader = SimpleNamespace(metadata_exists=lambda _path, **_kwargs: False)
     registry = create_tool_registry(metadata_reader=reader, repo_path=Path("/tmp"))
     assert registry.list_tools() == []

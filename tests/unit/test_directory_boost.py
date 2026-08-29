@@ -42,9 +42,7 @@ def test_sidecar_path_in_relevant_dirs_does_not_boost():
         _hit("src/auth/session.py", 0.50),
         _hit("docs/deploy.md", 0.50),
     ]
-    ranked = apply_directory_boost(
-        hits, {".benedict/metadata/example-org/example-repo/src/auth"}
-    )
+    ranked = apply_directory_boost(hits, {".benedict/metadata/example-org/example-repo/src/auth"})
     assert [row["file_path"] for row in ranked] == [
         "src/auth/session.py",
         "docs/deploy.md",

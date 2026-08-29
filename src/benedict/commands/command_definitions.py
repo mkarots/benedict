@@ -5,27 +5,26 @@ Declarative definitions of all Benedict commands with intent patterns.
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
-import re
 from enum import Enum
 
 
 class CommandType(Enum):
     """Types of commands Benedict supports."""
-    
+
     # System commands
     ONBOARD = "onboard"
     STATUS = "status"
     UPDATE_INDEX = "update_index"
-    
+
     # File operations
     READ_FILE = "read_file"
     LIST_FILES = "list_files"
     SEARCH_FILES = "search_files"
-    
+
     # Metadata operations
     READ_METADATA = "read_metadata"
     GENERATE_METADATA = "generate_metadata"
-    
+
     # General queries (not a command, but classified)
     QUERY = "query"
 
@@ -33,7 +32,7 @@ class CommandType(Enum):
 @dataclass
 class CommandIntent:
     """Represents a detected command intent."""
-    
+
     command_type: CommandType
     confidence: float  # 0.0 to 1.0
     parameters: Dict[str, Any]  # Extracted parameters
@@ -43,7 +42,7 @@ class CommandIntent:
 @dataclass
 class CommandDefinition:
     """Definition of a command with patterns and metadata."""
-    
+
     command_type: CommandType
     name: str
     description: str
@@ -73,7 +72,6 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
             "connect to my-repo",
         ],
     ),
-    
     CommandDefinition(
         command_type=CommandType.STATUS,
         name="status",
@@ -91,7 +89,6 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
             "what's the channel status?",
         ],
     ),
-    
     CommandDefinition(
         command_type=CommandType.UPDATE_INDEX,
         name="update_index",
@@ -109,7 +106,6 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
             "reindex the repository",
         ],
     ),
-    
     # File operations
     CommandDefinition(
         command_type=CommandType.READ_FILE,
@@ -131,7 +127,6 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
             "what's in agent.py",
         ],
     ),
-    
     CommandDefinition(
         command_type=CommandType.LIST_FILES,
         name="list_files",
@@ -149,7 +144,6 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
             "what files are in the repo?",
         ],
     ),
-    
     # Metadata operations
     CommandDefinition(
         command_type=CommandType.READ_METADATA,
@@ -165,7 +159,6 @@ COMMAND_DEFINITIONS: List[CommandDefinition] = [
             "show metadata",
         ],
     ),
-    
     CommandDefinition(
         command_type=CommandType.GENERATE_METADATA,
         name="generate_metadata",

@@ -16,7 +16,18 @@ class MockSemanticIndexer:
     def __init__(self):
         """Initialize mock semantic indexer."""
         self.indexed_repos: set = set()
+        self._relevant_files: List[Dict[str, Any]] = []
         logger.info("Initialized MockSemanticIndexer")
+
+    def add_relevant_file(self, file_path: str, score: float = 0.9) -> None:
+        """Pre-populate a search hit (test helper)."""
+        self._relevant_files.append(
+            {
+                "file_path": file_path,
+                "content": f"[Mock content for {file_path}]",
+                "score": score,
+            }
+        )
 
     def index_repository(self, repo: str, repo_reader: RepoReader) -> None:
         """Mock repository indexing.
@@ -39,6 +50,9 @@ class MockSemanticIndexer:
         Returns:
             Mock results
         """
+        if self._relevant_files:
+            return self._relevant_files[:top_k]
+
         if repo not in self.indexed_repos:
             return []
 

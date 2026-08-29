@@ -66,9 +66,7 @@ def test_docs_markdown_is_in_nav_or_excluded():
     listed = _nav_paths(cfg["nav"])
     on_disk = {p.relative_to(DOCS).as_posix() for p in DOCS.rglob("*.md")}
     stray = sorted(
-        p
-        for p in on_disk
-        if p not in listed and p not in NOT_IN_NAV and not p.startswith("adr/")
+        p for p in on_disk if p not in listed and p not in NOT_IN_NAV and not p.startswith("adr/")
     )
     assert stray == [], f"Markdown in docs/ is not in mkdocs.yml nav: {stray}"
 

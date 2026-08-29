@@ -1,4 +1,4 @@
-.PHONY: help install install-dev sync sync-dev run mcp test clean format check deps venv setup recreate-env docs docs-build
+.PHONY: help install install-dev sync sync-dev run mcp test clean format format-check lint type-check check deps venv setup recreate-env docs docs-build
 
 # Default target
 help:
@@ -81,27 +81,27 @@ mcp:
 # Run tests
 test: check-uv
 	@echo "Running tests..."
-	pytest
+	uv run pytest
 
 # Run tests with coverage
 test-cov: check-uv
 	@echo "Running tests with coverage..."
-	pytest --cov=src/benedict --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=src/benedict --cov-report=term-missing --cov-report=html
 
 # Run unit tests only
 test-unit: check-uv
 	@echo "Running unit tests..."
-	pytest tests/unit/
+	uv run pytest tests/unit/
 
 # Run integration tests only
 test-integration: check-uv
 	@echo "Running integration tests..."
-	pytest tests/integration/
+	uv run pytest tests/integration/
 
 # Run tests in verbose mode
 test-verbose: check-uv
 	@echo "Running tests (verbose)..."
-	pytest -vv
+	uv run pytest -vv
 
 # Run tests and open coverage report
 test-coverage-html: test-cov
@@ -114,28 +114,28 @@ test-coverage-html: test-cov
 		echo "Coverage report generated at htmlcov/index.html"; \
 	fi
 
-# Linting
+# Linting (same commands as the CI lint job)
 lint: check-uv
 	@echo "Running linters..."
-	@command -v ruff > /dev/null 2>&1 && ruff check src tests || echo "⚠️  ruff not installed"
-	@command -v pylint > /dev/null 2>&1 && pylint src/benedict || echo "⚠️  pylint not installed"
+	uv run ruff check src tests
+	uv run black --check src tests
 
-# Type checking
+# Type checking (same command as the CI typecheck job)
 type-check: check-uv
 	@echo "Running type checker..."
-	@command -v mypy > /dev/null 2>&1 && mypy src/benedict || echo "⚠️  mypy not installed"
+	uv run mypy src/benedict
 
 # Code formatting
 format: check-uv
 	@echo "Formatting code..."
-	@command -v black > /dev/null 2>&1 && black src tests || echo "⚠️  black not installed"
-	@command -v ruff > /dev/null 2>&1 && ruff check --fix src tests || echo "⚠️  ruff not installed"
+	uv run black src tests
+	uv run ruff check --fix src tests
 	@echo "✅ Code formatted"
 
 # Format check (don't modify files)
 format-check: check-uv
 	@echo "Checking code format..."
-	@command -v black > /dev/null 2>&1 && black --check src tests || echo "⚠️  black not installed"
+	uv run black --check src tests
 
 # Run all checks
 check: format-check lint type-check test-cov

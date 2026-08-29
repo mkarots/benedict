@@ -45,7 +45,7 @@ class GitChangeDetector:
         if repo_path is None:
             logger.warning("repo_path is None in detect_changes")
             return {"added": [], "modified": [], "deleted": [], "diff": None}
-        
+
         repo_path = Path(repo_path).resolve()
 
         if not self.supports_git(repo_path):
@@ -65,7 +65,9 @@ class GitChangeDetector:
 
             # Handle case where commits might not be available
             if not local_commit or not remote_commit:
-                logger.debug(f"Could not get commit hashes (local: {local_commit}, remote: {remote_commit})")
+                logger.debug(
+                    f"Could not get commit hashes (local: {local_commit}, remote: {remote_commit})"
+                )
                 return {"added": [], "modified": [], "deleted": [], "diff": None}
 
             if local_commit == remote_commit:
@@ -196,15 +198,17 @@ class GitChangeDetector:
     def _git_diff(self, repo_path: Path, from_ref: str, to_ref: str) -> str:
         """Get diff between two refs."""
         if repo_path is None or not from_ref or not to_ref:
-            logger.warning(f"Invalid parameters for git diff: repo_path={repo_path}, from_ref={from_ref}, to_ref={to_ref}")
+            logger.warning(
+                f"Invalid parameters for git diff: repo_path={repo_path}, from_ref={from_ref}, to_ref={to_ref}"
+            )
             return ""
-        
+
         # Ensure repo_path is a Path object
         repo_path = Path(repo_path).resolve()
         if not repo_path.exists():
             logger.warning(f"Repository path does not exist: {repo_path}")
             return ""
-        
+
         try:
             result = subprocess.run(
                 ["git", "diff", "--name-status", from_ref, to_ref],
@@ -255,7 +259,9 @@ class GitChangeDetector:
     ) -> Optional[datetime]:
         """Get last commit time for a specific file."""
         if not repo_path:
-            logger.warning(f"repo_path is None in _get_file_last_commit_time (file: {file_path}, ref: {ref})")
+            logger.warning(
+                f"repo_path is None in _get_file_last_commit_time (file: {file_path}, ref: {ref})"
+            )
             return None
         try:
             result = subprocess.run(

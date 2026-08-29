@@ -30,9 +30,7 @@ def _project() -> dict:
 def test_license_matches_license_file():
     project = _project()
     assert project["license"]["text"] == "Apache-2.0"
-    assert (REPO_ROOT / "LICENSE").read_text(encoding="utf-8").lstrip().startswith(
-        "Apache License"
-    )
+    assert (REPO_ROOT / "LICENSE").read_text(encoding="utf-8").lstrip().startswith("Apache License")
 
 
 def test_authors_and_maintainers_are_present():

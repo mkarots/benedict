@@ -6,7 +6,7 @@ This module provides reusable fixtures for testing all components.
 import json
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from unittest.mock import Mock, MagicMock
 
 import pytest
@@ -17,7 +17,6 @@ from benedict.protocols import (
     RepoReader,
     SemanticIndexer,
     ConversationRepository,
-    RepoChangeDetector,
 )
 from benedict.llm import MockLLM
 from benedict.repo_reader import MockRepoReader
@@ -199,10 +198,10 @@ def populated_mock_repo_reader(sample_repo_files) -> RepoReader:
 
 def create_mock_llm_with_response(response: str) -> LLM:
     """Create a mock LLM that returns a specific response.
-    
+
     Args:
         response: The response to return
-        
+
     Returns:
         Mock LLM instance
     """
@@ -213,7 +212,7 @@ def create_mock_llm_with_response(response: str) -> LLM:
 
 def create_test_state_file(path: Path, data: Dict[str, Any]) -> None:
     """Create a test state file with given data.
-    
+
     Args:
         path: Path to state file
         data: Data to write
@@ -224,7 +223,7 @@ def create_test_state_file(path: Path, data: Dict[str, Any]) -> None:
 
 def assert_valid_conversation(conversation: Conversation) -> None:
     """Assert that a conversation object is valid.
-    
+
     Args:
         conversation: Conversation to validate
     """
@@ -238,7 +237,7 @@ def assert_valid_conversation(conversation: Conversation) -> None:
 
 def assert_valid_message(message: Message) -> None:
     """Assert that a message object is valid.
-    
+
     Args:
         message: Message to validate
     """

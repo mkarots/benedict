@@ -292,13 +292,7 @@ def test_uppercase(input, expected):
 
 ## Continuous Integration
 
-Tests run automatically in CI/CD:
-
-```yaml
-# .github/workflows/ci.yml
-- name: Run tests
-  run: pytest --cov=src/benedict --cov-report=xml
-```
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, mypy, and pytest on pull requests and on `main`. See [docs/ci.md](../docs/ci.md).
 
 ## Troubleshooting
 

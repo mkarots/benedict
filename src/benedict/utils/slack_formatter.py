@@ -171,7 +171,7 @@ class SlackFormatter:
             # Use mermaid.ink API - supports both SVG and PNG
             # PNG is better for Slack as it's more universally supported
             image_url = f"https://mermaid.ink/img/{encoded}"
-            
+
             # Validate URL length (most browsers/servers have ~2000 char URL limit)
             # Slack doesn't specify, but 2000 is a safe limit
             MAX_URL_LENGTH = 2000
@@ -181,7 +181,7 @@ class SlackFormatter:
                     f"max {MAX_URL_LENGTH}). Diagram will be rendered as code block instead."
                 )
                 return None
-            
+
             return image_url
         except Exception as e:
             logger.warning(f"Failed to render Mermaid diagram: {e}")
@@ -275,11 +275,13 @@ class SlackFormatter:
                     truncated = text[:start].rstrip()
                     # Try to truncate at a paragraph boundary
                     last_para = truncated.rfind("\n\n")
-                    if last_para > max_length * TRUNCATION_THRESHOLD_RATIO:  # If reasonable position
+                    if (
+                        last_para > max_length * TRUNCATION_THRESHOLD_RATIO
+                    ):  # If reasonable position
                         truncated = text[:last_para].rstrip()
                     else:
                         truncated = truncated
-                    
+
                     # Verify code block balance - ensure all opened blocks are closed
                     # Count opening and closing fences in truncated text
                     open_fences = truncated.count("```")
@@ -294,7 +296,7 @@ class SlackFormatter:
                             if last_open != -1:
                                 # Truncate before the last incomplete block
                                 truncated = truncated[:last_open].rstrip()
-                    
+
                     return truncated
 
         # Not in code block - truncate at paragraph boundary if possible
@@ -304,7 +306,7 @@ class SlackFormatter:
             truncated = text[:last_para].rstrip()
         else:
             truncated = truncated.rstrip()
-        
+
         # Verify code block balance
         open_fences = truncated.count("```")
         if open_fences % 2 != 0:
@@ -315,7 +317,7 @@ class SlackFormatter:
                 last_open = before_end.rfind("```")
                 if last_open != -1:
                     truncated = truncated[:last_open].rstrip()
-        
+
         return truncated
 
     @staticmethod
@@ -343,9 +345,11 @@ class SlackFormatter:
             iterations += 1
             # Prevent infinite loops
             if iterations > MAX_ITERATIONS_SPLIT:
-                logger.warning(f"split_message exceeded max iterations ({MAX_ITERATIONS_SPLIT}), forcing split")
+                logger.warning(
+                    f"split_message exceeded max iterations ({MAX_ITERATIONS_SPLIT}), forcing split"
+                )
                 # Force split at current position + max_length
-                chunks.append(text[start_pos:start_pos + max_length].strip())
+                chunks.append(text[start_pos : start_pos + max_length].strip())
                 start_pos += max_length
                 continue
 
@@ -395,7 +399,9 @@ class SlackFormatter:
             # Critical: Ensure we make progress to prevent infinite loops
             if best_split <= start_pos:
                 # No progress possible - force advance by at least 1 character
-                logger.warning(f"split_message: best_split ({best_split}) <= start_pos ({start_pos}), forcing advance")
+                logger.warning(
+                    f"split_message: best_split ({best_split}) <= start_pos ({start_pos}), forcing advance"
+                )
                 best_split = start_pos + 1
                 # If we're in a code block, try to extend to its end
                 if SlackFormatter._is_inside_code_block(best_split, code_block_ranges):
@@ -404,10 +410,12 @@ class SlackFormatter:
                             # Ensure we actually advance past start_pos
                             best_split = max(code_end, start_pos + 1)
                             break
-                
+
                 # Final safety check: ensure we've made progress
                 if best_split <= start_pos:
-                    logger.error(f"split_message: Unable to make progress at position {start_pos}, forcing minimal advance")
+                    logger.error(
+                        f"split_message: Unable to make progress at position {start_pos}, forcing minimal advance"
+                    )
                     best_split = start_pos + 1
 
             chunk = text[start_pos:best_split].strip()
@@ -433,7 +441,7 @@ class BlockKitFormatter:
             List of section block dictionaries (may be multiple if text is long)
         """
         blocks: List[Dict[str, Any]] = []
-        
+
         if fields:
             # Handle fields - split if any field is too long
             processed_fields = []
@@ -445,27 +453,28 @@ class BlockKitFormatter:
                     processed_fields.extend(chunks)
                 else:
                     processed_fields.append(field)
-            
+
             # Group fields into pairs for two-column layout
             for i in range(0, len(processed_fields), 2):
                 field_pair = processed_fields[i : i + 2]
                 # Ensure fields don't exceed limit (chunks should already be within limit)
                 safe_fields = [
-                    {"type": "mrkdwn", "text": field[:MAX_TEXT_IN_BLOCK]}
-                    for field in field_pair
+                    {"type": "mrkdwn", "text": field[:MAX_TEXT_IN_BLOCK]} for field in field_pair
                 ]
-                blocks.append({
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": text[:MAX_TEXT_IN_BLOCK] if text else ""},
-                    "fields": safe_fields
-                })
+                blocks.append(
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": text[:MAX_TEXT_IN_BLOCK] if text else "",
+                        },
+                        "fields": safe_fields,
+                    }
+                )
         else:
             # Handle text - split if too long
             if len(text) <= MAX_TEXT_IN_BLOCK:
-                blocks.append({
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": text}
-                })
+                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
             else:
                 # Split text into multiple sections
                 chunks = SlackFormatter.split_message(text, max_length=MAX_TEXT_IN_BLOCK - 50)
@@ -473,10 +482,12 @@ class BlockKitFormatter:
                     chunk_text = chunk
                     if i < len(chunks) - 1:
                         chunk_text += "\n_...continued..._"
-                    blocks.append({
-                        "type": "section",
-                        "text": {"type": "mrkdwn", "text": chunk_text[:MAX_TEXT_IN_BLOCK]}
-                    })
+                    blocks.append(
+                        {
+                            "type": "section",
+                            "text": {"type": "mrkdwn", "text": chunk_text[:MAX_TEXT_IN_BLOCK]},
+                        }
+                    )
 
         return blocks
 
@@ -516,43 +527,53 @@ class BlockKitFormatter:
             List of section blocks with code formatted as mrkdwn (may be multiple)
         """
         blocks: List[Dict[str, Any]] = []
-        
+
         # Calculate overhead for code block formatting
         language_hint = f"{language}\n" if language else ""
-        overhead = len(f"```{language_hint}```") + CODE_BLOCK_BUFFER  # Buffer for continuation markers
+        overhead = (
+            len(f"```{language_hint}```") + CODE_BLOCK_BUFFER
+        )  # Buffer for continuation markers
         max_code_length = MAX_TEXT_IN_BLOCK - overhead
-        
+
         if len(code) <= max_code_length:
             # Single code block
             code_text = f"```{language_hint}{code}```"
-            blocks.append({
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
-            })
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
+                }
+            )
         else:
             # Split code into multiple blocks
             # Try to split at line boundaries
             lines = code.split("\n")
             current_chunk = []
             current_length = 0
-            
+
             for line in lines:
                 line_length = len(line) + 1  # +1 for newline
-                
+
                 # Handle very long single lines (Edge Case #3)
                 if line_length > max_code_length:
                     # If current chunk has content, save it first
                     if current_chunk:
                         chunk_code = "\n".join(current_chunk)
                         code_text = f"```{language_hint}{chunk_code}\n...```"
-                        blocks.append({
-                            "type": "section",
-                            "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
-                        })
-                        blocks.append(BlockKitFormatter.create_context(f"_Code block continued ({language or 'code'})..._"))
+                        blocks.append(
+                            {
+                                "type": "section",
+                                "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
+                            }
+                        )
+                        blocks.append(
+                            BlockKitFormatter.create_context(
+                                f"_Code block continued ({language or 'code'})..._"
+                            )
+                        )
                         current_chunk = []
                         current_length = 0
-                    
+
                     # Split the long line itself
                     # Split at reasonable boundaries (spaces, punctuation)
                     remaining_line = line
@@ -561,51 +582,65 @@ class BlockKitFormatter:
                         split_pos = max_code_length
                         # Look backwards for whitespace or punctuation
                         for i in range(split_pos, max(0, split_pos - 100), -1):
-                            if remaining_line[i] in [' ', '\t', ',', ';', ')', ']', '}']:
+                            if remaining_line[i] in [" ", "\t", ",", ";", ")", "]", "}"]:
                                 split_pos = i + 1
                                 break
-                        
+
                         chunk_line = remaining_line[:split_pos]
                         chunk_code = chunk_line
                         code_text = f"```{language_hint}{chunk_code}\n...```"
-                        blocks.append({
-                            "type": "section",
-                            "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
-                        })
-                        blocks.append(BlockKitFormatter.create_context(f"_Code block continued ({language or 'code'})..._"))
+                        blocks.append(
+                            {
+                                "type": "section",
+                                "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
+                            }
+                        )
+                        blocks.append(
+                            BlockKitFormatter.create_context(
+                                f"_Code block continued ({language or 'code'})..._"
+                            )
+                        )
                         remaining_line = remaining_line[split_pos:]
-                    
+
                     # Add remaining part of line
                     if remaining_line:
                         current_chunk.append(remaining_line)
                         current_length = len(remaining_line) + 1
                     continue
-                
+
                 if current_length + line_length > max_code_length and current_chunk:
                     # Create block with current chunk
                     chunk_code = "\n".join(current_chunk)
                     code_text = f"```{language_hint}{chunk_code}\n...```"
-                    blocks.append({
-                        "type": "section",
-                        "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
-                    })
+                    blocks.append(
+                        {
+                            "type": "section",
+                            "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
+                        }
+                    )
                     # Add continuation header
-                    blocks.append(BlockKitFormatter.create_context(f"_Code block continued ({language or 'code'})..._"))
+                    blocks.append(
+                        BlockKitFormatter.create_context(
+                            f"_Code block continued ({language or 'code'})..._"
+                        )
+                    )
                     current_chunk = [line]
                     current_length = line_length
                 else:
                     current_chunk.append(line)
                     current_length += line_length
-            
+
             # Add final chunk
             if current_chunk:
                 chunk_code = "\n".join(current_chunk)
                 code_text = f"```{language_hint}{chunk_code}```"
-                blocks.append({
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
-                })
-        
+                blocks.append(
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": code_text[:MAX_TEXT_IN_BLOCK]},
+                    }
+                )
+
         return blocks
 
     @staticmethod
@@ -685,7 +720,7 @@ class BlockKitFormatter:
             # Use a set to track processed positions to handle duplicates correctly
             mermaid_positions = []
             processed_positions = set()
-            
+
             for full_match, mermaid_code in mermaid_blocks:
                 # Find all occurrences of this exact block (handles duplicates)
                 for match in re.finditer(re.escape(full_match), text):
@@ -693,19 +728,21 @@ class BlockKitFormatter:
                     if pos_key not in processed_positions:
                         mermaid_positions.append((match.start(), match.end(), mermaid_code))
                         processed_positions.add(pos_key)
-            
+
             # Sort by start position (descending) for safe removal
             mermaid_positions.sort(reverse=True, key=lambda x: x[0])
-            
+
             # Remove blocks from end to start to preserve positions
             for start_pos, end_pos, mermaid_code in mermaid_positions:
                 remaining_text = remaining_text[:start_pos] + remaining_text[end_pos:]
-                
+
                 # Render to image
                 image_url = SlackFormatter.render_mermaid_to_image_url(mermaid_code)
                 if image_url:
                     # Add image block
-                    blocks.append(BlockKitFormatter.create_image_block(image_url, "Mermaid diagram"))
+                    blocks.append(
+                        BlockKitFormatter.create_image_block(image_url, "Mermaid diagram")
+                    )
                     # Also add the code block as fallback/editable source
                     blocks.append(BlockKitFormatter.create_context("_Mermaid source code:_"))
                     code_blocks_list = BlockKitFormatter.create_code_block(mermaid_code, "mermaid")
@@ -727,7 +764,7 @@ class BlockKitFormatter:
                 # Use position-based deduplication to handle identical blocks correctly
                 code_positions = []
                 processed_positions = set()
-                
+
                 for full_match, language, code_content in code_blocks:
                     # Find all occurrences of this block
                     start = 0
@@ -737,27 +774,31 @@ class BlockKitFormatter:
                             break
                         end_pos = start_pos + len(full_match)
                         pos_key = (start_pos, end_pos)
-                        
+
                         # Only process if we haven't seen this exact position
                         if pos_key not in processed_positions:
                             code_positions.append(pos_key)
                             processed_positions.add(pos_key)
-                        
+
                         start = start_pos + 1  # Continue searching
-                
+
                 # Sort by start position (descending) for safe removal
                 code_positions.sort(reverse=True)
-                
+
                 # Remove blocks from end to start to preserve positions
                 for start_pos, end_pos in code_positions:
-                    remaining_text_after_code = remaining_text_after_code[:start_pos] + remaining_text_after_code[end_pos:]
+                    remaining_text_after_code = (
+                        remaining_text_after_code[:start_pos] + remaining_text_after_code[end_pos:]
+                    )
 
             # Process remaining text
-            remaining_formatted = SlackFormatter.markdown_to_mrkdwn(remaining_text_after_code.strip())
+            remaining_formatted = SlackFormatter.markdown_to_mrkdwn(
+                remaining_text_after_code.strip()
+            )
 
             # Find code block ranges in the formatted text to exclude headings inside code blocks
             code_block_ranges = SlackFormatter._find_code_block_ranges(remaining_formatted)
-            
+
             # Split by headings, but only if they're not inside code blocks
             # First, find all heading positions
             heading_positions = []
@@ -765,7 +806,7 @@ class BlockKitFormatter:
                 pos = match.start() + 1  # Position after newline (start of heading)
                 if not SlackFormatter._is_inside_code_block(pos, code_block_ranges):
                     heading_positions.append(pos)
-            
+
             # Split at valid heading positions
             sections = []
             start = 0
@@ -776,7 +817,7 @@ class BlockKitFormatter:
             # Add final section
             if start < len(remaining_formatted):
                 sections.append(remaining_formatted[start:])
-            
+
             # If no valid headings found, treat entire text as one section
             if not sections:
                 sections = [remaining_formatted]

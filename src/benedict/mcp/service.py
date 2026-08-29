@@ -99,7 +99,9 @@ class BenedictMcpService:
             run.finish(
                 status="ok" if success else "error",
                 reply=reply,
-                error=None if success else (result.get("error") if isinstance(result, dict) else None),
+                error=(
+                    None if success else (result.get("error") if isinstance(result, dict) else None)
+                ),
             )
             return result
         except Exception as exc:

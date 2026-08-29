@@ -1,6 +1,6 @@
 [project]
 name = "benedict"
-version = "0.6.10"
+version = "0.6.11"
 description = "A Slack bot that links channels to repositories and provides intelligent, repo-scoped AI agent conversations"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -54,13 +54,13 @@ docs = [
 dev = [
     "pylint",
     "flake8",
-    "black",
-    "ruff",
+    "black==26.1.0",
+    "ruff==0.15.0",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-mock>=3.10.0",
-    "mypy>=1.0.0",
+    "mypy==2.3.1",
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",
 ]
@@ -87,7 +87,15 @@ packages = ["src/benedict"]
 
 [tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py310']
+
+[tool.ruff]
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Keep this set stable so a Ruff upgrade does not turn on pyupgrade/isort by default.
+select = ["E4", "E7", "E9", "F"]
 
 [tool.pylint]
 max-line-length = 100
@@ -95,3 +103,35 @@ max-line-length = 100
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+ignore_missing_imports = true
+warn_unused_ignores = true
+# Do not type-check site-packages (NumPy 2 stubs use 3.12-only syntax).
+no_site_packages = true
+
+# Existing modules with type errors. Tighten as hints land; do not grow this list.
+[[tool.mypy.overrides]]
+module = [
+    "benedict.agent",
+    "benedict.indexers.slack_history_indexer",
+    "benedict.lib.logging",
+    "benedict.llm.llm_claude",
+    "benedict.llm.llm_mock",
+    "benedict.metadata.content_handlers",
+    "benedict.metadata.metadata_generator",
+    "benedict.operator_ui.recorder",
+    "benedict.operator_ui.server",
+    "benedict.progress.decide",
+    "benedict.protocols.conversation_history_indexer",
+    "benedict.protocols.semantic_indexer",
+    "benedict.repo_change_detector.git_change_detector",
+    "benedict.repo_reader.repo_reader_local",
+    "benedict.repo_reader.repo_reader_mock",
+    "benedict.semantic_indexer.semantic_indexer_chromadb",
+    "benedict.utils.context",
+    "benedict.utils.slack_formatter",
+]
+ignore_errors = true
