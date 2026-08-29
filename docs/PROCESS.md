@@ -52,7 +52,7 @@ Do not mix current behavior and historical claims on one page.
 
 ### Design pages
 
-Follow the design-document sections in `CLAUDE.md`: overview, non-goals, terms, happy path, failure modes.
+Follow the design-document sections in `.cursor/rules/design-documents.mdc`: overview, non-goals, terms, happy path, failure modes.
 
 ## Update a page
 

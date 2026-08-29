@@ -1,0 +1,11 @@
+---
+description: SOLID, stable abstractions, and root composition for Python
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Code architecture
+
+- Apply SOLID. Small focused classes and functions. Depend on abstractions. Inject dependencies.
+- Design stable abstractions for how a component might change, not for every hypothetical.
+- Compose at the root so tests can substitute collaborators. Instantiate concrete classes only at the composition root, not deep in the tree.

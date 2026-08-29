@@ -1,0 +1,21 @@
+---
+description: Google-style technical writing for docs, READMEs, and changelogs
+globs: "**/*.md"
+alwaysApply: false
+---
+
+# Technical writing
+
+Use these rules when writing or editing Markdown.
+
+- Clarity over cleverness. Simple words. Short sentences. One idea at a time.
+- Write to what the reader knows and needs to do.
+- Use active voice. Make responsibility and action explicit.
+- Be concrete. Prefer specific, observable outcomes over abstract claims.
+- Strong structure: clear headers, short sections, scannable layout.
+- Front-load key info. Say what it is, why it matters, and when to use it first.
+- One term per concept. Do not rename it later.
+- Introduce concepts once. Avoid forward references.
+- Show the happy path with a minimal example before theory.
+- State assumptions, limits, and failure modes.
+- Remove anything that does not add meaning.
