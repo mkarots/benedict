@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.13] - 2026-08-29
+
+### Added
+- **Contributing guide**: `CONTRIBUTING.md` covers local setup (`make setup` / uv), tests, Ruff/Black/mypy (and optional Pylint), commit messages, issue reporting, and pull requests. README Community links to it ([#52](https://github.com/mkarots/benedict/issues/52)).
+
 ## [0.6.12] - 2026-08-29
 
 ### Added
