@@ -31,7 +31,7 @@ help:
 	@echo "  make check       - Run all checks (format + lint + type check + tests)"
 	@echo ""
 	@echo "Documentation:"
-	@echo "  make docs        - Serve the docs UI at http://127.0.0.1:8000"
+	@echo "  make docs        - Serve the docs UI at http://127.0.0.1:8000 (DOCS_PORT=8001 to override)"
 	@echo "  make docs-build  - Strict MkDocs build into site/"
 	@echo ""
 	@echo "Cleanup:"
@@ -142,9 +142,17 @@ check: format-check lint type-check test-cov
 	@echo "✅ All checks passed!"
 
 # Docs UI (MkDocs Material). Install with: uv pip install -e ".[docs]"
+# Port 8000 is the default. If it is busy: DOCS_PORT=8001 make docs
+DOCS_PORT ?= 8000
 docs: check-uv
-	@echo "Serving docs at http://127.0.0.1:8000 ..."
-	uv run --extra docs mkdocs serve
+	@if lsof -nP -iTCP:$(DOCS_PORT) -sTCP:LISTEN >/dev/null 2>&1; then \
+		echo "❌ Port $(DOCS_PORT) is already in use."; \
+		echo "   Open http://127.0.0.1:$(DOCS_PORT)/ if docs are already serving."; \
+		echo "   Or use another port: DOCS_PORT=8001 make docs"; \
+		exit 1; \
+	fi
+	@echo "Serving docs at http://127.0.0.1:$(DOCS_PORT) ..."
+	uv run --extra docs mkdocs serve --dev-addr 127.0.0.1:$(DOCS_PORT)
 
 docs-build: check-uv
 	@echo "Building docs (strict)..."

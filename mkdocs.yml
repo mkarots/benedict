@@ -13,15 +13,15 @@ theme:
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: brown
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: brown
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Light mode
@@ -44,6 +44,9 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.superfences
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Index: README.md

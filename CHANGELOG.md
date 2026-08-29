@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-29
+
+### Changed
+- Docs chrome uses charcoal (`#101010`) with gold (`#d4a574`) as the accent. Material `brown` / `amber` is no longer the docs palette.
+
+### Fixed
+- `make docs` reports when port 8000 is already in use instead of a Python traceback. Override with `DOCS_PORT=8001`.
+
 ## [0.6.0] - 2026-08-29
 
 ### Added
