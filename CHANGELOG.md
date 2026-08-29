@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.11] - 2026-08-29
+
+### Added
+- GitHub **bug report** issue template (`.github/ISSUE_TEMPLATE/bug_report.md`) and template chooser (`config.yml`). Blank issues stay enabled. Security and Code of Conduct reports stay on private channels ([#53](https://github.com/mkarots/benedict/issues/53)).
+
 ## [0.6.10] - 2026-08-29
 
 ### Added

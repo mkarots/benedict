@@ -1,6 +1,6 @@
 [project]
 name = "benedict"
-version = "0.6.10"
+version = "0.6.11"
 description = "A Slack bot that links channels to repositories and provides intelligent, repo-scoped AI agent conversations"
 readme = "README.md"
 license = {text = "Apache-2.0"}
