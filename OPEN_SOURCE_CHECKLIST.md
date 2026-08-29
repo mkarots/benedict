@@ -34,7 +34,7 @@
 | 15 | Set up pre-commit hooks | ☐ | | .pre-commit-config.yaml |
 | 16 | Add .editorconfig | ☐ | | Consistent formatting |
 | 17 | Configure Dependabot | ☐ | | .github/dependabot.yml |
-| 18 | Update pyproject.toml | ☐ | | Add metadata, license |
+| 18 | Update pyproject.toml | ☑ | | Authors, classifiers, URLs, keywords. License Apache-2.0. Recorded on #62 |
 | 19 | Update .gitignore | ☐ | | Add test patterns |
 | 20 | Set up branch protection | ☐ | | Require PR reviews |
 
@@ -104,7 +104,7 @@
 - [ ] plans/implementation-plan.md (line 131)
 
 ### Configuration Updates
-- [ ] pyproject.toml (license, metadata, deps)
+- [x] pyproject.toml (license, metadata). Deps review still open
 - [ ] .gitignore (test patterns)
 - [ ] CHANGELOG.md (launch section)
 - [ ] Makefile (test targets)

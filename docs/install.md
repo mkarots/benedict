@@ -15,6 +15,10 @@ Clone Benedict, install dependencies, set tokens, and start the Slack process.
 - Optional: Cursor or Claude Code, for `benedict-mcp`
 - Optional: local git checkouts of the repos you want to onboard
 
+## Package
+
+Benedict is Apache-2.0. `pyproject.toml` also declares authors, classifiers, keywords, and project URLs (Homepage, Repository, Issues) for GitHub and PyPI. Install from this clone. A PyPI release is not published yet.
+
 ## Clone
 
 ```bash

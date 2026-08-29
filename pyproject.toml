@@ -1,9 +1,39 @@
 [project]
 name = "benedict"
-version = "0.6.9"
+version = "0.6.10"
 description = "A Slack bot that links channels to repositories and provides intelligent, repo-scoped AI agent conversations"
 readme = "README.md"
 license = {text = "Apache-2.0"}
+authors = [
+    {name = "Michael Karotsieris", email = "michael.karotsieris@gmail.com"},
+]
+maintainers = [
+    {name = "Michael Karotsieris", email = "michael.karotsieris@gmail.com"},
+]
+keywords = [
+    "slack-bot",
+    "slack-app",
+    "llm",
+    "ai",
+    "claude",
+    "semantic-search",
+    "mcp",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Communications :: Chat",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+]
 requires-python = ">=3.10"
 dependencies = [
     "slack-bolt>=1.18.0",
@@ -34,6 +64,12 @@ dev = [
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",
 ]
+
+[project.urls]
+Homepage = "https://github.com/mkarots/benedict"
+Repository = "https://github.com/mkarots/benedict"
+Issues = "https://github.com/mkarots/benedict/issues"
+Changelog = "https://github.com/mkarots/benedict/blob/main/CHANGELOG.md"
 
 [project.scripts]
 benedict = "benedict.main:main"
