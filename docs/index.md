@@ -4,6 +4,11 @@ title: Home
 
 Status: Current
 
+<p class="hero-mark" align="center">
+  <img src="assets/logo.png" alt="Benedict logo" width="320" height="320">
+</p>
+<p class="hero-tagline" align="center"><em>repo bene(volent)dict(ator) agent</em></p>
+
 # Benedict
 
 Benedict is an agent that knows your code and the Slack conversations you have about it — and can help you plan the work.

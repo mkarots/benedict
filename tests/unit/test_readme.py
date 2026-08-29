@@ -10,6 +10,17 @@ def _readme() -> str:
     return README.read_text(encoding="utf-8")
 
 
+def test_readme_has_hero_logo_and_tagline():
+    text = _readme()
+    assert 'src="docs/assets/logo.png"' in text
+    assert 'width="320"' in text
+    assert "<em>repo bene(volent)dict(ator) agent</em>" in text
+    hero_at = text.find('src="docs/assets/logo.png"')
+    tagline_at = text.find("repo bene(volent)dict(ator) agent")
+    title_at = text.find("# Benedict")
+    assert 0 <= hero_at < tagline_at < title_at
+
+
 def test_readme_has_ci_license_and_python_badges():
     text = _readme()
     assert "actions/workflows/ci.yml/badge.svg" in text

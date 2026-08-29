@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.20] - 2026-08-29
+
+### Changed
+- README and docs home show the logo as a centered hero, with the italic line `repo bene(volent)dict(ator) agent` under it.
+
 ## [0.6.19] - 2026-08-29
 
 ### Added
