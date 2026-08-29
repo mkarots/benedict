@@ -56,7 +56,7 @@ Slack process (main.py)                    MCP process (benedict-mcp)
         └──────────────┬───────────────────────────┘
                        ▼
               Shared read-only memory
-              state.json · workspaces · Chroma · .metadata.benedict
+              state.json · workspaces · Chroma · workspace metadata sidecar
                        │
                        ▼
                  build_context()

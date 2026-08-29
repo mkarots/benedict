@@ -84,8 +84,10 @@ For what happens on a user request (routing, prompt building, tool calls, Slack 
 - **`workspace/action_logger.py`** - Logs workspace actions and operations
 
 ### Metadata System
-- **`metadata/metadata_generator.py`** - Generates METADATA files for directories
-- **`metadata/metadata_reader.py`** - Reads METADATA files
+- **`metadata/metadata_location.py`** - Sidecar path: `workspaces/<channel>/metadata/<org>/<repo>/…`
+- **`metadata/metadata_generator.py`** - Writes overlays to the sidecar only (never through the repo symlink)
+- **`metadata/metadata_reader.py`** - Sidecar first, then leftover in-tree `.metadata.benedict`
+- **`metadata/source_dir_skip.py`** - Skip venv/cache under the repo root only
 - **`metadata/content_handlers.py`** - Content-specific handlers for metadata generation
 
 Benedict does not have a method-file subsystem. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.

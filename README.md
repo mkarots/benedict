@@ -4,7 +4,7 @@ A Slack bot that links a channel to a local git repository and answers questions
 
 Use Benedict when a Slack channel is the working surface for a codebase and you want an agent that already knows the repo and the thread history.
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.2). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout. It does not clone from GitHub. Slack conversations can run GitHub (`gh`) and Notion (`ntn`) on the host; those CLIs are not a general shell and Notion is not the repo source.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.3). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout. It does not clone from GitHub. Slack conversations can run GitHub (`gh`) and Notion (`ntn`) on the host; those CLIs are not a general shell and Notion is not the repo source. Generated directory overlays live under `workspaces/<channel>/metadata/`, not in the clone.
 
 **Full documentation** (what ships, install, commands, request path): run `make docs` and open `http://127.0.0.1:8000`.
 
@@ -36,6 +36,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `offboard` | Removes the channel mapping |
 | `status` | Shows the linked repo |
 | `update index` | Incremental reindex (`force` for a full rebuild) |
+| `link notion <url>` | Sets this channel's default Notion page or database |
 | `onboard architect` | Cross-project architect channel |
 | `progress` | Run the progress loop (`all`, `now`) |
 | Any other question | Repo-scoped conversation |

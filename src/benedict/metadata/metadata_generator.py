@@ -15,6 +15,11 @@ from .content_handlers import (
     DataHandler,
     ContentHandler,
 )
+from .metadata_location import (
+    MetadataLocationError,
+    relative_source_dir,
+    sidecar_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -77,17 +82,29 @@ class MetadataGenerator:
         logger.debug(f"Generated metadata for {directory} (content_type={content_type})")
         return metadata
 
-    def write_metadata(self, directory: Path, metadata: Dict[str, Any]) -> None:
-        """Write .metadata.benedict file to directory.
+    def write_metadata(
+        self,
+        directory: Path,
+        metadata: Dict[str, Any],
+        workspace_root: Optional[Path] = None,
+        repo: Optional[str] = None,
+    ) -> None:
+        """Write overlay to the workspace sidecar. Never writes into the source tree.
 
         Args:
-            directory: Directory path
+            directory: Source directory being described
             metadata: Metadata dictionary
+            workspace_root: Channel workspace directory (required)
+            repo: Workspace resource name, e.g. org/repo (required)
         """
         directory = Path(directory)
-        metadata_file = directory / ".metadata.benedict"
+        try:
+            rel = relative_source_dir(directory, workspace_root, repo)
+            metadata_file = sidecar_path(workspace_root, repo, rel)
+        except MetadataLocationError as exc:
+            logger.error("Refusing in-tree metadata write: %s", exc)
+            raise
 
-        # Check if .metadata.benedict already exists as a directory (conflict)
         if metadata_file.exists() and metadata_file.is_dir():
             logger.debug(
                 f".metadata.benedict path exists as directory at {metadata_file}, skipping write"
@@ -95,6 +112,7 @@ class MetadataGenerator:
             return
 
         try:
+            metadata_file.parent.mkdir(parents=True, exist_ok=True)
             with open(metadata_file, "w", encoding="utf-8") as f:
                 yaml.dump(
                     metadata, f, default_flow_style=False, allow_unicode=True, sort_keys=False
@@ -105,19 +123,25 @@ class MetadataGenerator:
             raise
 
     def generate_and_write(
-        self, directory: Path, content_type: Optional[str] = None
+        self,
+        directory: Path,
+        content_type: Optional[str] = None,
+        workspace_root: Optional[Path] = None,
+        repo: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Generate and write metadata in one step.
 
         Args:
-            directory: Directory path
+            directory: Source directory being described
             content_type: Optional content type
+            workspace_root: Channel workspace directory (required for write)
+            repo: Workspace resource name (required for write)
 
         Returns:
             Generated metadata dictionary
         """
         metadata = self.generate_metadata(directory, content_type)
-        self.write_metadata(directory, metadata)
+        self.write_metadata(directory, metadata, workspace_root=workspace_root, repo=repo)
         return metadata
 
     def _detect_content_type(self, directory: Path) -> str:

@@ -36,7 +36,7 @@ Out of scope: a custom agent-to-agent protocol. This is MCP tools only.
 | Tool | Purpose |
 |------|---------|
 | `list_projects` | Onboarded Slack channel → repo mappings |
-| `get_repository_summary` | Root `.metadata.benedict` summary and purpose |
+| `get_repository_summary` | Root overlay summary and purpose (workspace sidecar, then leftover in-tree `.metadata.benedict`) |
 | `search_code` | Semantic search over Benedict's index |
 | `get_recent_actions` | Recent workspace action log entries |
 | `ask_benedict` | Question answered from repo context (no Slack history) |

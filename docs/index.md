@@ -22,6 +22,7 @@ Use Benedict when Slack is the working surface for a codebase and you want an ag
 - Channel → repository mapping (onboard, offboard, status)
 - Semantic search (ChromaDB) and git-based incremental reindex
 - Per-channel workspaces (symlink or copy)
+- Directory overlays under `workspaces/<channel>/metadata/`, not in the clone
 - MCP tools: `list_projects`, `get_repository_summary`, `search_code`, `get_recent_actions`, `ask_benedict`
 - Local operator console at `http://127.0.0.1:8765`
 - Progress loop: Slack question, GitHub issue, or implement-ready note
@@ -60,7 +61,7 @@ Slack process (make run)              MCP process (benedict-mcp)
         └──────────────┬───────────────────────┘
                        ▼
               ~/.benedict  (shared)
-              state.json · workspaces · Chroma · .metadata.benedict
+              state.json · workspaces · Chroma · workspace metadata sidecar
 ```
 
 Request behavior lives in [Request path](REQUEST_PATH.md). Files and protocols live in [Code map](CODE_MAP.md).

@@ -89,7 +89,7 @@ Product terms (onboard, retrieve-then-stuff, progress loop): [Home](index.md).
 | Path | Role |
 | --- | --- |
 | `workspace/` | Per-channel workspace lifecycle and action log |
-| `metadata/` | `.metadata.benedict` generate and read |
+| `metadata/` | Overlay generate/read. Writes go to `workspaces/<channel>/metadata/`, not the clone |
 | `commands/` | Metadata classifier, GitHub tool, tool loop |
 | `models/conversation.py` | Conversation and message models |
 | `utils/context.py` | Retrieve-then-stuff context |

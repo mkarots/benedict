@@ -124,7 +124,11 @@ class BenedictMcpService:
         except ProjectResolutionError as exc:
             return _err(exc.message)
 
-        metadata = self._metadata_reader.read_metadata(project.repo_path)
+        metadata = self._metadata_reader.read_metadata(
+            project.repo_path,
+            workspace_root=project.workspace_path,
+            repo=project.repo,
+        )
         if not metadata:
             return _err(
                 f"No `.metadata.benedict` found for `{project.repo}`.",
