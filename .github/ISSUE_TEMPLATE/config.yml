@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Ask a question
+    url: https://github.com/mkarots/benedict/discussions
+    about: Community Q&A, ideas, and show and tell. Use Discussions, not issues.
   - name: Report a security vulnerability
     url: https://github.com/mkarots/benedict/security/advisories/new
     about: Do not open a public issue for a vulnerability. Use private reporting (see SECURITY.md).
