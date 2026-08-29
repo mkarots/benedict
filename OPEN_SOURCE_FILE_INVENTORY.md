@@ -141,8 +141,8 @@ This document provides a comprehensive list of all files that need to be created
    - Status: ✅ Exists (excellent quality)
    - Changes needed:
      - [x] Line 186: `@michael` is gone from README (clone URL is the real remote)
-     - [ ] Add badges (license, Python, CI) at top
-     - [ ] Update clone URL from `<your-repo-url>` to actual public URL
+     - [x] Add badges (license, Python, CI) at top
+     - [x] Clone URL is the public remote `github.com/mkarots/benedict.git`
      - [x] Add contributing section linking to CONTRIBUTING.md
      - [x] Add code of conduct reference
      - [x] Add security policy reference
@@ -342,7 +342,7 @@ tests/
 5. .github/ISSUE_TEMPLATE/bug_report.md      [DONE]
    .github/ISSUE_TEMPLATE/feature_request.md [DONE]
 6. .github/PULL_REQUEST_TEMPLATE.md          [DONE]
-7. README.md                                 [MODIFY] 🔴
+7. README.md                                 [DONE]
 8. Remove personal info (6 files)            [MODIFY] 🔴
 ```
 
@@ -383,7 +383,7 @@ tests/
 6. Create CONTRIBUTING.md (done)
 7. Create GitHub issue templates
 8. Create PR template
-9. Update README with badges and links
+9. Update README with badges and links (done)
 10. Create MAINTAINERS.md
 
 ### Week 3: Code Quality
@@ -415,7 +415,7 @@ tests/
 |----------|--------|---------|--------------|
 | License | ✅ | - | LICENSE, NOTICE |
 | Security | ✅ SECURITY.md | - | - |
-| Community | ✅ CODE_OF_CONDUCT, CONTRIBUTING | - | README |
+| Community | ✅ CODE_OF_CONDUCT, CONTRIBUTING, README badges | - | - |
 | CI/CD | ❌ | All workflows | - |
 | Tests | ❌ | Entire test suite | - |
 | GitHub | ❌ | Issue/PR templates | - |
@@ -439,7 +439,7 @@ Documentation:
 [x] SECURITY.md explains vulnerability reporting
 [x] CODE_OF_CONDUCT.md is present
 [x] CONTRIBUTING.md has clear guidelines
-[ ] README has all badges and links updated
+[x] README has all badges and links updated
 [x] All personal references removed (examples; real GitHub URLs stay)
 
 GitHub Setup:

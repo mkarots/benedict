@@ -91,11 +91,11 @@ git log --all -p | grep -i 'api[_-]key\|secret\|token' | head -20
 **Status**: ✅ EXCELLENT - Well structured
 
 **Minor enhancements needed**:
-- [ ] Add badges (license, Python version, build status)
+- [x] Add badges (license, Python version, build status)
 - [x] Add contributing section linking to CONTRIBUTING.md
 - [x] Add code of conduct reference
 - [x] Add security policy reference
-- [ ] Update repository URLs from personal to org/project
+- [x] Clone and project URLs use the public remote `mkarots/benedict`
 - [ ] Add "Star us on GitHub" call-to-action
 
 #### CONTRIBUTING.md
@@ -421,7 +421,7 @@ tests/
 - [ ] Set up basic CI workflow
 - [x] Create issue/PR templates
 - [ ] Add test framework structure (even if minimal)
-- [ ] Review and update README
+- [x] Review and update README
 
 ### Phase 2: Quality Improvements (Should Complete)
 - [ ] Write core unit tests (>50% coverage)
