@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Benedict — The agent that already knows the checkout</title>
+  <meta name="description" content="Open-source Slack agent that links each channel to a local git checkout, then answers in the thread with Claude, semantic search, GitHub CLI, Notion, and MCP. MIT." />
+  <meta name="theme-color" content="#101010" />
+  <meta property="og:title" content="Benedict — open-source Slack repo agent" />
+  <meta property="og:description" content="The engineering agent that already knows the checkout. Slack-native. Local-first. Open source. MIT." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23101010'/%3E%3Crect x='.5' y='.5' width='31' height='31' rx='6.5' fill='none' stroke='%23d4a574' stroke-opacity='.45'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Georgia,serif' font-size='16' fill='%23d4a574'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #101010;
+      --bg-deep: #0c0c0c;
+      --panel: #161616;
+      --hover: #1c1c1c;
+      --line: #2a2a2a;
+      --ink: #f4f1ea;
+      --muted: #9a958c;
+      --faint: #6b665e;
+      --accent: #d4a574;
+      --accent-dim: color-mix(in srgb, var(--accent) 18%, transparent);
+      --ok: #8faf7a;
+      --err: #c46a4a;
+      --slack: #6f8fbf;
+      --mcp: #9a86c4;
+      --sans: "IBM Plex Sans", system-ui, sans-serif;
+      --serif: "IBM Plex Serif", "Iowan Old Style", Georgia, serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+      --max: 1120px;
+      --gutter: clamp(20px, 4vw, 48px);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    html, body { background: var(--bg); color: var(--ink); }
+    body {
+      margin: 0;
+      font: 16px/1.55 var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    img, svg { display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    code, .mono { font-family: var(--mono); }
+    p code, li code, .bubble code, .ans code, .sec-lead code {
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--hover);
+      border: 1px solid var(--line);
+      font-size: 0.86em;
+    }
+    ::selection { background: var(--accent); color: var(--bg); }
+    @keyframes pip-live {
+      0%, 100% { outline-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+      50% { outline-color: color-mix(in srgb, var(--ok) 8%, transparent); }
+    }
+
+    .skip {
+      position: absolute;
+      left: 12px;
+      top: -40px;
+      z-index: 80;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 13px;
+    }
+    .skip:focus { top: 12px; }
+
+    .wrap {
+      width: min(var(--max), calc(100% - var(--gutter) * 2));
+      margin-inline: auto;
+    }
+
+    /* —— nav —— */
+    header.nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      border-bottom: 1px solid transparent;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(16px);
+    }
+    header.nav.scrolled { border-bottom-color: var(--line); }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      height: 60px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .mark {
+      width: 22px;
+      height: 22px;
+      border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-family: var(--serif);
+      font-size: 13px;
+      line-height: 1;
+    }
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .nav-cta .ghost {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .nav-cta .ghost:hover { color: var(--ink); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 500;
+      transition: border-color 140ms ease, background 140ms ease;
+    }
+    .btn:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); background: var(--hover); }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #101010;
+    }
+    .btn.primary:hover { filter: brightness(1.06); }
+    .btn.lg { height: 42px; padding: 0 18px; font-size: 14px; }
+
+    /* —— hero —— */
+    .hero { padding: 48px 0 12px; position: relative; }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -40px 0 40%;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: radial-gradient(ellipse 70% 80% at 50% 0%, #000 20%, transparent 75%);
+      pointer-events: none;
+      opacity: 0.55;
+    }
+    .kicker {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 14px;
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .kicker .pip {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ok);
+      outline: 2px solid color-mix(in srgb, var(--ok) 35%, transparent);
+      outline-offset: 2px;
+      animation: pip-live 2.4s ease-in-out infinite;
+    }
+    h1 {
+      margin: 0 0 22px;
+      max-width: 18ch;
+      font-family: var(--serif);
+      font-size: clamp(36px, 5.6vw, 64px);
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .lead {
+      margin: 0 0 22px;
+      max-width: 46ch;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero .cmd { margin-top: 12px; }
+    .cmd {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      height: 42px;
+      padding: 0 12px 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg-deep);
+      color: var(--muted);
+      font: 13px/1 var(--mono);
+    }
+    .cmd b { color: var(--ink); font-weight: 500; }
+    .cmd button {
+      color: var(--faint);
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+    .cmd button:hover { color: var(--ink); background: var(--hover); }
+
+    /* —— stage —— */
+    .stage-wrap { padding: 20px 0 8px; }
+    .stage {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .stage-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .dots { display: flex; gap: 6px; }
+    .dots i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--line);
+    }
+    .stage-tabs { display: flex; gap: 2px; margin-left: 8px; }
+    .stage-tabs button {
+      padding: 5px 10px;
+      border-radius: 4px;
+      color: var(--faint);
+      font-size: 12px;
+    }
+    .stage-tabs button:hover { color: var(--ink); background: var(--hover); }
+    .stage-tabs button.on { color: var(--ink); background: var(--hover); }
+    .stage-meta {
+      margin-left: auto;
+      color: var(--faint);
+      font: 11px/1 var(--mono);
+    }
+    .stage-meta b { color: var(--muted); font-weight: 500; }
+
+    .panel { display: none; }
+    .panel.on { display: block; }
+
+    .slack {
+      display: grid;
+      grid-template-columns: 168px minmax(0, 1.25fr) minmax(240px, 0.85fr);
+      min-height: 500px;
+    }
+    .rail {
+      border-right: 1px solid var(--line);
+      background: var(--bg-deep);
+      padding: 14px 10px 16px;
+    }
+    .rail .ws {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px 12px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .rail .ws i {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: var(--accent);
+      color: #101010;
+      display: grid;
+      place-items: center;
+      font: 11px/1 var(--serif);
+    }
+    .rail button, .rail .ch {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      color: var(--faint);
+      font-size: 13px;
+      text-align: left;
+    }
+    .rail .ch.on { background: var(--hover); color: var(--ink); }
+    .rail .hash { color: var(--faint); font-family: var(--mono); font-size: 12px; }
+    .thread {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      border-right: 1px solid var(--line);
+    }
+    .thread-body { flex: 1; padding: 8px 0 12px; }
+    .chan {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .chan strong { font-size: 14px; font-weight: 600; }
+    .chan span { color: var(--faint); font-size: 12px; }
+    .msg {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 10px;
+      padding: 14px 20px;
+    }
+    .msg + .msg { padding-top: 6px; }
+    .ava {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font: 12px/1 var(--serif);
+      color: #101010;
+    }
+    .ava.m { background: #c4a07a; }
+    .ava.b { background: var(--accent); }
+    .who { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+    .who b { font-size: 14px; font-weight: 600; }
+    .who time { color: var(--faint); font-size: 11px; }
+    .who .bot {
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+    .bubble { color: color-mix(in srgb, var(--ink) 92%, var(--muted)); font-size: 14px; }
+    .bubble code {
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--hover);
+      border: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .mention {
+      color: var(--slack);
+      background: color-mix(in srgb, var(--slack) 16%, transparent);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+    .composer {
+      margin: auto 12px 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--faint);
+      font-size: 13px;
+    }
+    .why-foot {
+      margin-top: auto;
+      padding: 12px 16px 16px;
+      color: var(--faint);
+      font: 11px var(--mono);
+    }
+    .reply-rail {
+      margin: 8px 0 0;
+      padding: 8px 0 0 12px;
+      border-left: 2px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .reply-rail .row { display: flex; gap: 8px; margin: 3px 0; }
+    .reply-rail .sha { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+
+    .why {
+      background: var(--bg);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .why-h {
+      padding: 14px 16px 10px;
+      color: var(--faint);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .why-block { padding: 0 16px 16px; }
+    .why-block h3 {
+      margin: 0 0 8px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .hit, .file, .tool {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--line);
+      font: 12px/1.4 var(--mono);
+    }
+    .hit span, .file span { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hit em { color: var(--ok); font-style: normal; }
+    .file em, .tool em { color: var(--faint); font-style: normal; }
+    .tool { grid-template-columns: 1fr; color: var(--muted); }
+    .tool b { color: var(--mcp); font-weight: 500; }
+
+    /* MCP / operator panels */
+    .console {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 520px;
+    }
+    .act { border-right: 1px solid var(--line); background: var(--bg); }
+    .act-h, .insp-h {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .run {
+      display: grid;
+      grid-template-columns: 10px 1fr auto;
+      gap: 4px 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      border-left: 2px solid transparent;
+    }
+    .run.sel { background: var(--hover); border-left-color: var(--accent); }
+    .run .q { grid-column: 2; font-size: 13px; }
+    .run .rm {
+      grid-column: 2;
+      color: var(--faint);
+      font-size: 11px;
+      display: flex;
+      gap: 8px;
+    }
+    .run .dur { grid-column: 3; grid-row: 1 / span 2; align-self: center; color: var(--muted); font: 11px var(--mono); }
+    .rpip { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-top: 6px; }
+    .insp { display: flex; flex-direction: column; }
+    .insp-title { padding: 16px 20px 12px; border-bottom: 1px solid var(--line); }
+    .insp-title h2 { margin: 0 0 8px; font-size: 16px; font-weight: 500; }
+    .facts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; }
+    .facts b { color: var(--ink); font-weight: 500; }
+    .stages { padding: 10px 16px 20px; }
+    .stage-row {
+      display: grid;
+      grid-template-columns: 14px 88px 1fr 56px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .stage-row time { color: var(--muted); font: 12px var(--mono); text-align: right; }
+    .kind.slack { color: var(--slack); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .kind.mcp { color: var(--mcp); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    .ide {
+      min-height: 520px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--bg);
+    }
+    .ide-side {
+      padding: 16px 20px 0;
+      color: var(--faint);
+      font-size: 12px;
+    }
+    .ide-chat { padding: 8px 20px 24px; }
+    .ask, .ans {
+      max-width: 72ch;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .ask p, .ans p { margin: 6px 0 0; }
+    .lbl { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mcp); }
+    .tools-used {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .chip {
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font: 11px var(--mono);
+    }
+
+    /* —— proof —— */
+    .proof {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      margin: 48px 0 8px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .proof article {
+      padding: 18px 16px 16px;
+      background: var(--bg);
+    }
+    .proof h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .proof p { margin: 0; color: var(--faint); font-size: 12px; line-height: 1.45; }
+
+    /* —— sections —— */
+    section.block { padding: 88px 0; }
+    section.block + section.block { border-top: 1px solid var(--line); }
+    .sec-k {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h2.display {
+      margin: 0 0 16px;
+      max-width: 18ch;
+      font-family: var(--serif);
+      font-size: clamp(32px, 4.4vw, 48px);
+      font-weight: 400;
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+    }
+    .sec-lead {
+      margin: 0 0 40px;
+      max-width: 54ch;
+      color: var(--muted);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+    .steps article {
+      padding: 28px 24px 26px;
+      background: var(--panel);
+    }
+    .steps .n {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: var(--accent);
+      font: 12px var(--mono);
+    }
+    .steps h3 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+    .steps p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+    .steps pre {
+      margin: 0;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--ink);
+      font: 12px/1.45 var(--mono);
+      overflow: auto;
+    }
+
+    .surfaces {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .card {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      min-height: 100%;
+    }
+    .card .tag {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: var(--faint);
+      font: 11px var(--mono);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 18px; font-weight: 500; font-family: var(--serif); }
+    .card p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+    .card ul { margin: 0; padding: 0; list-style: none; }
+    .card li {
+      padding: 7px 0;
+      border-top: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .card li span { color: var(--faint); }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+    .split ul { margin: 0; padding: 0; list-style: none; }
+    .split li {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 12px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      font-size: 15px;
+    }
+    .split li:last-child { border-bottom: 1px solid var(--line); }
+    .tick { color: var(--ok); }
+    .cross { color: var(--err); }
+
+    .install {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg-deep);
+    }
+    .install ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+    .install li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .install li:last-child { border-bottom: 0; padding-bottom: 0; }
+    .install li:first-child { padding-top: 0; }
+    .install li::before {
+      content: counter(step, decimal-leading-zero);
+      color: var(--accent);
+      font: 12px/28px var(--mono);
+    }
+    .install h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+    .install p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+    .install pre {
+      margin: 0;
+      padding: 10px 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      font: 12px/1.5 var(--mono);
+      overflow: auto;
+    }
+
+    .cta {
+      text-align: center;
+      padding: 96px 0 40px;
+    }
+    .cta h2 {
+      margin: 0 auto 16px;
+      max-width: 16ch;
+      font-family: var(--serif);
+      font-size: clamp(32px, 4.6vw, 52px);
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .cta p { margin: 0 auto 28px; max-width: 42ch; color: var(--muted); }
+    .cta-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 13px;
+    }
+    .foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    footer a:hover { color: var(--ink); }
+
+    @media (max-width: 960px) {
+      .proof { grid-template-columns: repeat(3, 1fr); }
+      .steps, .surfaces, .split, .slack, .console { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .thread { border-right: 0; border-bottom: 1px solid var(--line); }
+      .act { border-right: 0; border-bottom: 1px solid var(--line); }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 640px) {
+      .proof { grid-template-columns: 1fr 1fr; }
+      .hero { padding-top: 48px; }
+      .cmd { width: 100%; justify-content: space-between; }
+      .hero-actions .btn { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav" id="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">
+        <span class="mark" aria-hidden="true">B</span>
+        benedict
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#surfaces">Surfaces</a>
+        <a href="#local">Local-first</a>
+        <a href="#install">Install</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="ghost" href="https://github.com/mkarots/benedict">Open source</a>
+        <a class="btn primary" href="#install">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="wrap">
+        <p class="kicker"><i class="pip" aria-hidden="true"></i> Slack-native · local-first · open source</p>
+        <h1>The agent that already knows <em>the checkout.</em></h1>
+        <p class="lead">
+          Link a Slack channel to a local git repository. Benedict indexes it,
+          remembers the thread, and answers with Claude — plus GitHub and Notion
+          when the host already has the CLIs. The code is public. MIT license.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary lg" href="#install">Run it locally</a>
+          <a class="btn lg" href="https://github.com/mkarots/benedict">View the source</a>
+        </div>
+        <span class="cmd" id="hero-cmd">
+          <span><b>@benedict</b> onboard repo acme/widget</span>
+          <button type="button" data-copy="@benedict onboard repo acme/widget" aria-label="Copy onboard command">copy</button>
+        </span>
+      </div>
+    </section>
+
+    <div class="stage-wrap">
+      <div class="wrap">
+        <div class="stage" role="region" aria-label="Product preview">
+          <div class="stage-bar">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <div class="stage-tabs" role="tablist">
+              <button type="button" class="on" role="tab" aria-selected="true" data-tab="slack">Slack thread</button>
+              <button type="button" role="tab" aria-selected="false" data-tab="ops">Operator</button>
+              <button type="button" role="tab" aria-selected="false" data-tab="mcp">Cursor MCP</button>
+            </div>
+            <div class="stage-meta">v0.5.9 · <b>2.3s</b> · 8 hits</div>
+          </div>
+
+          <div class="panel on" id="tab-slack" role="tabpanel">
+            <div class="slack">
+              <nav class="rail" aria-label="Channels">
+                <div class="ws"><i aria-hidden="true">A</i> Acme</div>
+                <div class="ch on" aria-current="page"><span class="hash">#</span> eng-backend</div>
+                <div class="ch"><span class="hash">#</span> eng-frontend</div>
+                <div class="ch"><span class="hash">#</span> architect</div>
+              </nav>
+              <div class="thread">
+                <div class="chan">
+                  <strong>#eng-backend</strong>
+                  <span>acme/widget · onboarded</span>
+                </div>
+                <div class="thread-body">
+                <div class="msg">
+                  <div class="ava m" aria-hidden="true">M</div>
+                  <div>
+                    <div class="who"><b>maya</b> <time>18:40</time></div>
+                    <div class="bubble"><span class="mention">@benedict</span> what files handle authentication?</div>
+                  </div>
+                </div>
+                <div class="msg">
+                  <div class="ava b" aria-hidden="true">B</div>
+                  <div>
+                    <div class="who"><b>Benedict</b> <span class="bot">app</span> <time>18:40</time></div>
+                    <div class="bubble">
+                      Auth lives in <code>src/auth/session.py</code> and <code>src/middleware/jwt.py</code>.
+                      Login goes through <code>verify_token</code> before the API router. Refresh tokens
+                      are issued in <code>src/auth/tokens.py</code>.
+                    </div>
+                  </div>
+                </div>
+                <div class="msg">
+                  <div class="ava m" aria-hidden="true">M</div>
+                  <div>
+                    <div class="who"><b>maya</b> <time>18:41</time></div>
+                    <div class="bubble">who last touched jwt.py?</div>
+                  </div>
+                </div>
+                <div class="msg">
+                  <div class="ava b" aria-hidden="true">B</div>
+                  <div>
+                    <div class="who"><b>Benedict</b> <span class="bot">app</span> <time>18:41</time></div>
+                    <div class="bubble">Last three commits on <code>src/middleware/jwt.py</code>:</div>
+                    <div class="reply-rail">
+                      <div class="row"><span class="sha">a3f2c1d</span> Maya Chen — tighten expiry clock skew</div>
+                      <div class="row"><span class="sha">91bb04e</span> Jon Park — add RS256</div>
+                      <div class="row"><span class="sha">4c10aa2</span> Maya Chen — reject empty kid</div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+                <div class="composer">Message #eng-backend</div>
+              </div>
+              <aside class="why" aria-label="Why this answer">
+                <div class="why-h">Why this answer</div>
+                <div class="why-block">
+                  <h3>Search</h3>
+                  <div class="hit"><span>src/auth/session.py</span><em>0.91</em></div>
+                  <div class="hit"><span>src/middleware/jwt.py</span><em>0.88</em></div>
+                  <div class="hit"><span>src/auth/tokens.py</span><em>0.84</em></div>
+                  <div class="hit"><span>src/api/router.py</span><em>0.71</em></div>
+                </div>
+                <div class="why-block">
+                  <h3>Files read</h3>
+                  <div class="file"><span>README.md</span><em>context</em></div>
+                  <div class="file"><span>.metadata.benedict</span><em>boost</em></div>
+                  <div class="file"><span>src/auth/session.py</span><em>hit</em></div>
+                  <div class="file"><span>src/middleware/jwt.py</span><em>hit</em></div>
+                </div>
+                <div class="why-block">
+                  <h3>Tools</h3>
+                  <div class="tool"><span><b>run_github</b> log -n 3 -- src/middleware/jwt.py</span></div>
+                </div>
+                <div class="why-foot">4 files · 8 hits · 2.3s</div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="panel" id="tab-ops" role="tabpanel" hidden>
+            <div class="console">
+              <div class="act">
+                <div class="act-h">Activity</div>
+                <div class="run sel">
+                  <i class="rpip"></i>
+                  <div class="q">what files handle authentication?</div>
+                  <div class="rm"><span class="kind slack">slack</span><span>conversation</span></div>
+                  <div class="dur">2.34s</div>
+                </div>
+                <div class="run">
+                  <i class="rpip"></i>
+                  <div class="q">search_code auth middleware</div>
+                  <div class="rm"><span class="kind mcp">mcp</span><span>search</span></div>
+                  <div class="dur">180ms</div>
+                </div>
+                <div class="run">
+                  <i class="rpip"></i>
+                  <div class="q">update index</div>
+                  <div class="rm"><span class="kind slack">slack</span><span>command</span></div>
+                  <div class="dur">1.12s</div>
+                </div>
+              </div>
+              <div class="insp">
+                <div class="insp-h">Inspector</div>
+                <div class="insp-title">
+                  <h2>what files handle authentication?</h2>
+                  <div class="facts">
+                    <span>route <b>handle_conversation</b></span>
+                    <span>repo <b>acme/widget</b></span>
+                    <span>channel <b>#eng-backend</b></span>
+                  </div>
+                </div>
+                <div class="stages">
+                  <div class="stage-row"><i class="rpip"></i><span>route</span><span>conversation</span><time>4ms</time></div>
+                  <div class="stage-row"><i class="rpip"></i><span>search</span><span>8 Chroma hits</span><time>142ms</time></div>
+                  <div class="stage-row"><i class="rpip"></i><span>context</span><span>4 files · metadata · actions</span><time>38ms</time></div>
+                  <div class="stage-row"><i class="rpip"></i><span>llm</span><span>claude-3-5-sonnet</span><time>1.84s</time></div>
+                  <div class="stage-row"><i class="rpip"></i><span>tool</span><span>run_github log</span><time>210ms</time></div>
+                  <div class="stage-row"><i class="rpip"></i><span>reply</span><span>Slack thread</span><time>22ms</time></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="tab-mcp" role="tabpanel" hidden>
+            <div class="ide">
+              <div class="ide-side">cursor · benedict-mcp · stdio</div>
+              <div class="ide-chat">
+                <div class="ask">
+                  <div class="lbl">You</div>
+                  <p>Where does widget verify JWTs, and what recently changed?</p>
+                </div>
+                <div class="ans">
+                  <div class="lbl">ask_benedict</div>
+                  <p>
+                    Verification is in <code>src/middleware/jwt.py</code> (<code>verify_token</code>).
+                    The last change tightened clock skew and rejected an empty <code>kid</code>.
+                    The channel index for <code>acme/widget</code> is current.
+                  </p>
+                  <div class="tools-used">
+                    <span class="chip">list_projects</span>
+                    <span class="chip">search_code</span>
+                    <span class="chip">get_recent_actions</span>
+                    <span class="chip">ask_benedict</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="proof">
+        <article>
+          <h3>Semantic index</h3>
+          <p>ChromaDB and sentence-transformers. Git-based incremental reindex.</p>
+        </article>
+        <article>
+          <h3>Workspaces</h3>
+          <p>One isolated checkout per channel. Symlink or copy.</p>
+        </article>
+        <article>
+          <h3>Thread memory</h3>
+          <p>Replies continue the conversation without another mention.</p>
+        </article>
+        <article>
+          <h3>GitHub CLI</h3>
+          <p><code>gh</code> in the workspace. Mutations ask first.</p>
+        </article>
+        <article>
+          <h3>Notion</h3>
+          <p><code>ntn</code> walks boards and nested data sources.</p>
+        </article>
+        <article>
+          <h3>MCP</h3>
+          <p>The same index, from Cursor and Claude Code.</p>
+        </article>
+      </div>
+    </div>
+
+    <section class="block" id="how">
+      <div class="wrap">
+        <p class="sec-k">How it works</p>
+        <h2 class="display">Invite. Onboard. Ask in the thread.</h2>
+        <p class="sec-lead">
+          Explicit commands skip the general path. Everything else builds
+          README, metadata, semantic hits, and recent actions, then asks Claude.
+        </p>
+        <div class="steps">
+          <article>
+            <span class="n">01</span>
+            <h3>Invite Benedict</h3>
+            <p>Add the Socket Mode bot to the channel that already owns the work.</p>
+            <pre>/invite @benedict</pre>
+          </article>
+          <article>
+            <span class="n">02</span>
+            <h3>Onboard a checkout</h3>
+            <p>Point it at a directory that already exists on the host. Nothing is cloned from GitHub.</p>
+            <pre>@benedict onboard repo acme/widget</pre>
+          </article>
+          <article>
+            <span class="n">03</span>
+            <h3>Ask the repo</h3>
+            <p>Benedict searches the index, reads the files, and replies in-thread.</p>
+            <pre>@benedict what files handle auth?</pre>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="surfaces">
+      <div class="wrap">
+        <p class="sec-k">Surfaces</p>
+        <h2 class="display">One index. Three places to ask.</h2>
+        <p class="sec-lead">
+          Slack stays the working surface. MCP is for the editor. The architect
+          channel is for questions that span more than one onboarded repo.
+        </p>
+        <div class="surfaces">
+          <article class="card">
+            <span class="tag">Slack</span>
+            <h3>Channel-scoped agent</h3>
+            <p>Each channel maps to one repository. The thread is the conversation.</p>
+            <ul>
+              <li>onboard / offboard / status <span>commands</span></li>
+              <li>update index · force <span>reindex</span></li>
+              <li>link notion &lt;url&gt; <span>per channel</span></li>
+              <li>run_github · run_notion <span>in conversation</span></li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag">MCP</span>
+            <h3>Same brain, in the IDE</h3>
+            <p>Start <code>benedict-mcp</code>. Cursor and Claude Code query onboarded projects over stdio.</p>
+            <ul>
+              <li>list_projects</li>
+              <li>get_repository_summary</li>
+              <li>search_code</li>
+              <li>get_recent_actions · ask_benedict</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag">Architect</span>
+            <h3>Cross-project questions</h3>
+            <p>Mark one channel as architect when the answer lives across repos.</p>
+            <ul>
+              <li>onboard architect</li>
+              <li>Sees every mapped workspace</li>
+              <li>Same Claude path, wider context</li>
+              <li>For “who owns auth across services?”</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="local">
+      <div class="wrap split">
+        <div>
+          <p class="sec-k">Local-first</p>
+          <h2 class="display">The code stays on the machine that runs the bot.</h2>
+          <p class="sec-lead" style="margin-bottom:0">
+            Benedict is not a remote GitHub reader and not a hosted product.
+            Onboarding resolves a local checkout, then isolates it per channel.
+            That is the trust model.
+          </p>
+        </div>
+        <ul>
+          <li><span class="tick">+</span> Answers from the files on disk, not a guessed clone</li>
+          <li><span class="tick">+</span> Slack history and conversations persist in state.json</li>
+          <li><span class="tick">+</span> GitHub and Notion use host CLIs you already authenticated</li>
+          <li><span class="tick">+</span> MCP reads the same BENEDICT_DATA_DIR as Slack</li>
+          <li><span class="tick">+</span> Open source under MIT. Read it, run it, fork it.</li>
+          <li><span class="cross">−</span> No GitHub API RepoReader. The directory must exist.</li>
+          <li><span class="cross">−</span> No cloud workspace. Bind the operator console to localhost.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" id="install">
+      <div class="wrap split">
+        <div>
+          <p class="sec-k">Install</p>
+          <h2 class="display">On the host that already has the repos.</h2>
+          <p class="sec-lead">
+            Open-source. Python 3.10+, uv, a Slack Socket Mode app, and an Anthropic key.
+            Optional: authenticated <code>gh</code>, <code>ntn</code>, and an MCP client.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary lg" href="https://github.com/mkarots/benedict">Clone on GitHub</a>
+            <a class="btn lg" href="https://github.com/mkarots/benedict/blob/main/docs/SLACK_SETUP.md">Slack setup</a>
+          </div>
+        </div>
+        <div class="install">
+          <ol>
+            <li>
+              <div>
+                <h3>Clone and sync</h3>
+                <p>Creates the venv and installs the package.</p>
+                <pre>git clone https://github.com/mkarots/benedict.git
+cd benedict && make setup && make sync-dev</pre>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Configure</h3>
+                <p>Process env wins. Missing keys load from <code>.env</code>.</p>
+                <pre>SLACK_BOT_TOKEN=xoxb-…
+SLACK_APP_TOKEN=xapp-…
+ANTHROPIC_API_KEY=…</pre>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Run</h3>
+                <p>Then invite the bot and onboard a checkout that exists locally.</p>
+                <pre>make run
+# optional: make mcp</pre>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta wrap">
+      <h2>Put the agent in the channel that already owns the work.</h2>
+      <p>Benedict is an open-source Slack Socket Mode bot. MIT. Built to sit next to the checkouts you already have.</p>
+      <div class="cta-row">
+        <a class="btn primary lg" href="https://github.com/mkarots/benedict">Get the source</a>
+        <a class="btn lg" href="#how">See the path</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>Benedict · open source · the agent that already knows the checkout</span>
+      <span>
+        <a href="https://github.com/mkarots/benedict">Source</a>
+        ·
+        <a href="https://github.com/mkarots/benedict/blob/main/README.md">README</a>
+        ·
+        <a href="https://github.com/mkarots/benedict/blob/main/LICENSE">MIT License</a>
+      </span>
+    </div>
+  </footer>
+
+  <script>
+    const nav = document.getElementById("nav");
+    const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    const tabs = document.querySelectorAll("[data-tab]");
+    const panels = {
+      slack: document.getElementById("tab-slack"),
+      ops: document.getElementById("tab-ops"),
+      mcp: document.getElementById("tab-mcp"),
+    };
+    function showTab(id) {
+      tabs.forEach((btn) => {
+        const on = btn.dataset.tab === id;
+        btn.classList.toggle("on", on);
+        btn.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      Object.entries(panels).forEach(([key, el]) => {
+        const on = key === id;
+        el.classList.toggle("on", on);
+        el.hidden = !on;
+      });
+    }
+    tabs.forEach((btn) => btn.addEventListener("click", () => showTab(btn.dataset.tab)));
+
+    document.querySelectorAll("[data-copy]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const text = btn.getAttribute("data-copy");
+        try {
+          await navigator.clipboard.writeText(text);
+          const prev = btn.textContent;
+          btn.textContent = "copied";
+          setTimeout(() => { btn.textContent = prev; }, 1200);
+        } catch {
+          btn.textContent = "copy failed";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

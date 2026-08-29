@@ -6,7 +6,7 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.0). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.1). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -264,7 +264,7 @@ tests/unit/               # Unit tests
 make help       # List targets
 make sync-dev   # Install runtime + dev dependencies
 make test       # pytest
-make docs       # Docs UI at http://127.0.0.1:8000
+make docs       # Docs UI at http://127.0.0.1:8000 (`DOCS_PORT=8001` if 8000 is busy)
 make format     # black + ruff
 make check      # format + test
 make run        # Start the bot
