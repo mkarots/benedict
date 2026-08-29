@@ -6,76 +6,27 @@ Status: Current
 
 # Benedict
 
-A Slack bot that binds a channel to a **local** git checkout and answers questions about that repo. It uses Claude, semantic search, and `.metadata.benedict` directory summaries. The same memory is available in Cursor and Claude Code through `benedict-mcp`. While the Slack process is running, a progress loop can take one next action per project.
+Benedict is an agent that knows your code and the Slack conversations you have about it — and can help you plan the work.
 
-Use Benedict when Slack is the working surface for a codebase and you want an agent that already knows the repo and the thread.
+Each channel is one project. You point the channel at a local folder. After that, Benedict can answer from the code *and* from what the team already said in Slack: how a feature works, what you decided last week, what to do next.
 
-## Who this is for
+You can ask the same questions from Cursor or Claude Code. When you want a next step, Benedict can ask a clarifying question, open a GitHub issue, or mark something as ready to implement.
 
-- Operators who run Benedict on a machine that already has the checkouts
-- Engineers who talk to an onboarded repo from Slack or from an IDE
-- Contributors who need the request path or the module map
+## A normal day
 
-## What ships
+1. Start Benedict on a machine that has the project folders.
+2. In Slack: invite `@benedict`, then `@benedict onboard repo …` with the folder for that channel.
+3. Ask in the channel. Replies stay in the thread.
+4. Optional: connect GitHub or Notion on that machine if you want PRs or a board in the conversation.
+5. Optional: `@benedict progress` when you want a next step.
 
-- Slack `@mentions` and thread replies
-- Channel → repository mapping (onboard, offboard, status)
-- Semantic search (ChromaDB) and git-based incremental reindex
-- Per-channel workspaces (symlink or copy)
-- Directory overlays under `workspaces/<channel>/metadata/`, not in the clone
-- MCP tools: `list_projects`, `get_repository_summary`, `search_code`, `get_recent_actions`, `ask_benedict`
-- Local operator console at `http://127.0.0.1:8765`
-- Progress loop: Slack question, GitHub issue, or implement-ready note
-- Notion during Slack conversations via the host CLI (`ntn` / `run_notion`), when it is installed and the channel is linked
+[Install and run](install.md) · [Slack setup](SLACK_SETUP.md) · [Commands](commands.md)
 
-It does **not** clone from GitHub. Onboard needs a directory on the host. It is not a remote GitHub-hosted reader.
+## What it will not do
 
-## What it does not do
+- Download the project from GitHub for you. The folder must already be on the machine.
+- Open or merge pull requests by itself.
+- Browse the web, run arbitrary programs, or act as a general computer. GitHub and Notion are optional extras on that host, not a replacement for the folder.
+- Read Google Docs or your editor session history.
 
-- Open or merge pull requests from the progress loop
-- Read GitHub as the repo source (`RepoReader` is local / workspace only)
-- Use Notion as a repo source or put Notion pages in the progress snapshot
-- Google Docs or Cursor session logs
-- A general shell (`gh` and `ntn` only)
-
-## Terms
-
-| Term | Meaning |
-| --- | --- |
-| Workspace | Isolated directory per Slack channel: symlink or copy of the repo, plus logs |
-| Onboard | Link a channel to a local checkout. Benedict does not clone |
-| Retrieve-then-stuff | Search and read files first, then put the text in the prompt. No `read_file` tool |
-| Metadata shortcut | One-shot classifier plus metadata tools. Returns YAML. Does not loop |
-| Architect channel | Cross-project Slack Q&A. No GitHub tools |
-| Progress loop | Unattended cycle in the Slack process. At most one action per project |
-| Operator console | Localhost request debugger. Not a second chat surface |
-
-## How the pieces relate
-
-```
-Slack process (make run)              MCP process (benedict-mcp)
-        │                                      │
-        ▼                                      ▼
-  mentions, commands, progress           list / search / ask
-        │                                      │
-        └──────────────┬───────────────────────┘
-                       ▼
-              ~/.benedict  (shared)
-              state.json · workspaces · Chroma · workspace metadata sidecar
-```
-
-Request behavior lives in [Request path](REQUEST_PATH.md). Files and protocols live in [Code map](CODE_MAP.md).
-
-## Reading order
-
-Humans and agents should read in this order:
-
-1. This page (what / not / terms)
-2. [Install and run](install.md), then [Slack setup](SLACK_SETUP.md) or [MCP](MCP.md) as needed
-3. [Slack commands](commands.md) to use it
-4. [Request path](REQUEST_PATH.md) for behavior
-5. [Progress loop](PROGRESS.md) if the question is unattended work
-6. [Code map](CODE_MAP.md) for file locations
-
-!!! note "For agents"
-    Prefer this site over the GitHub README for current behavior. The sidebar is the catalog. `plans/` is milestone history.
+How a question is answered, and how the pieces are named, is in [Request path](REQUEST_PATH.md) and [Code map](CODE_MAP.md) if you are changing the product — not if you are using it.

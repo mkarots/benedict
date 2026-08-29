@@ -28,7 +28,7 @@ MCP is not a Slack command. See [MCP](MCP.md).
 2. Onboard: `@benedict onboard repo acme/widget`
 3. Confirm: `@benedict status`
 4. Ask: `@benedict what's the architecture?`
-5. Leave the process running. After two minutes the progress loop surveys onboarded repos. Force it with `@benedict progress`.
+5. `@benedict progress` picks a next step for this channel. Add `all` for every onboarded repo.
 
 ## Onboard a channel
 

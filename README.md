@@ -1,10 +1,12 @@
 # Benedict
 
-A Slack bot that links a channel to a local git repository and answers questions about that repo with Claude, semantic search, and project metadata files.
+Benedict is an agent that knows your code and the Slack conversations you have about it — and can help you plan the work.
 
-Use Benedict when a Slack channel is the working surface for a codebase and you want an agent that already knows the repo and the thread history.
+Each channel is one project. You point the channel at a local folder. Benedict answers from the code and from what the team already said in Slack.
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.3). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout. It does not clone from GitHub. Slack conversations can run GitHub (`gh`) and Notion (`ntn`) on the host; those CLIs are not a general shell and Notion is not the repo source. Generated directory overlays live under `workspaces/<channel>/metadata/`, not in the clone.
+You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
+
+Python 3.10+. Version 0.6.4. It does not download the project from GitHub for you.
 
 **Full documentation** (what ships, install, commands, request path): run `make docs` and open `http://127.0.0.1:8000`.
 

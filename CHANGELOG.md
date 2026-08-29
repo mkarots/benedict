@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-08-29
+
+### Changed
+- Home and README lead with the product story: Benedict knows your code, knows Slack talk about those projects, and can help you plan. Progress is a next-step command, not “leave the process running.”
+
 ## [0.6.3] - 2026-08-29
 
 ### Changed
