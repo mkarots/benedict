@@ -9,6 +9,7 @@ from .conversation_history_indexer import (
     ConversationReader,
     create_conversation_history_indexer,
 )
+from .repo_change_detector import RepoChangeDetector, create_repo_change_detector
 
 __all__ = [
     "LLM",
@@ -22,4 +23,6 @@ __all__ = [
     "ConversationHistoryIndexer",
     "ConversationReader",
     "create_conversation_history_indexer",
+    "RepoChangeDetector",
+    "create_repo_change_detector",
 ]

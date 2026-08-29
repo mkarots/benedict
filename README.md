@@ -6,7 +6,7 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.7). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.0). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -21,8 +21,9 @@ Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.7). It is
 - GitHub CLI (`gh`) during conversations, when `gh` is installed and authenticated on the host
 - MCP server (`benedict-mcp`) so Cursor and Claude Code can query onboarded projects
 - Local operator console at `http://127.0.0.1:8765` for inspecting Slack and MCP runs (pipeline, search hits, tools, and the final prompt sent to the model)
+- **Progress loop**: on a timer (and via `@benedict progress`), survey each onboarded repo and take one next action — Slack question, GitHub issue, or implement-ready note
 
-**Not implemented:** GitHub API as a `RepoReader`, Notion, Google Docs, Cursor session logs, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
+**Not implemented:** GitHub API as a `RepoReader`, Notion, Google Docs, Cursor session logs, opening pull requests from the progress loop, and a background git/file watcher process. Changelog entries for a watcher describe work that is no longer in the tree. `GitChangeDetector` remains and is used for incremental indexing.
 
 ## How it works
 
@@ -50,6 +51,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `status` | Shows the linked repo and when it was onboarded. |
 | `update index` | Incremental reindex. Add `force` for a full rebuild. |
 | `onboard architect` | Marks the channel as the architect channel for cross-project questions. |
+| `progress` | Run the progress loop for this channel. Add `all` for every onboarded repo, `now` to ignore a pending question. |
 | Any other question | Repo-scoped conversation with search, LLM, and `run_github`. |
 
 GitHub issue/PR requests stay on that conversation path. Asking for `.metadata.benedict` contents (file metadata, list key files, repository summary) may use a short metadata-tool shortcut. That shortcut does not run GitHub; if it fails, Benedict falls through to conversation.
@@ -159,7 +161,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `SLACK_APP_TOKEN` | required | Slack Socket Mode token |
 | `ANTHROPIC_API_KEY` | optional | Claude. Without it, Slack runs in stub mode and MCP `ask_benedict` is unavailable. |
 | `ANTHROPIC_MODEL` | `claude-3-5-sonnet-20241022` | Claude model id |
-| `BENEDICT_DATA_DIR` | repo root | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
+| `BENEDICT_DATA_DIR` | `~/.benedict` | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
 | `BENEDICT_WORKSPACES_DIR` | `{data_dir}/workspaces` | Per-channel workspaces |
 | `BENEDICT_WORKSPACE_COPY_MODE` | `symlink` | `symlink` or `copy` |
 | `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Vector index |
@@ -171,6 +173,9 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_OPERATOR_UI` | `1` | Local debug console. Set `0` to disable. |
 | `BENEDICT_OPERATOR_UI_HOST` | `127.0.0.1` | Bind address |
 | `BENEDICT_OPERATOR_UI_PORT` | `8765` | Console port |
+| `BENEDICT_PROGRESS` | `1` | Unattended progress loop. Set `0` to disable. |
+| `BENEDICT_PROGRESS_INTERVAL_S` | `21600` | Seconds between full progress cycles |
+| `BENEDICT_PROGRESS_START_DELAY_S` | `120` | Seconds to wait after startup before the first cycle |
 
 ## Run
 
@@ -197,7 +202,7 @@ After a channel is onboarded, the same data can be queried from an IDE without S
 benedict-mcp
 ```
 
-Or `make mcp` / `python -m benedict.mcp`. Setup is in [docs/MCP.md](docs/MCP.md). Point `BENEDICT_DATA_DIR` at the directory the Slack bot uses.
+Or `make mcp` / `python -m benedict.mcp`. Setup is in [docs/MCP.md](docs/MCP.md). Slack and MCP share `~/.benedict` unless you override `BENEDICT_DATA_DIR`.
 
 ## Usage
 
@@ -205,6 +210,7 @@ Or `make mcp` / `python -m benedict.mcp`. Setup is in [docs/MCP.md](docs/MCP.md)
 2. Onboard: `@benedict onboard repo acme/widget`
 3. Confirm: `@benedict status`
 4. Ask: `@benedict what's the architecture?`
+5. Leave the process running. After two minutes the progress loop surveys onboarded repos. Force it with `@benedict progress`.
 
 ## State and workspaces
 
@@ -224,7 +230,7 @@ Channel mappings and thread conversations live in `state.json`:
 }
 ```
 
-Each onboarded channel also gets a directory under `workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. `state.json` and `.chroma_db/` are gitignored.
+Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. Channel mappings live in `~/.benedict/state.json`. If you previously ran Benedict from this checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
 
 ## Project layout
 
@@ -240,13 +246,14 @@ src/benedict/
   llm/                    # Claude + mock
   metadata/               # .metadata.benedict generate/read
   models/                 # Conversation models
+  progress/               # Unattended progress loop
   protocols/              # Interfaces and factories
   repo_change_detector/   # GitChangeDetector
   repo_reader/            # Local and workspace readers
   semantic_indexer/       # ChromaDB indexer
   utils/                  # Context builder and Slack formatting
   workspace/              # Per-channel workspaces
-docs/                     # Setup and design notes
+docs/                     # Catalog in docs/README.md; UI via make docs
 plans/                    # Architecture and milestone docs
 tests/unit/               # Unit tests
 ```
@@ -257,6 +264,7 @@ tests/unit/               # Unit tests
 make help       # List targets
 make sync-dev   # Install runtime + dev dependencies
 make test       # pytest
+make docs       # Docs UI at http://127.0.0.1:8000
 make format     # black + ruff
 make check      # format + test
 make run        # Start the bot
@@ -278,7 +286,7 @@ The composition root is `src/benedict/main.py`. Concrete classes are wired there
 
 **GitHub tool fails.** Install `gh` on the host and run `gh auth login`. Benedict does not ship a GitHub token of its own.
 
-**Corrupt state.** Stop the bot, delete `state.json`, restart, and re-onboard channels. Conversations in that file are lost.
+**Corrupt state.** Stop the bot, delete `~/.benedict/state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
 ## Roadmap
 
@@ -286,6 +294,7 @@ Shipped beyond the original v0/M1 plan: semantic search, workspaces, metadata, a
 
 Still open:
 
+- Pull requests from the progress loop (coding executor / Cursor SDK)
 - Remote GitHub `RepoReader` (original M2) so onboarding does not require a local checkout
 - External knowledge sources (Notion, Google Docs)
 - Stronger test coverage for `agent.py` and command routing
@@ -293,12 +302,16 @@ Still open:
 
 ## Documentation
 
+Full catalog: [docs/README.md](docs/README.md). Browse locally with `make docs`. How to add a page: [docs/PROCESS.md](docs/PROCESS.md).
+
 | Doc | Use it for |
 | --- | --- |
+| [docs/README.md](docs/README.md) | Index of every doc |
+| [docs/PROCESS.md](docs/PROCESS.md) | How to add or update a doc |
 | [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md) | Slack app configuration |
 | [docs/CODE_READING_GUIDE.md](docs/CODE_READING_GUIDE.md) | How to read the codebase |
-| [plans/ARCHITECTURE.md](plans/ARCHITECTURE.md) | Current architecture overview |
-| [plans/MILESTONE_STATUS.md](plans/MILESTONE_STATUS.md) | Milestone tracker (some items are stale; trust this README and CHANGELOG first) |
+| [docs/REQUEST_PATH.md](docs/REQUEST_PATH.md) | Slack mention and MCP ask path |
+| [docs/PROGRESS.md](docs/PROGRESS.md) | Unattended progress loop |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 
 ## License

@@ -280,6 +280,17 @@ def create_slack_app(agent: RepoAgent) -> App:
                 except Exception:
                     pass
 
+                if agent.is_progress_command(text_clean):
+                    _route_run(run, kind="progress", route="handle_progress", label="command")
+                    success, message = agent.handle_progress(channel_id, text_clean)
+                    format_and_send_message(
+                        say,
+                        message,
+                        thread_ts,
+                        message_type="command" if success else "error",
+                    )
+                    return
+
                 if agent.is_architect_onboard_command(text_clean):
                     _route_run(
                         run, kind="command", route="handle_onboard_architect", label="command"
@@ -385,6 +396,12 @@ def create_slack_app(agent: RepoAgent) -> App:
             # Skip messages from the bot itself
             if bot_user_id and user_id == bot_user_id:
                 return
+
+            if thread_ts and getattr(agent, "progress_service", None):
+                try:
+                    agent.progress_service.acknowledge_reply(channel_id, thread_ts)
+                except Exception:
+                    logger.debug("Progress acknowledge failed", exc_info=True)
 
             # Skip messages that mention the bot - app_mention handler will process those
             # Check if message contains bot mention to avoid duplicate processing

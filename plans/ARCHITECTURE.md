@@ -16,7 +16,18 @@ or:
 python -m benedict.mcp
 ```
 
-The MCP process does not start Slack. It reads the same `state.json`, workspaces, and index. See [docs/MCP.md](../docs/MCP.md).
+**`src/benedict/mcp/server.py`** is the MCP server entry point (Cursor / Claude Code). Run with:
+```bash
+benedict-mcp
+```
+or:
+```bash
+python -m benedict.mcp
+```
+
+The MCP process does not start Slack. It reads the same `state.json`, workspaces, and index. See [docs/MCP.md](../docs/MCP.md). The unattended progress loop runs only in the Slack process. See [docs/PROGRESS.md](../docs/PROGRESS.md).
+
+For what happens on a user request (routing, prompt building, tool calls, Slack vs MCP), see [docs/REQUEST_PATH.md](../docs/REQUEST_PATH.md). Slack and MCP share that data directory. They do not share `RepoAgent`.
 
 ## File Structure
 
@@ -26,6 +37,7 @@ The MCP process does not start Slack. It reads the same `state.json`, workspaces
 - **`agent.py`** - Main agent logic (handles commands and conversations)
 - **`paths.py`** - Shared data-dir and `.env` path helpers
 - **`mcp/`** - MCP server (project resolver, read-only service, stdio composition root)
+- **`progress/`** - Unattended progress loop (snapshot, decide, execute, scheduler)
 
 ### Domain Models
 - **`models/conversation.py`** - Conversation and Message models, ConversationManager
@@ -89,6 +101,7 @@ main.py (entry point)
   ├─> Creates: RepoChangeDetector (for semantic indexer)
   ├─> Creates: SemanticIndexer (optional, with MetadataGenerator and RepoChangeDetector)
   ├─> Creates: ConversationRepository (required)
+  ├─> Creates: ProgressService (optional, needs LLM)
   └─> Creates: RepoAgent (with all dependencies)
        ├─> Creates: ConversationManager (with ConversationRepository)
        └─> Creates: MetadataGenerator (if workspace_manager available)
@@ -108,6 +121,9 @@ main.py (entry point)
   - Conversation history indexing
 
 ### Context Building Flow
+
+Full request lifecycle (routes, prompts, tools): [docs/REQUEST_PATH.md](../docs/REQUEST_PATH.md).
+
 1. User asks a question in a Slack thread
 2. `RepoAgent.handle_conversation()` is called
 3. If the text is an explicit metadata-file request (e.g. "show metadata", "list files", "repository summary") and `.metadata.benedict` exists, a metadata-tool shortcut may run. GitHub issue/PR requests do not enter that shortcut. Tool failure falls through.
@@ -119,7 +135,9 @@ main.py (entry point)
    - Includes README.md
    - Uses semantic search (if available) or keyword matching
    - Reads relevant files via RepoReader
-7. Conversation-path LLM call may use `run_github`
+7. Conversation-path LLM call may use `run_github` via `run_tool_loop`
+
+MCP `ask_benedict` reuses `build_context()` and a single `llm.generate()`. It does not use `RepoAgent`, thread history, or tools.
 
 ### Semantic Indexing Flow
 1. On first query, repository is indexed if not already indexed
@@ -149,12 +167,15 @@ main.py (entry point)
 Environment variables:
 - `SLACK_BOT_TOKEN` - Slack bot token (required)
 - `SLACK_APP_TOKEN` - Slack app token (required)
-- `BENEDICT_DATA_DIR` - Data directory (default: repo root)
+- `BENEDICT_DATA_DIR` - Data directory (default: `~/.benedict`)
 - `BENEDICT_WORKSPACES_DIR` - Workspaces directory (default: `{data_dir}/workspaces`)
 - `BENEDICT_WORKSPACE_COPY_MODE` - "symlink" or "copy" (default: "symlink")
 - `BENEDICT_CHROMA_DB_DIR` - ChromaDB directory (default: `{data_dir}/.chroma_db`)
 - `BENEDICT_STATE_FILE` - State file path (default: `{data_dir}/state.json`)
-- `BENEDICT_ENV_FILE` - .env file path (default: repo root `.env`)
+- `BENEDICT_OPERATOR_UI_PORT` - Operator console port (default: `8765`)
+- `BENEDICT_PROGRESS` - Unattended progress loop (default: on; set `0` to disable)
+- `BENEDICT_PROGRESS_INTERVAL_S` - Seconds between progress cycles (default: `21600`)
+- `BENEDICT_PROGRESS_START_DELAY_S` - Delay before first cycle (default: `120`)
 
 ## Commands
 
@@ -163,4 +184,5 @@ Environment variables:
 - `@agent status` - Show channel status and repository info
 - `@agent update index` - Update semantic index (incremental)
 - `@agent update index force` - Force full reindex
+- `@agent progress` / `progress all` / `progress now` - Run the unattended progress loop
 - `@agent <question>` - Ask question about repository

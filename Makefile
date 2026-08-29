@@ -1,4 +1,4 @@
-.PHONY: help install install-dev sync sync-dev run mcp test clean format check deps venv setup recreate-env
+.PHONY: help install install-dev sync sync-dev run mcp test clean format check deps venv setup recreate-env docs docs-build
 
 # Default target
 help:
@@ -29,6 +29,10 @@ help:
 	@echo "  make lint        - Run linters"
 	@echo "  make type-check  - Run type checking"
 	@echo "  make check       - Run all checks (format + lint + type check + tests)"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  make docs        - Serve the docs UI at http://127.0.0.1:8000"
+	@echo "  make docs-build  - Strict MkDocs build into site/"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean       - Remove cache files and generated files"
@@ -136,6 +140,17 @@ format-check: check-uv
 # Run all checks
 check: format-check lint type-check test-cov
 	@echo "✅ All checks passed!"
+
+# Docs UI (MkDocs Material). Install with: uv pip install -e ".[docs]"
+docs: check-uv
+	@echo "Serving docs at http://127.0.0.1:8000 ..."
+	uv run --extra docs mkdocs serve
+
+docs-build: check-uv
+	@echo "Building docs (strict)..."
+	uv run --extra docs mkdocs build --strict
+	@echo "✅ Docs built in site/"
+
 clean:
 	@echo "Cleaning up..."
 	find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
@@ -146,6 +161,7 @@ clean:
 	find . -type d -name "htmlcov" -exec rm -r {} + 2>/dev/null || true
 	find . -type f -name ".coverage" -exec rm {} + 2>/dev/null || true
 	find . -type f -name "coverage.xml" -exec rm {} + 2>/dev/null || true
+	rm -rf site
 	@echo "✅ Cleanup complete"
 setup: venv
 	@echo "Setting up development environment..."
