@@ -52,6 +52,13 @@ def test_claude_md_is_an_index_to_cursor_rules():
     assert "<DESIGN_DOCUMENT>" not in text
 
 
+def test_readme_and_contributing_point_at_cursor_rules():
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    assert ".cursor/rules/" in readme
+    assert ".cursor/rules/" in contributing
+
+
 def test_process_doc_points_at_design_documents_rule():
     text = PROCESS.read_text(encoding="utf-8")
     assert ".cursor/rules/design-documents.mdc" in text

@@ -56,7 +56,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 
 ## Community
 
-How to set up a dev environment, run tests, and open a pull request: [CONTRIBUTING.md](CONTRIBUTING.md). Who maintains the project and how decisions are made: [MAINTAINERS.md](MAINTAINERS.md).
+How to set up a dev environment, run tests, and open a pull request: [CONTRIBUTING.md](CONTRIBUTING.md). Who maintains the project and how decisions are made: [MAINTAINERS.md](MAINTAINERS.md). Cursor and Claude Code writing rules live in [`.cursor/rules/`](.cursor/rules/).
 
 Questions, ideas, and show-and-tell posts: [GitHub Discussions](https://github.com/mkarots/benedict/discussions).
 
