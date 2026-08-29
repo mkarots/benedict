@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.17] - 2026-08-29
+
+### Added
+- GitHub **pull request** template (`.github/PULL_REQUEST_TEMPLATE.md`) with description, related issues, type of change, testing done, and a checklist for tests, docs, and changelog. CONTRIBUTING points contributors at it ([#55](https://github.com/mkarots/benedict/issues/55)).
+
 ## [0.6.16] - 2026-08-29
 
 ### Added

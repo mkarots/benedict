@@ -261,7 +261,7 @@ tests/
 - [ ] Set repository topics/tags (python, slack-bot, ai, llm, etc.)
 
 ### 5.3 Issue & PR Templates
-**Status**: 🟡 PARTIAL (bug report, feature request, and chooser shipped; PR template still missing)
+**Status**: ✅ COMPLETE (bug report, feature request, chooser, and PR template)
 
 **Actions**: Create templates
 
@@ -279,11 +279,11 @@ tests/
 - [x] Alternatives considered
 
 #### .github/PULL_REQUEST_TEMPLATE.md
-- [ ] Description of changes
-- [ ] Related issues
-- [ ] Type of change (bug fix, feature, docs, etc.)
-- [ ] Testing done
-- [ ] Checklist (tests, docs, changelog)
+- [x] Description of changes
+- [x] Related issues
+- [x] Type of change (bug fix, feature, docs, etc.)
+- [x] Testing done
+- [x] Checklist (tests, docs, changelog)
 
 ---
 
@@ -419,7 +419,7 @@ tests/
 - [x] Create CODE_OF_CONDUCT.md
 - [x] Create SECURITY.md
 - [ ] Set up basic CI workflow
-- [ ] Create issue/PR templates
+- [x] Create issue/PR templates
 - [ ] Add test framework structure (even if minimal)
 - [ ] Review and update README
 
