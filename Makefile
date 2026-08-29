@@ -171,8 +171,16 @@ clean:
 	find . -type f -name "coverage.xml" -exec rm {} + 2>/dev/null || true
 	rm -rf site
 	@echo "✅ Cleanup complete"
+
+venv: check-uv
+	@echo "Creating virtual environment..."
+	uv venv
+	@echo "✅ Virtual environment created"
+	@echo "Activate with: source .venv/bin/activate"
+
 setup: venv
 	@echo "Setting up development environment..."
+	@echo "✅ Virtual environment ready. Next: source .venv/bin/activate && make sync-dev"
 
 # Sync dependencies (uv's recommended way - same as install but clearer intent)
 sync:

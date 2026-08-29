@@ -13,7 +13,7 @@
 | 3 | Remove personal info (6 files) | ☑ | | examples → example-org / @alice. Recorded on #49 |
 | 4 | Create SECURITY.md | ☑ | | Private disclosure, supported versions, response timeline |
 | 5 | Create CODE_OF_CONDUCT.md | ☑ | | Contributor Covenant v2.1 |
-| 6 | Create CONTRIBUTING.md | ☐ | | Setup + PR guidelines |
+| 6 | Create CONTRIBUTING.md | ☑ | | Setup + PR guidelines. Recorded on #52 |
 | 7 | Create bug report template | ☑ | | .github/ISSUE_TEMPLATE/bug_report.md + config.yml. Recorded on #53 |
 | 8 | Create feature request template | ☐ | | .github/ISSUE_TEMPLATE/ |
 | 9 | Create PR template | ☐ | | .github/PULL_REQUEST_TEMPLATE.md |
@@ -67,7 +67,7 @@
 - [x] LICENSE
 - [x] SECURITY.md
 - [x] CODE_OF_CONDUCT.md
-- [ ] CONTRIBUTING.md
+- [x] CONTRIBUTING.md
 - [ ] MAINTAINERS.md
 - [ ] .editorconfig
 - [ ] .pre-commit-config.yaml

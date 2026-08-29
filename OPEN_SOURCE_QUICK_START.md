@@ -21,8 +21,8 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
 [x] 5. Create CODE_OF_CONDUCT.md
     Use: Contributor Covenant v2.1 (https://www.contributor-covenant.org/)
     
-[ ] 6. Create CONTRIBUTING.md
-    Include: Setup, development workflow, PR guidelines, code style
+[x] 6. Create CONTRIBUTING.md
+    Include: Setup, development workflow, PR guidelines, code style. Recorded on #52
     
 [ ] 7. Create GitHub issue templates
     - .github/ISSUE_TEMPLATE/bug_report.md

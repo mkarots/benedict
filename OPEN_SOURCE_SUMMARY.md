@@ -47,7 +47,7 @@ Benedict is a well-architected Python Slack bot with strong fundamentals for ope
 **Essential for external contributors**
 
 ```
-6. Create CONTRIBUTING.md
+6. Create CONTRIBUTING.md (done)
 7. Create GitHub issue templates (bug, feature)
 8. Create PR template
 9. Update README (badges, links, polish)
