@@ -48,10 +48,10 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
 [ ] 12. Add comprehensive type hints
      Tool: mypy
      
-[ ] 13. Update README with badges
+[x] 13. Update README with badges
      - License badge
      - Python version badge
-     - CI status badge (once CI is set up)
+     - CI status badge. Recorded on #56
      
 [ ] 14. Set up branch protection rules
      - Require PR reviews

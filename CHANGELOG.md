@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.18] - 2026-08-29
+## [0.6.19] - 2026-08-29
 
 ### Added
 - Benedict logo at `docs/assets/logo.png`. README shows it. MkDocs uses it as the site logo and favicon.
+
+## [0.6.18] - 2026-08-29
+
+### Added
+- README badges for CI, Apache-2.0, and Python 3.10+. Community already links CONTRIBUTING, CODE_OF_CONDUCT, and SECURITY. Clone URL stays the public remote `github.com/mkarots/benedict.git` ([#56](https://github.com/mkarots/benedict/issues/56)).
 
 ## [0.6.17] - 2026-08-29
 

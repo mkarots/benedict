@@ -3,6 +3,8 @@
 <img src="docs/assets/logo.png" alt="Benedict logo" width="96" height="96">
 
 [![CI](https://github.com/mkarots/benedict/actions/workflows/ci.yml/badge.svg)](https://github.com/mkarots/benedict/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 
 Benedict is an agent that knows your code and the Slack conversations you have about it — and can help you plan the work.
 
@@ -10,7 +12,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.18. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.6.19. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 
