@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-08-29
+
+### Changed
+- Default data directory is `~/.benedict` instead of the git checkout. `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` live there. `.env` is still loaded from the repo. Set `BENEDICT_DATA_DIR` to keep using an existing in-repo data dir, or copy those files into `~/.benedict`.
+
 ## [0.5.7] - 2026-08-23
 
 ### Changed

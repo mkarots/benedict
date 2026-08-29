@@ -59,7 +59,7 @@ Optional (same as the Slack bot):
 - `BENEDICT_ENV_FILE`
 - `ANTHROPIC_API_KEY` (required for `ask_benedict`)
 
-If you run from an editable checkout of this repo, the default data dir is the repo root (same as `make run`).
+The default data dir is `~/.benedict` (same as `make run`). `.env` is still loaded from the git checkout unless `BENEDICT_ENV_FILE` is set. If you already have data in a checkout, set `BENEDICT_DATA_DIR` to that directory or copy the files into `~/.benedict`.
 
 Run by hand:
 

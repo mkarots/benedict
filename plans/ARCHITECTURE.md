@@ -149,7 +149,7 @@ main.py (entry point)
 Environment variables:
 - `SLACK_BOT_TOKEN` - Slack bot token (required)
 - `SLACK_APP_TOKEN` - Slack app token (required)
-- `BENEDICT_DATA_DIR` - Data directory (default: repo root)
+- `BENEDICT_DATA_DIR` - Data directory (default: `~/.benedict`)
 - `BENEDICT_WORKSPACES_DIR` - Workspaces directory (default: `{data_dir}/workspaces`)
 - `BENEDICT_WORKSPACE_COPY_MODE` - "symlink" or "copy" (default: "symlink")
 - `BENEDICT_CHROMA_DB_DIR` - ChromaDB directory (default: `{data_dir}/.chroma_db`)

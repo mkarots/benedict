@@ -6,7 +6,7 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.7). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.5.8). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -159,7 +159,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `SLACK_APP_TOKEN` | required | Slack Socket Mode token |
 | `ANTHROPIC_API_KEY` | optional | Claude. Without it, Slack runs in stub mode and MCP `ask_benedict` is unavailable. |
 | `ANTHROPIC_MODEL` | `claude-3-5-sonnet-20241022` | Claude model id |
-| `BENEDICT_DATA_DIR` | repo root | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
+| `BENEDICT_DATA_DIR` | `~/.benedict` | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
 | `BENEDICT_WORKSPACES_DIR` | `{data_dir}/workspaces` | Per-channel workspaces |
 | `BENEDICT_WORKSPACE_COPY_MODE` | `symlink` | `symlink` or `copy` |
 | `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Vector index |
@@ -197,7 +197,7 @@ After a channel is onboarded, the same data can be queried from an IDE without S
 benedict-mcp
 ```
 
-Or `make mcp` / `python -m benedict.mcp`. Setup is in [docs/MCP.md](docs/MCP.md). Point `BENEDICT_DATA_DIR` at the directory the Slack bot uses.
+Or `make mcp` / `python -m benedict.mcp`. Setup is in [docs/MCP.md](docs/MCP.md). Slack and MCP share `~/.benedict` unless you override `BENEDICT_DATA_DIR`.
 
 ## Usage
 
@@ -224,7 +224,7 @@ Channel mappings and thread conversations live in `state.json`:
 }
 ```
 
-Each onboarded channel also gets a directory under `workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. `state.json` and `.chroma_db/` are gitignored.
+Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. Channel mappings live in `~/.benedict/state.json`. If you previously ran Benedict from this checkout, copy `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
 
 ## Project layout
 
@@ -278,7 +278,7 @@ The composition root is `src/benedict/main.py`. Concrete classes are wired there
 
 **GitHub tool fails.** Install `gh` on the host and run `gh auth login`. Benedict does not ship a GitHub token of its own.
 
-**Corrupt state.** Stop the bot, delete `state.json`, restart, and re-onboard channels. Conversations in that file are lost.
+**Corrupt state.** Stop the bot, delete `~/.benedict/state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
 ## Roadmap
 
