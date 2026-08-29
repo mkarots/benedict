@@ -16,6 +16,8 @@ The workflow is [`.github/workflows/ci.yml`](https://github.com/mkarots/benedict
 
 Local equivalents: `make lint`, `make type-check`, `make test`.
 
+Ruff, Black, and mypy versions are pinned in `pyproject.toml` so CI matches a local `make sync-dev`.
+
 ## Non-goals
 
 CI does not publish packages, talk to Slack, or enforce the 80% coverage target.

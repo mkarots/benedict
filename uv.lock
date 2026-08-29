@@ -284,7 +284,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "anthropic", specifier = ">=0.18.0" },
-    { name = "black", marker = "extra == 'dev'" },
+    { name = "black", marker = "extra == 'dev'", specifier = "==26.1.0" },
     { name = "chromadb", specifier = ">=0.4.0" },
     { name = "flake8", marker = "extra == 'dev'" },
     { name = "mcp", specifier = ">=2.0,<3" },
@@ -292,7 +292,7 @@ requires-dist = [
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6" },
     { name = "mkdocs-material", marker = "extra == 'dev'", specifier = ">=9.5" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.5" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = "==2.3.1" },
     { name = "pylint", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
@@ -301,7 +301,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "pyyaml", specifier = ">=6.0.0" },
     { name = "rich", specifier = ">=13.0.0" },
-    { name = "ruff", marker = "extra == 'dev'" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.0" },
     { name = "sentence-transformers", specifier = ">=2.2.0" },
     { name = "slack-bolt", specifier = ">=1.18.0" },
 ]
