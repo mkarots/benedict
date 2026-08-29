@@ -71,7 +71,7 @@ make docs        # UI at http://127.0.0.1:8000
 make docs-build  # strict HTML build into site/
 ```
 
-If port 8000 is already taken:
+If port 8000 is already taken, `make docs` exits with that message. Use another port:
 
 ```bash
 DOCS_PORT=8001 make docs
