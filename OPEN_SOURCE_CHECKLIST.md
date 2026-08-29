@@ -16,7 +16,7 @@
 | 6 | Create CONTRIBUTING.md | ☑ | | Setup + PR guidelines. Recorded on #52 |
 | 7 | Create bug report template | ☑ | | .github/ISSUE_TEMPLATE/bug_report.md + config.yml. Recorded on #53 |
 | 8 | Create feature request template | ☐ | | .github/ISSUE_TEMPLATE/ |
-| 9 | Create PR template | ☐ | | .github/PULL_REQUEST_TEMPLATE.md |
+| 9 | Create PR template | ☑ | | .github/PULL_REQUEST_TEMPLATE.md |
 | 10 | Update README (badges, links) | ☐ | | Add license/CI badges |
 
 **Completion Deadline**: _____________ | **Block Public Release**: YES ❌
@@ -76,7 +76,7 @@
 - [x] .github/ISSUE_TEMPLATE/bug_report.md
 - [ ] .github/ISSUE_TEMPLATE/feature_request.md
 - [x] .github/ISSUE_TEMPLATE/config.yml
-- [ ] .github/PULL_REQUEST_TEMPLATE.md
+- [x] .github/PULL_REQUEST_TEMPLATE.md
 - [x] .github/workflows/ci.yml
 - [ ] .github/workflows/release.yml
 - [ ] .github/dependabot.yml

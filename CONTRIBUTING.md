@@ -106,10 +106,12 @@ Maintainers apply labels such as `bug`, `enhancement`, `architecture`, `testing`
 4. If behavior, commands, paths, env vars, or architecture changed, update `README.md` and the matching pages under `docs/` in the same change. Do not leave current docs describing the old system.
 5. Run `make lint`, `make type-check`, and `make test` (or `make check`) before you push.
 6. Open a pull request against `main`. Link the issue (`Fixes #52` or `Closes #52`).
-7. In the PR body, write a short Summary (what and why) and a Test plan with checkboxes.
+7. Fill [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md): Summary (what and why), Test plan (checkboxes), and a screenshot if the change is visual.
 
 CI must pass. Reviewers look for correctness, a readable diff, and docs that match the code.
 
 If the change is something a human sees (operator UI, landing page, docs chrome, Slack Block Kit), include a screenshot in the PR body or under `docs/` and link it.
 
-A pull request template is not in the repository yet. Use the Summary and Test plan sections above until one exists.
+## AI agents
+
+This repository ships Cursor project rules and a `github-issue` skill under `.cursor/`. Agents should read this file, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), the bug report template, and the pull request template. Treat a GitHub issue with `/github-issue <url>`.

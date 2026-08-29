@@ -58,7 +58,7 @@ coverage.xml
 # IDE
 .vscode/
 .idea/
-.cursor/
+.cursor/mcp.json
 *.swp
 *.swo
 *~

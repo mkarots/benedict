@@ -13,6 +13,7 @@ REQUIRED_HEADINGS = (
     "Commit messages",
     "Issue reporting",
     "Pull requests",
+    "AI agents",
 )
 
 

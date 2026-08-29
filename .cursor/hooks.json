@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/require-docs-before-pr.py",
+        "matcher": "gh\\s+pr\\s+create",
+        "timeout": 15
+      },
+      {
+        "type": "prompt",
+        "matcher": "gh\\s+pr\\s+create",
+        "timeout": 30,
+        "prompt": "The agent is about to create a GitHub pull request. Allow only if README.md and any relevant files under docs/ or plans/ already match the current system for the changes on this branch (or the PR is documentation-only). Deny if those docs are missing or stale. If you deny, tell the agent to update README.md and docs accordingly, commit the doc files, then retry `gh pr create`. Hook input: $ARGUMENTS"
+      }
+    ]
+  }
+}

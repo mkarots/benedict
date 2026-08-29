@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.14] - 2026-08-29
+
+### Added
+- **Cursor project agents**: `.cursor/rules` and `.cursor/skills/github-issue` are in git so contributing agents pick up [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), the bug report template, and the pull request template. `.cursor/mcp.json` stays local.
+- **Pull request template**: `.github/PULL_REQUEST_TEMPLATE.md` (Summary, Test plan, Screenshots).
+
 ## [0.6.13] - 2026-08-29
 
 ### Added

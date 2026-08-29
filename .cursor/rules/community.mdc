@@ -1,0 +1,22 @@
+---
+description: Point agents at CONTRIBUTING, CoC, bug report, and PR template
+alwaysApply: true
+---
+
+# Community files
+
+Read these before you file an issue, open a PR, or treat a GitHub issue. Do not invent a parallel process.
+
+| Task | Source of truth |
+| --- | --- |
+| Setup, tests, style, commits, PRs | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Security reports | [SECURITY.md](SECURITY.md) |
+| Bug reports | `.github/ISSUE_TEMPLATE/bug_report.md` |
+| Pull request body | `.github/PULL_REQUEST_TEMPLATE.md` |
+| Treating a GitHub issue | `.cursor/skills/github-issue/SKILL.md` |
+
+- Do not open a public issue for a vulnerability or a conduct report.
+- When creating a bug issue, use the bug report template fields and `--label bug`.
+- When creating a PR, fill the PR template. Follow `.cursor/rules/pull-requests.mdc`.
+- When the user passes a GitHub issue URL or `/github-issue`, follow the github-issue skill.

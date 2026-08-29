@@ -1,0 +1,33 @@
+---
+description: Documentation, screenshots, and checklist whenever creating a pull request
+alwaysApply: true
+---
+
+# Pull requests
+
+When the user asks to commit, push, or open a PR, treat docs as part of the change, not a follow-up.
+
+## Documentation (every PR)
+
+If behavior, commands, paths, env vars, or architecture changed, update the same commit (or a docs commit on the branch) so these match the code:
+
+- `README.md` — version, current status, commands, layout
+- `CHANGELOG.md` and `pyproject.toml` / `__init__.py` (version bump)
+- Relevant pages under `docs/` and `plans/` that describe **current** behavior
+- `docs/README.md` catalog and `mkdocs.yml` `nav` if you add or rename a doc ([docs/PROCESS.md](docs/PROCESS.md))
+
+Do not leave current docs describing the old system. Historical pages get a Status line; do not mix them with shipped behavior.
+
+A Cursor hook may block `gh pr create` until README and relevant `docs/` / `plans/` match. Fix the docs and commit; do not work around the hook.
+
+## Screenshots (visual changes)
+
+If the PR changes something a human sees — operator UI, landing page, MkDocs chrome, Slack Block Kit layout — add at least one screenshot to the PR body or under `docs/` and link it.
+
+- Capture the changed screen after exercising the flow (not only a first paint)
+- Desktop is enough unless the change is layout/responsive
+- Skip screenshots for pure backend, indexer, or path-only changes
+
+## PR body
+
+Fill [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md): Summary (what / why), Test plan (checkboxes), and Screenshots when the change is visual. Mention linked issues. Follow [CONTRIBUTING.md](CONTRIBUTING.md). Do not include `landing/` or other unrelated untracked work.

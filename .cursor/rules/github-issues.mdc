@@ -1,0 +1,32 @@
+---
+description: Always apply the correct GitHub labels when creating issues
+alwaysApply: true
+---
+
+# GitHub issue labels
+
+When creating issues with `gh issue create`, always pass `--label`. Fetch the current set with `gh label list` if unsure. Do not create unlabeled issues.
+
+For a defect, use `.github/ISSUE_TEMPLATE/bug_report.md` as the body (description, reproduce steps, expected vs actual, environment). Do not open a public issue for a vulnerability or a conduct report.
+
+Pick labels from this repo. Combine when more than one applies (for example `architecture` + `testing`).
+
+| Label | Use when |
+| --- | --- |
+| `bug` | Something is broken or behaves incorrectly |
+| `enhancement` | New feature, improvement, or product gap |
+| `architecture` | Design, structure, protocols, or split/refactor decisions |
+| `testing` | Missing tests, coverage, or verification |
+| `documentation` | Docs, comments, or clarifying how something works |
+| `question` | Needs a decision or more information before work |
+| `good first issue` | Small, well-scoped, suitable for a newcomer |
+| `help wanted` | Extra attention is needed |
+
+Do not use `duplicate`, `invalid`, or `wontfix` on new issues unless that is the explicit conclusion.
+
+Example:
+
+```bash
+gh issue create --title "..." --label "bug" --body "..."
+gh issue create --title "..." --label "architecture" --label "testing" --body "..."
+```
