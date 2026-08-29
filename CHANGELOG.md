@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-08-29
+
+### Changed
+- Slack setup is the two tokens and an invite. Slack’s admin UI is a table, not eight steps plus a checklist. Token and mention failures live on [Troubleshooting](docs/troubleshooting.md).
+
 ## [0.6.4] - 2026-08-29
 
 ### Changed
