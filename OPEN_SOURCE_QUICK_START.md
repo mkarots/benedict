@@ -19,7 +19,7 @@ This is a condensed, actionable checklist derived from the comprehensive [OPEN_S
 [ ] 4. Create SECURITY.md
     Include: How to report vulnerabilities, supported versions
     
-[ ] 5. Create CODE_OF_CONDUCT.md
+[x] 5. Create CODE_OF_CONDUCT.md
     Use: Contributor Covenant v2.1 (https://www.contributor-covenant.org/)
     
 [ ] 6. Create CONTRIBUTING.md

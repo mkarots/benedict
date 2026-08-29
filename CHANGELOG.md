@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6] - 2026-08-29
+
+### Added
+- **Code of conduct**: Adopted Contributor Covenant v2.1 in `CODE_OF_CONDUCT.md` and linked it from the README.
+
 ## [0.6.5] - 2026-08-29
 
 ### Changed

@@ -12,7 +12,7 @@
 | 2 | Scan git history for secrets | ☐ | | `git log -p \| grep -i secret` |
 | 3 | Remove personal info (6 files) | ☐ | | mkarots→example-org |
 | 4 | Create SECURITY.md | ☐ | | Vulnerability reporting |
-| 5 | Create CODE_OF_CONDUCT.md | ☐ | | Use Contributor Covenant |
+| 5 | Create CODE_OF_CONDUCT.md | ☑ | | Contributor Covenant v2.1 |
 | 6 | Create CONTRIBUTING.md | ☐ | | Setup + PR guidelines |
 | 7 | Create bug report template | ☐ | | .github/ISSUE_TEMPLATE/ |
 | 8 | Create feature request template | ☐ | | .github/ISSUE_TEMPLATE/ |
@@ -66,7 +66,7 @@
 ### Root Directory
 - [ ] LICENSE
 - [ ] SECURITY.md
-- [ ] CODE_OF_CONDUCT.md
+- [x] CODE_OF_CONDUCT.md
 - [ ] CONTRIBUTING.md
 - [ ] MAINTAINERS.md
 - [ ] .editorconfig
