@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.8] - 2026-08-29
+## [0.6.9] - 2026-08-29
 
 ### Added
 - **Security policy**: `SECURITY.md` documents supported versions, private vulnerability reporting, and response timelines ([#50](https://github.com/mkarots/benedict/issues/50)).
+
+## [0.6.8] - 2026-08-29
+
+### Changed
+- Example org/repo names and Slack handles in source, plans, and tests use `example-org` / `example-repo` and `@alice` ([#49](https://github.com/mkarots/benedict/issues/49)). Real GitHub URLs for this remote are unchanged.
 
 ## [0.6.7] - 2026-08-29
 

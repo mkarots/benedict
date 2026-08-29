@@ -29,26 +29,12 @@ git log --all -p | grep -i 'api[_-]key\|secret\|token' | head -20
 ```
 
 ### 1.2 Personal Information Removal
-**Status**: ⚠️ NEEDS CLEANUP
+**Status**: ✅ DONE (2026-08-29) — recorded on [#49](https://github.com/mkarots/benedict/issues/49)
 
-**Found references**:
-- Username `mkarots` in examples and comments
-- Name `@michael` in README examples
-- Repository examples using `mkarots/benedict`
-
-**Actions Required**:
-- [ ] Replace `mkarots` references with generic examples (`example-org`, `your-org`)
-- [ ] Replace `@michael` with `@alice` or `@user`
-- [ ] Update example repository names to be generic
-- [ ] Review all markdown files for personal details
-
-**Files to update**:
-- `README.md` (line 186)
-- `plans/slack-agent-architecture.md` (line 148)
-- `plans/implementation-plan.md` (line 131)
-- `src/benedict/workspace/workspace_manager.py` (line 102)
-- `src/benedict/agent.py` (line 219)
-- `src/benedict/commands/command_definitions.py` (line 76)
+**Actions**:
+- [x] Replace `mkarots` in examples and comments with `example-org` / `example-repo`
+- [x] Replace `@michael` with `@alice` in example Slack copy
+- [x] Keep real GitHub issue/PR/clone URLs while the remote is `mkarots/benedict`
 
 ### 1.3 Git History Review
 **Status**: PENDING
@@ -427,7 +413,7 @@ tests/
 
 ### Phase 1: Critical Pre-Release (Must Complete)
 - [x] Create LICENSE file
-- [ ] Remove personal information from code/docs
+- [x] Remove personal information from code/docs
 - [ ] Scan git history for secrets
 - [ ] Create CONTRIBUTING.md
 - [x] Create CODE_OF_CONDUCT.md

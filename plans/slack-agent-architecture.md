@@ -145,7 +145,7 @@ I'll remember this repo for all our conversations here.
 ```
 📊 Channel: #proj-foo
 🔗 Repository: foo/bar
-⏰ Onboarded: 2026-02-01 by @michael
+⏰ Onboarded: 2026-02-01 by @alice
 ```
 
 #### Conversation Stub (v0)

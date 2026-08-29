@@ -140,7 +140,7 @@ This document provides a comprehensive list of all files that need to be created
    - Location: `/README.md`
    - Status: ✅ Exists (excellent quality)
    - Changes needed:
-     - [ ] Line 186: Change `@michael` to `@alice`
+     - [x] Line 186: `@michael` is gone from README (clone URL is the real remote)
      - [ ] Add badges (license, Python, CI) at top
      - [ ] Update clone URL from `<your-repo-url>` to actual public URL
      - [ ] Add contributing section linking to CONTRIBUTING.md
@@ -153,31 +153,31 @@ This document provides a comprehensive list of all files that need to be created
    - Location: `/src/benedict/workspace/workspace_manager.py`
    - Status: ✅ Exists
    - Changes needed:
-     - [ ] Line 102: Change comment `mkarots/hookedllm` to `example-org/example-repo`
+     - [x] Line 102: Change comment `mkarots/hookedllm` to `example-org/example-repo`
 
 3. **src/benedict/agent.py**
    - Location: `/src/benedict/agent.py`
    - Status: ✅ Exists
    - Changes needed:
-     - [ ] Line 219: Change comment `mkarots/hookedllm` to `example-org/example-repo`
+     - [x] Line 219: Change comment `mkarots/hookedllm` to `example-org/example-repo`
 
 4. **src/benedict/commands/command_definitions.py**
    - Location: `/src/benedict/commands/command_definitions.py`
    - Status: ✅ Exists
    - Changes needed:
-     - [ ] Line 76: Change `mkarots/benedict` to `example-org/example-repo`
+     - [x] Line 76: Change `mkarots/benedict` to `example-org/example-repo`
 
 5. **plans/slack-agent-architecture.md**
    - Location: `/plans/slack-agent-architecture.md`
    - Status: ✅ Exists
    - Changes needed:
-     - [ ] Line 148: Change `@michael` to `@alice`
+     - [x] Line 148: Change `@michael` to `@alice`
 
 6. **plans/implementation-plan.md**
    - Location: `/plans/implementation-plan.md`
    - Status: ✅ Exists
    - Changes needed:
-     - [ ] Line 131: Change `@michael` to `@alice`
+     - [x] Line 131: Change `@michael` to `@alice`
 
 ### High priority modifications
 
@@ -439,7 +439,7 @@ Documentation:
 [x] CODE_OF_CONDUCT.md is present
 [ ] CONTRIBUTING.md has clear guidelines
 [ ] README has all badges and links updated
-[ ] All personal references removed
+[x] All personal references removed (examples; real GitHub URLs stay)
 
 GitHub Setup:
 [ ] Issue templates working
@@ -465,5 +465,5 @@ Package:
 
 ---
 
-**Last Updated**: 2026-08-14
+**Last Updated**: 2026-08-29
 **Status**: Planning Complete - Ready for Implementation

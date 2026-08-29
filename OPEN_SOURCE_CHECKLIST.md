@@ -10,7 +10,7 @@
 |---|------|--------|-------|-------|
 | 1 | Create LICENSE file (Apache-2.0) | ☑ | | Official Apache License 2.0 |
 | 2 | Scan git history for secrets | ☐ | | `git log -p \| grep -i secret` |
-| 3 | Remove personal info (6 files) | ☐ | | mkarots→example-org |
+| 3 | Remove personal info (6 files) | ☑ | | examples → example-org / @alice. Recorded on #49 |
 | 4 | Create SECURITY.md | ☑ | | Private disclosure, supported versions, response timeline |
 | 5 | Create CODE_OF_CONDUCT.md | ☑ | | Contributor Covenant v2.1 |
 | 6 | Create CONTRIBUTING.md | ☐ | | Setup + PR guidelines |
@@ -125,7 +125,7 @@
 - [ ] Dependency vulnerabilities checked
 
 ### Code Review
-- [ ] No personal information in comments
+- [x] No personal information in comments
 - [ ] No TODO comments with names
 - [ ] Example data uses generic names
 - [ ] All imports working

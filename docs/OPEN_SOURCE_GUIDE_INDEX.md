@@ -123,7 +123,7 @@ Before going public:
 - [ ] All Phase 2 items complete
 - [ ] Basic tests passing
 - [ ] CI workflow green
-- [ ] All personal info removed
+- [x] All personal info removed (examples; real GitHub URLs stay)
 - [ ] Git history scanned
 
 ## 🚀 Next Steps

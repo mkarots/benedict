@@ -117,24 +117,24 @@
       <div class="card before">
         <div class="label">Before — write through the symlink</div>
         <pre><span class="dim">workspaces/C123/</span>
-  mkarots/benedict <span class="dim">→ ~/Projects/benedict</span>
+  example-org/example-repo <span class="dim">→ ~/Projects/example-repo</span>
     src/commands/
       <span class="leak">.metadata.benedict   ← leak</span>
 
-<span class="dim">~/Projects/benedict/</span>
+<span class="dim">~/Projects/example-repo/</span>
   src/commands/
     <span class="leak">.metadata.benedict   ← git status</span></pre>
       </div>
       <div class="card after">
         <div class="label">After — sidecar outside the symlink</div>
         <pre><span class="dim">workspaces/C123/</span>
-  mkarots/benedict <span class="dim">→ ~/Projects/benedict</span>
-  <span class="safe">metadata/mkarots/benedict/</span>
+  example-org/example-repo <span class="dim">→ ~/Projects/example-repo</span>
+  <span class="safe">metadata/example-org/example-repo/</span>
     <span class="safe">.metadata.benedict</span>
     src/commands/
       <span class="safe">.metadata.benedict</span>
 
-<span class="dim">~/Projects/benedict/</span>
+<span class="dim">~/Projects/example-repo/</span>
   src/commands/         <span class="safe">← unchanged</span></pre>
       </div>
     </div>
