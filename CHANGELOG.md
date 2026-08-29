@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.15] - 2026-08-29
+
+### Added
+- Shape tests for the CI workflow (`.github/workflows/ci.yml`) and GitHub issue templates (`.github/ISSUE_TEMPLATE/`).
+
 ## [0.6.14] - 2026-08-29
 
 ### Added
