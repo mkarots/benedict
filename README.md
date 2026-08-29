@@ -230,7 +230,7 @@ Channel mappings and thread conversations live in `state.json`:
 }
 ```
 
-Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. Channel mappings live in `~/.benedict/state.json`. If you previously ran Benedict from this checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
+Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. Generated `.metadata.benedict` overlays live under `workspaces/<channel>/metadata/<org>/<repo>/`, not in the clone. Channel mappings live in `~/.benedict/state.json`. If you previously ran Benedict from this checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
 
 ## Project layout
 

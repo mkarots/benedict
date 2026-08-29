@@ -62,11 +62,18 @@ class MetadataToolGenerator:
         """
         self.metadata_reader = metadata_reader
 
-    def generate_tools(self, repo_path: Path) -> MetadataTools:
+    def generate_tools(
+        self,
+        repo_path: Path,
+        workspace_root: Path | None = None,
+        repo: str | None = None,
+    ) -> MetadataTools:
         """Generate tools from metadata files.
 
         Args:
             repo_path: Path to repository directory
+            workspace_root: Channel workspace (for sidecar lookup)
+            repo: Workspace resource name (for sidecar lookup)
 
         Returns:
             MetadataTools with generated tools
@@ -75,7 +82,9 @@ class MetadataToolGenerator:
 
         if self.metadata_reader:
             try:
-                metadata_data = self.metadata_reader.read_metadata(repo_path)
+                metadata_data = self.metadata_reader.read_metadata(
+                    repo_path, workspace_root=workspace_root, repo=repo
+                )
                 if metadata_data:
                     metadata_tools = self._generate_metadata_tools(metadata_data)
                     logger.debug(

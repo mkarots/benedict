@@ -9,6 +9,14 @@ import yaml
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
+from .metadata_location import (
+    METADATA_FILENAME,
+    MetadataLocationError,
+    relative_source_dir,
+    sidecar_path,
+    sidecar_root,
+)
+
 logger = logging.getLogger(__name__)
 
 # Directories to exclude when searching for metadata files
@@ -91,32 +99,57 @@ class MetadataReader:
             return True
         return False
 
-    def read_metadata(self, directory: Path) -> Optional[Dict[str, Any]]:
-        """Read metadata from directory.
+    def read_metadata(
+        self,
+        directory: Path,
+        workspace_root: Optional[Path] = None,
+        repo: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Read metadata for a source directory.
 
-        If BENEDICT_METADATA_FILE env var is set, uses that path.
-        Otherwise looks for .metadata.benedict in the directory.
-
-        Args:
-            directory: Directory path
-
-        Returns:
-            Metadata dictionary or None if not found
+        Order: BENEDICT_METADATA_FILE override, sidecar, then in-tree leftover.
         """
-        directory = Path(directory)
+        for metadata_file in self._candidate_files(directory, workspace_root, repo):
+            loaded = self._load_yaml(metadata_file)
+            if loaded is not None:
+                return loaded
+        return None
 
-        # Check for env var or explicit metadata file path
+    def metadata_exists(
+        self,
+        directory: Path,
+        workspace_root: Optional[Path] = None,
+        repo: Optional[str] = None,
+    ) -> bool:
+        """Check if a sidecar or in-tree overlay exists for directory."""
+        return any(path.exists() for path in self._candidate_files(directory, workspace_root, repo))
+
+    def _candidate_files(
+        self,
+        directory: Path,
+        workspace_root: Optional[Path],
+        repo: Optional[str],
+    ) -> List[Path]:
+        directory = Path(directory)
         if self.metadata_file_path:
             metadata_file = Path(self.metadata_file_path)
-            # If path is relative, resolve relative to directory
             if not metadata_file.is_absolute():
                 metadata_file = directory / metadata_file
-        else:
-            metadata_file = directory / ".metadata.benedict"
+            return [metadata_file]
 
-        if not metadata_file.exists():
+        candidates: List[Path] = []
+        if workspace_root is not None and repo:
+            try:
+                rel = relative_source_dir(directory, workspace_root, repo)
+                candidates.append(sidecar_path(workspace_root, repo, rel))
+            except MetadataLocationError:
+                pass
+        candidates.append(directory / METADATA_FILENAME)
+        return candidates
+
+    def _load_yaml(self, metadata_file: Path) -> Optional[Dict[str, Any]]:
+        if not metadata_file.exists() or not metadata_file.is_file():
             return None
-
         try:
             with open(metadata_file, "r", encoding="utf-8") as f:
                 metadata = yaml.safe_load(f)
@@ -126,124 +159,96 @@ class MetadataReader:
             logger.warning(f"Error reading metadata file from {metadata_file}: {e}")
             return None
 
-    def metadata_exists(self, directory: Path) -> bool:
-        """Check if metadata file exists for directory.
-
-        Args:
-            directory: Directory path
-
-        Returns:
-            True if metadata file exists, False otherwise
-        """
-        directory = Path(directory)
-
-        if self.metadata_file_path:
-            metadata_file = Path(self.metadata_file_path)
-            if not metadata_file.is_absolute():
-                metadata_file = directory / metadata_file
-        else:
-            metadata_file = directory / ".metadata.benedict"
-
-        return metadata_file.exists()
-
     def search_metadata(
         self, workspace_path: Path, query: str, content_type: Optional[str] = None, repo: Optional[str] = None
     ) -> List[Dict[str, Any]]:
-        """Search metadata files in workspace.
+        """Search overlays and return source-relative directory paths.
 
-        Args:
-            workspace_path: Workspace root path
-            query: Search query string
-            content_type: Optional content type filter
-            repo: Optional repository name to scope search to specific repo only
-
-        Returns:
-            List of matching metadata dictionaries with path information
+        Paths are relative to the repo root (``src/commands``), never sidecar
+        paths. Sidecar files win over leftover in-tree files for the same dir.
         """
         workspace_path = Path(workspace_path)
-        results = []
+        results: List[Dict[str, Any]] = []
+        seen: set[str] = set()
         query_lower = query.lower()
 
-        # If repo is specified, only search within that repo directory
-        if repo:
-            search_root = workspace_path / repo
-            if not search_root.exists():
-                return []
-        else:
-            search_root = workspace_path
-
-        # Walk through workspace and read all .metadata.benedict files (scoped to repo if specified)
-        for metadata_file in search_root.rglob(".metadata.benedict"):
-            # Skip files in excluded directories (virtual environments, build artifacts, etc.)
+        for rel_path, metadata_file in self._iter_overlay_files(workspace_path, repo):
             if self._should_exclude_path(metadata_file):
                 continue
-
-            metadata = self.read_metadata(metadata_file.parent)
+            if rel_path in seen:
+                continue
+            metadata = self._load_yaml(metadata_file)
             if not metadata:
                 continue
-
-            # Filter by content type if specified
             if content_type and metadata.get("content_type") != content_type:
                 continue
-
-            # Search in summary, purpose, and file names
-            matches = False
-
-            summary = str(metadata.get("summary", "")).lower()
-            purpose = str(metadata.get("purpose", "")).lower()
-
-            if query_lower in summary or query_lower in purpose:
-                matches = True
-
-            # Check file names
-            files = metadata.get("files", [])
-            for file_info in files:
-                file_name = str(file_info.get("name", "")).lower()
-                file_purpose = str(file_info.get("purpose", "")).lower()
-                if query_lower in file_name or query_lower in file_purpose:
-                    matches = True
-                    break
-
-            if matches:
-                # Calculate relative path from workspace root
-                rel_path = str(metadata_file.parent.relative_to(workspace_path))
-                results.append(
-                    {
-                        "path": rel_path,
-                        "metadata": metadata,
-                    }
-                )
+            if not self._metadata_matches_query(metadata, query_lower):
+                continue
+            seen.add(rel_path)
+            results.append({"path": rel_path, "metadata": metadata})
 
         logger.debug(f"Found {len(results)} metadata matches for query '{query}'")
         return results
 
-    def get_directory_summary(self, directory: Path) -> Optional[str]:
-        """Get summary for a directory from its .metadata.benedict file.
+    def _iter_overlay_files(
+        self, workspace_path: Path, repo: Optional[str]
+    ) -> List[tuple]:
+        """Yield (repo-relative dir, file path). Sidecar first, then in-tree."""
+        found: List[tuple] = []
+        if repo:
+            sidecar = sidecar_root(workspace_path, repo)
+            if sidecar.exists():
+                for metadata_file in sidecar.rglob(METADATA_FILENAME):
+                    rel = metadata_file.parent.relative_to(sidecar)
+                    found.append((_rel_path_str(rel), metadata_file))
+            in_tree_root = workspace_path / repo
+            if in_tree_root.exists():
+                for metadata_file in in_tree_root.rglob(METADATA_FILENAME):
+                    rel = metadata_file.parent.relative_to(in_tree_root)
+                    found.append((_rel_path_str(rel), metadata_file))
+            return found
 
-        Args:
-            directory: Directory path
+        for metadata_file in workspace_path.rglob(METADATA_FILENAME):
+            rel = metadata_file.parent.relative_to(workspace_path)
+            found.append((_rel_path_str(rel), metadata_file))
+        return found
 
-        Returns:
-            Summary string or None
-        """
-        metadata = self.read_metadata(directory)
+    @staticmethod
+    def _metadata_matches_query(metadata: Dict[str, Any], query_lower: str) -> bool:
+        summary = str(metadata.get("summary", "")).lower()
+        purpose = str(metadata.get("purpose", "")).lower()
+        if query_lower in summary or query_lower in purpose:
+            return True
+        for file_info in metadata.get("files", []):
+            file_name = str(file_info.get("name", "")).lower()
+            file_purpose = str(file_info.get("purpose", "")).lower()
+            if query_lower in file_name or query_lower in file_purpose:
+                return True
+        return False
+
+    def get_directory_summary(
+        self,
+        directory: Path,
+        workspace_root: Optional[Path] = None,
+        repo: Optional[str] = None,
+    ) -> Optional[str]:
+        """Get summary for a directory from its overlay."""
+        metadata = self.read_metadata(directory, workspace_root=workspace_root, repo=repo)
         if metadata:
             return metadata.get("summary")
         return None
 
-    def list_metadata_files(self, workspace_path: Path) -> List[Path]:
-        """List all .metadata.benedict files in workspace.
-
-        Args:
-            workspace_path: Workspace root path
-
-        Returns:
-            List of .metadata.benedict file paths
-        """
+    def list_metadata_files(self, workspace_path: Path, repo: Optional[str] = None) -> List[Path]:
+        """List overlay files (sidecar first, then leftover in-tree)."""
         workspace_path = Path(workspace_path)
-        metadata_files = []
-        for metadata_file in workspace_path.rglob(".metadata.benedict"):
-            # Skip files in excluded directories (virtual environments, build artifacts, etc.)
-            if not self._should_exclude_path(metadata_file):
-                metadata_files.append(metadata_file)
-        return metadata_files
+        return [
+            metadata_file
+            for _, metadata_file in self._iter_overlay_files(workspace_path, repo)
+            if not self._should_exclude_path(metadata_file)
+        ]
+
+
+def _rel_path_str(rel: Path) -> str:
+    if rel == Path(".") or str(rel) in ("", "."):
+        return ""
+    return str(rel).replace("\\", "/")

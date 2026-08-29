@@ -276,7 +276,10 @@ class RepoAgent:
                         repo_path = workspace_path / repo
                         if repo_path.exists():
                             self.metadata_generator.generate_and_write(
-                                repo_path, content_type="code"
+                                repo_path,
+                                content_type="code",
+                                workspace_root=workspace_path,
+                                repo=repo,
                             )
                             action_logger.log_action(
                                 action="generate_metadata", content_type="code", resource=repo
@@ -493,6 +496,8 @@ class RepoAgent:
                 tool_registry = create_tool_registry(
                     metadata_reader=metadata_reader,
                     repo_path=repo_path,
+                    workspace_root=workspace_path,
+                    repo=repo,
                 )
 
                 if tool_registry.list_tools():
@@ -531,7 +536,11 @@ class RepoAgent:
                         # Execute tool calls using registry
                         tool_calls = llm_result["tool_calls"]
                         results = []
-                        context = {"workspace_path": str(repo_path)}
+                        context = {
+                            "workspace_path": str(repo_path),
+                            "workspace_root": str(workspace_path),
+                            "repo": repo,
+                        }
                         
                         for tool_call in tool_calls:
                             tool_name = tool_call.get("name")
@@ -749,7 +758,7 @@ class RepoAgent:
         if workspace_path:
             capabilities.append("- **Access workspace metadata** and action logs")
             capabilities.append(
-                "- **Read and create .metadata.benedict files** that summarize directory contents"
+                "- **Read directory metadata overlays** that summarize repository contents"
             )
             capabilities.append(
                 "- **Run GitHub CLI (`gh`)** in this repository via the `run_github` tool"
