@@ -32,7 +32,7 @@ This guide does not:
 | **Composition Root** | `main.py` where all concrete classes are instantiated |
 | **Dependency Injection** | Dependencies passed to classes rather than created internally |
 | **Workspace** | Isolated directory per Slack channel containing repository resources |
-| **Metadata** | `.metadata.benedict` files providing directory summaries and context |
+| **Metadata** | Directory overlays (`.metadata.benedict`) stored under `workspaces/<channel>/metadata/<org>/<repo>/`, not in the clone |
 | **Semantic Indexer** | Component that indexes code for semantic similarity search |
 | **Repo Reader** | Abstraction for reading repository files (local filesystem or workspace) |
 | **Conversation Repository** | Abstraction for persisting conversation state |

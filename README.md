@@ -6,7 +6,7 @@ Use Benedict when a Slack channel is the working surface for a codebase and you 
 
 ## Current status
 
-Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.1). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
+Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.3). It is not a remote GitHub-hosted reader. Onboarding resolves a **local** checkout, then isolates it per channel in a workspace.
 
 **In production use today:**
 
@@ -15,7 +15,7 @@ Benedict is a working Slack Socket Mode bot (Python 3.10+, version 0.6.1). It is
 - Claude 3.5 Sonnet (override with `ANTHROPIC_MODEL`) plus a stub mode if the API key is missing
 - Semantic code search with ChromaDB and sentence-transformers; git-based incremental reindex
 - Per-channel workspaces (symlink or copy of the local repo)
-- `.metadata.benedict` directory summaries that boost search
+- Directory overlays (`.metadata.benedict`) stored under `workspaces/<channel>/metadata/`, not in the clone; they can boost search
 - Architect channel for cross-project questions
 - Slack conversation history indexing into the workspace
 - GitHub CLI (`gh`) during conversations, when `gh` is installed and authenticated on the host
