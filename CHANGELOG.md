@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.16] - 2026-08-29
+
+### Added
+- GitHub **feature request** issue template (`.github/ISSUE_TEMPLATE/feature_request.md`) with description, use case, proposed solution, and alternatives. README Community and CONTRIBUTING link to it. The existing chooser (`config.yml`) lists it next to the bug report ([#54](https://github.com/mkarots/benedict/issues/54)).
+
 ## [0.6.15] - 2026-08-29
 
 ### Added

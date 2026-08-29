@@ -8,7 +8,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.15. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.6.16. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 
@@ -55,7 +55,7 @@ Questions, ideas, and show-and-tell posts: [GitHub Discussions](https://github.c
 
 This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold that policy. Report unacceptable behavior privately at michael.karotsieris@gmail.com; do not open a public issue for a conduct report.
 
-Report bugs with the [Bug report](https://github.com/mkarots/benedict/issues/new?template=bug_report.md) issue template.
+Report bugs with the [Bug report](https://github.com/mkarots/benedict/issues/new?template=bug_report.md) issue template. Request a feature with the [Feature request](https://github.com/mkarots/benedict/issues/new?template=feature_request.md) template.
 
 Report security vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Do not open a public issue for a vulnerability.
 

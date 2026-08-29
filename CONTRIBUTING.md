@@ -93,7 +93,7 @@ Questions, ideas, and show-and-tell posts belong in [GitHub Discussions](https:/
 | --- | --- |
 | Question, idea, or show and tell | [Discussions](https://github.com/mkarots/benedict/discussions) (Q&A, Ideas, Show and tell) |
 | Bug | [Bug report](https://github.com/mkarots/benedict/issues/new?template=bug_report.md) template |
-| Feature | A new issue with a clear title and what you want to change |
+| Feature | [Feature request](https://github.com/mkarots/benedict/issues/new?template=feature_request.md) template |
 | Security vulnerability | [SECURITY.md](SECURITY.md) — private disclosure only |
 | Code of Conduct | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — private report only |
 

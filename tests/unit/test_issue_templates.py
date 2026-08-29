@@ -7,9 +7,10 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE_DIR = REPO_ROOT / ".github" / "ISSUE_TEMPLATE"
 BUG_REPORT = TEMPLATE_DIR / "bug_report.md"
+FEATURE_REQUEST = TEMPLATE_DIR / "feature_request.md"
 CONFIG = TEMPLATE_DIR / "config.yml"
 
-REQUIRED_HEADINGS = (
+BUG_HEADINGS = (
     "## Description",
     "## Steps to reproduce",
     "## Expected behavior",
@@ -18,13 +19,31 @@ REQUIRED_HEADINGS = (
     "## Logs / screenshots",
 )
 
+FEATURE_HEADINGS = (
+    "## Feature description",
+    "## Use case",
+    "## Proposed solution",
+    "## Alternatives considered",
+)
+
 
 def test_bug_report_template_has_required_sections():
     text = BUG_REPORT.read_text(encoding="utf-8")
     assert text.startswith("---\n")
-    missing = [heading for heading in REQUIRED_HEADINGS if heading not in text]
+    missing = [heading for heading in BUG_HEADINGS if heading not in text]
     assert missing == [], f"bug_report.md missing headings: {missing}"
     assert "labels: bug" in text
+
+
+def test_feature_request_template_has_required_sections():
+    text = FEATURE_REQUEST.read_text(encoding="utf-8")
+    assert text.startswith("---\n")
+    missing = [heading for heading in FEATURE_HEADINGS if heading not in text]
+    assert missing == [], f"feature_request.md missing headings: {missing}"
+    assert "labels: enhancement" in text
+    frontmatter = text.split("---\n", 2)[1]
+    meta = yaml.safe_load(frontmatter)
+    assert meta["name"] == "Feature request"
 
 
 def test_issue_template_config_enables_chooser():
@@ -34,3 +53,11 @@ def test_issue_template_config_enables_chooser():
     assert "Ask a question" in names
     assert "Report a security vulnerability" in names
     assert "Code of Conduct" in names
+
+
+def test_feature_request_appears_in_template_dir_with_chooser():
+    """GitHub lists every markdown template next to config.yml in the chooser."""
+    assert FEATURE_REQUEST.is_file()
+    names = [path.name for path in TEMPLATE_DIR.glob("*.md")]
+    assert "feature_request.md" in names
+    assert "bug_report.md" in names

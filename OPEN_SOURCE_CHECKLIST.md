@@ -15,7 +15,7 @@
 | 5 | Create CODE_OF_CONDUCT.md | ☑ | | Contributor Covenant v2.1 |
 | 6 | Create CONTRIBUTING.md | ☑ | | Setup + PR guidelines. Recorded on #52 |
 | 7 | Create bug report template | ☑ | | .github/ISSUE_TEMPLATE/bug_report.md + config.yml. Recorded on #53 |
-| 8 | Create feature request template | ☐ | | .github/ISSUE_TEMPLATE/ |
+| 8 | Create feature request template | ☑ | | .github/ISSUE_TEMPLATE/feature_request.md. Recorded on #54 |
 | 9 | Create PR template | ☐ | | .github/PULL_REQUEST_TEMPLATE.md |
 | 10 | Update README (badges, links) | ☐ | | Add license/CI badges |
 
@@ -74,7 +74,7 @@
 
 ### .github/ Directory
 - [x] .github/ISSUE_TEMPLATE/bug_report.md
-- [ ] .github/ISSUE_TEMPLATE/feature_request.md
+- [x] .github/ISSUE_TEMPLATE/feature_request.md
 - [x] .github/ISSUE_TEMPLATE/config.yml
 - [ ] .github/PULL_REQUEST_TEMPLATE.md
 - [x] .github/workflows/ci.yml

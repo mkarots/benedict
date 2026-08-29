@@ -50,3 +50,11 @@ def test_issue_chooser_points_questions_to_discussions():
     text = ISSUE_CHOOSER.read_text(encoding="utf-8")
     assert "https://github.com/mkarots/benedict/discussions" in text
     assert "Ask a question" in text
+
+
+def test_contributing_and_readme_link_to_feature_request_template():
+    template = "https://github.com/mkarots/benedict/issues/new?template=feature_request.md"
+    contributing = CONTRIBUTING.read_text(encoding="utf-8")
+    readme = README.read_text(encoding="utf-8")
+    assert template in contributing, "CONTRIBUTING must link to the feature request template"
+    assert template in readme, "README Community must link to the feature request template"

@@ -40,7 +40,7 @@ This document provides a comprehensive list of all files that need to be created
    - Type: Markdown (GitHub template)
    - Location: `.github/ISSUE_TEMPLATE/feature_request.md`
    - Content: Feature request template
-   - Status: ❌ Missing
+   - Status: ✅ Present
 
 7. **.github/PULL_REQUEST_TEMPLATE.md**
    - Type: Markdown (GitHub template)
@@ -340,7 +340,7 @@ tests/
 3. CODE_OF_CONDUCT.md                        [DONE]
 4. CONTRIBUTING.md                           [DONE]
 5. .github/ISSUE_TEMPLATE/bug_report.md      [DONE]
-   .github/ISSUE_TEMPLATE/feature_request.md [NEW] 🔴
+   .github/ISSUE_TEMPLATE/feature_request.md [DONE]
 6. .github/PULL_REQUEST_TEMPLATE.md          [NEW] 🔴
 7. README.md                                 [MODIFY] 🔴
 8. Remove personal info (6 files)            [MODIFY] 🔴
