@@ -8,6 +8,8 @@ You can ask the same questions from Cursor or Claude Code. When you want a next 
 
 Python 3.10+. Version 0.6.10. It does not download the project from GitHub for you.
 
+Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
+
 **Full documentation** (what ships, install, commands, request path): run `make docs` and open `http://127.0.0.1:8000`.
 
 ## Quick start

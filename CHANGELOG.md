@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.10] - 2026-08-29
 
 ### Added
-- Package metadata in `pyproject.toml`: authors, maintainers, classifiers, keywords, and project URLs (Homepage, Repository, Issues). License stays Apache-2.0 to match `LICENSE` ([#62](https://github.com/mkarots/benedict/issues/62)).
+- Package metadata in `pyproject.toml`: authors, maintainers, classifiers, keywords, and project URLs (Homepage, Repository, Issues). License stays Apache-2.0 to match `LICENSE`. README and [Install](docs/install.md) point at those fields ([#62](https://github.com/mkarots/benedict/issues/62)).
 
 ## [0.6.9] - 2026-08-29
 
