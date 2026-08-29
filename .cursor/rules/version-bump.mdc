@@ -1,0 +1,15 @@
+---
+description: Bump package version and changelog after every change
+alwaysApply: true
+---
+
+# Version bump
+
+After every change, update all of these to the same new version:
+
+- `pyproject.toml` (`project.version`)
+- `src/benedict/__init__.py` (`__version__`)
+- `README.md` (the Version line)
+- `CHANGELOG.md` (a dated section under Keep a Changelog)
+
+Patch bump for docs, rules, and fixes. Minor bump for user-visible features.

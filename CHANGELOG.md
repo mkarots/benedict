@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.23] - 2026-08-29
+
+### Changed
+- Agent writing, design-doc, architecture, and version-bump rules live in `.cursor/rules/`. README and CONTRIBUTING point there. `CLAUDE.md` is removed. `.gitignore` tracks that folder and still ignores the rest of `.cursor/`.
+
 ## [0.6.22] - 2026-08-29
 
 ### Removed

@@ -101,6 +101,8 @@ A useful issue states the expected behavior, the actual behavior, and how to rep
 
 Maintainers apply labels such as `bug`, `enhancement`, `architecture`, `testing`, `documentation`, `question`, `good first issue`, and `help wanted`.
 
+Cursor and Claude Code follow the project rules in `.cursor/rules/`.
+
 ## Pull requests
 
 1. Branch from `main`. Use a name that matches the work (`docs/…`, `fix/…`, `feat/…`).

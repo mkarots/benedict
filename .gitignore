@@ -58,7 +58,9 @@ coverage.xml
 # IDE
 .vscode/
 .idea/
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 *.swp
 *.swo
 *~

@@ -1,0 +1,27 @@
+---
+description: Required sections when writing a design document, ADR, or architecture page
+globs: docs/**/*.md,plans/**/*.md
+alwaysApply: false
+---
+
+# Design documents
+
+Use this outline for design pages. If the reader stops after High-Level Design, they should still get it.
+
+**Title** — what this is, in plain language.
+
+**One-sentence summary** — what the document is and why it exists.
+
+1. **Overview** — what, why, and when to use it.
+2. **Non-Goals** — what this does not solve. Prevents over-interpretation.
+3. **Key Concepts & Terminology** — define terms once. Use them consistently.
+4. **High-Level Design** — idea before details: main components, data flow (1–2 paragraphs), key invariants.
+5. **API / Interface** (if applicable) — the contract, not the internals.
+6. **Happy Path Example** — minimal steps, then the result. Examples before edge cases.
+7. **Edge Cases & Failure Modes** — what can fail, how it is handled, what is guaranteed.
+8. **Constraints & Assumptions** — performance, security, environment.
+9. **Alternatives Considered** — brief trade-offs. Do not defend. Explain why an option was rejected.
+10. **Open Questions** — capture uncertainty. Do not pretend certainty.
+11. **Appendix** (optional) — notes that would distract earlier.
+
+Writing: short sentences, active voice, one idea per paragraph, no unstated assumptions.
