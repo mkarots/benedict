@@ -12,15 +12,15 @@ logger = logging.getLogger(__name__)
 class MockLLM:
     """Mock LLM that returns predefined responses."""
 
-    def __init__(self, responses: dict = None):
+    def __init__(self, responses: Optional[Dict[str, str]] = None):
         """Initialize mock LLM.
 
         Args:
             responses: Optional dict mapping prompts to responses.
                       If None, returns generic mock response.
         """
-        self.responses = responses or {}
-        self._fixed_response = None
+        self.responses: Dict[str, str] = responses or {}
+        self._fixed_response: Optional[str] = None
         logger.info("Initialized MockLLM")
 
     def set_response(self, response: str) -> None:

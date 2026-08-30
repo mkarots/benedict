@@ -167,10 +167,11 @@ def record_llm_stage(
 class ActiveRun:
     """One inbound event currently being recorded."""
 
-    def __init__(self, recorder: "JsonlRunRecorder", fields: Dict[str, Any]):
+    def __init__(self, recorder: "JsonlRunRecorder", fields: Dict[str, Any]) -> None:
         self._recorder = recorder
         self._done = False
         self._t0 = time.perf_counter()
+        self._token: Any = None
         self.data: Dict[str, Any] = {
             "id": fields.get("id") or _new_id(),
             "source": fields.get("source") or "slack",
@@ -193,7 +194,7 @@ class ActiveRun:
 
     @property
     def id(self) -> str:
-        return self.data["id"]
+        return str(self.data["id"])
 
     def set(self, **fields: Any) -> None:
         try:
@@ -357,10 +358,12 @@ class JsonlRunRecorder:
             with self._lock:
                 self._reload_if_stale_locked()
                 if run_id in self._running:
-                    return json.loads(json.dumps(self._running[run_id]))
+                    payload = json.loads(json.dumps(self._running[run_id]))
+                    return payload if isinstance(payload, dict) else None
                 for item in reversed(self._recent):
                     if item.get("id") == run_id:
-                        return json.loads(json.dumps(item))
+                        payload = json.loads(json.dumps(item))
+                        return payload if isinstance(payload, dict) else None
         except Exception:
             logger.warning("Failed to read run %s", run_id, exc_info=True)
         return None

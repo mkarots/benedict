@@ -43,7 +43,7 @@ class SlackConversationReader:
         Returns:
             List of conversation dictionaries
         """
-        conversations = []
+        conversations: List[Dict[str, Any]] = []
 
         if not self.conversation_dir.exists():
             return conversations
@@ -99,7 +99,7 @@ class SlackConversationReader:
 class SlackConversationHistoryIndexer:
     """Indexes Slack conversations into workspace."""
 
-    def __init__(self, slack_client=None):
+    def __init__(self, slack_client: Any = None):
         """Initialize Slack conversation history indexer.
 
         Args:
@@ -113,7 +113,7 @@ class SlackConversationHistoryIndexer:
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer=None,
+        semantic_indexer: Any = None,
     ) -> None:
         """Index Slack conversations into workspace.
 
@@ -157,7 +157,7 @@ class SlackConversationHistoryIndexer:
             if msg.get("thread_ts") and msg.get("thread_ts") != msg.get("ts"):
                 # This is a thread reply, fetch full thread
                 thread_ts = msg.get("thread_ts")
-                if thread_ts not in threaded_messages:
+                if thread_ts and thread_ts not in threaded_messages:
                     thread_replies = self._fetch_thread_replies(context_id, thread_ts)
                     threaded_messages[thread_ts] = thread_replies
 
@@ -178,8 +178,9 @@ class SlackConversationHistoryIndexer:
 
         # Optionally index into semantic indexer
         if semantic_indexer:
+            keyed_threads = {key: replies for key, replies in threaded_messages.items() if key}
             self._index_into_semantic_indexer(
-                context_id, all_messages, threaded_messages, semantic_indexer
+                context_id, all_messages, keyed_threads, semantic_indexer
             )
 
     def update_index(
@@ -187,7 +188,7 @@ class SlackConversationHistoryIndexer:
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer=None,
+        semantic_indexer: Any = None,
     ) -> None:
         """Incrementally update conversation index with new messages.
 
@@ -250,7 +251,7 @@ class SlackConversationHistoryIndexer:
         for msg in unique_new_messages:
             if msg.get("thread_ts") and msg.get("thread_ts") != msg.get("ts"):
                 thread_ts = msg.get("thread_ts")
-                if thread_ts not in existing_threads:
+                if thread_ts and thread_ts not in existing_threads:
                     thread_replies = self._fetch_thread_replies(context_id, thread_ts)
                     existing_threads[thread_ts] = thread_replies
 
@@ -306,7 +307,7 @@ class SlackConversationHistoryIndexer:
         Returns:
             List of message dictionaries
         """
-        messages = []
+        messages: List[Dict[str, Any]] = []
         cursor = None
 
         while len(messages) < limit:
@@ -416,7 +417,7 @@ class SlackConversationHistoryIndexer:
         channel_id: str,
         messages: List[Dict[str, Any]],
         threads: Dict[str, List[Dict[str, Any]]],
-        semantic_indexer,
+        semantic_indexer: Any,
     ) -> None:
         """Index messages into semantic indexer for search with embeddings.
 
@@ -551,23 +552,37 @@ class SlackConversationHistoryIndexer:
 class MockConversationHistoryIndexer:
     """Mock implementation for testing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock conversation history indexer."""
         logger.info("Initialized MockConversationHistoryIndexer")
 
     def index_conversations(
-        self, context_id: str, workspace_path: Path, since: Optional[datetime] = None
+        self,
+        context_id: str,
+        workspace_path: Path,
+        since: Optional[datetime] = None,
+        semantic_indexer: Any = None,
     ) -> None:
         """Mock index conversations."""
         logger.debug(f"Mock indexing conversations for context {context_id}")
 
-    def get_conversation_reader(self) -> ConversationReader:
+    def update_index(
+        self,
+        context_id: str,
+        workspace_path: Path,
+        since: Optional[datetime] = None,
+        semantic_indexer: Any = None,
+    ) -> None:
+        """Mock incremental update."""
+        self.index_conversations(context_id, workspace_path, since, semantic_indexer)
+
+    def get_conversation_reader(self, workspace_path: Path) -> ConversationReader:
         """Get mock conversation reader."""
 
         class MockReader:
             def read_conversations(
                 self, context_id: str, since: Optional[datetime] = None, limit: Optional[int] = None
-            ):
+            ) -> List[Dict[str, Any]]:
                 return []
 
         return MockReader()

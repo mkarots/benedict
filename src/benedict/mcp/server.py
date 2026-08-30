@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from dotenv import load_dotenv
 
@@ -113,7 +113,7 @@ def build_mcp_service(
     )
 
 
-def create_mcp_server(service: BenedictMcpService):
+def create_mcp_server(service: BenedictMcpService) -> Any:
     """Create an MCP server that delegates tools to ``service``."""
     from mcp.server import MCPServer
 

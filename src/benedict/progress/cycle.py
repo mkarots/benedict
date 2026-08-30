@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from benedict.progress.decide import ActionDecider
 from benedict.progress.execute import ActionExecutor
@@ -22,14 +22,14 @@ class ProgressService:
     def __init__(
         self,
         *,
-        load_state: Callable[[], dict],
+        load_state: Callable[[], Dict[str, Any]],
         workspace_path_for: Callable[[str], Path],
         collector: SnapshotCollector,
         decider: ActionDecider,
         executor: ActionExecutor,
         store: ProgressStore,
-        run_recorder=None,
-    ):
+        run_recorder: Any = None,
+    ) -> None:
         self._load_state = load_state
         self._workspace_path_for = workspace_path_for
         self.collector = collector
@@ -183,7 +183,7 @@ class ProgressService:
         except Exception:
             logger.debug("Failed to log progress action", exc_info=True)
 
-    def _begin_run(self, project: ProjectRef, *, force: bool):
+    def _begin_run(self, project: ProjectRef, *, force: bool) -> Any:
         recorder = self.run_recorder
         if recorder is None:
             from benedict.operator_ui.recorder import NullRunRecorder
@@ -198,7 +198,7 @@ class ProgressService:
             route="progress.run_one",
         )
 
-    def _finish_run(self, run, result: ActionResult, error: Optional[str] = None) -> None:
+    def _finish_run(self, run: Any, result: ActionResult, error: Optional[str] = None) -> None:
         run.set(route="progress.run_one")
         run.finish(
             status="ok" if result.ok else "error",

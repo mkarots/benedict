@@ -51,7 +51,7 @@ def _assistant_content_from_tool_calls(tool_calls: List[Dict[str, Any]]) -> List
 
 
 def run_tool_loop(
-    llm,
+    llm: Any,
     messages: List[Dict[str, Any]],
     system: str,
     tool_registry: ToolRegistry,

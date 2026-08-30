@@ -4,14 +4,14 @@ Defines interface for semantic code search and indexing.
 """
 
 from datetime import datetime
-from typing import Protocol, List, Dict, Optional
+from typing import Any, Dict, List, Optional, Protocol
 
 
 class SemanticIndexer(Protocol):
     """Protocol for semantic code indexing and search."""
 
     def index_repository(
-        self, repo: str, repo_reader, workspace_path=None, force: bool = False
+        self, repo: str, repo_reader: Any, workspace_path: Any = None, force: bool = False
     ) -> None:
         """Index a repository for semantic search.
 
@@ -24,7 +24,11 @@ class SemanticIndexer(Protocol):
         ...
 
     def update_index(
-        self, repo: str, repo_reader, workspace_path=None, since: Optional[datetime] = None
+        self,
+        repo: str,
+        repo_reader: Any,
+        workspace_path: Any = None,
+        since: Optional[datetime] = None,
     ) -> None:
         """Incrementally update index with new/changed content.
 
@@ -36,7 +40,14 @@ class SemanticIndexer(Protocol):
         """
         ...
 
-    def search(self, repo: str, query: str, top_k: int = 5) -> List[Dict[str, any]]:
+    def search(
+        self,
+        repo: str,
+        query: str,
+        top_k: int = 5,
+        workspace_path: Any = None,
+        metadata_reader: Any = None,
+    ) -> List[Dict[str, Any]]:
         """Search repository using semantic similarity.
 
         Args:
@@ -64,8 +75,8 @@ class SemanticIndexer(Protocol):
 def create_semantic_indexer(
     provider: str = "chromadb",
     persist_directory: Optional[str] = None,
-    metadata_generator=None,
-    change_detector=None,
+    metadata_generator: Any = None,
+    change_detector: Any = None,
 ) -> SemanticIndexer:
     """Factory function to create SemanticIndexer instance.
 

@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 class MetadataGenerator:
     """Generates .metadata.benedict files for directories."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize metadata generator with content handlers."""
-        self.handlers = {
+        self.handlers: Dict[str, ContentHandler] = {
             "code": CodeHandler(),
             "conversation_history": ConversationHistoryHandler(),
             "documentation": DocumentHandler(),
@@ -98,6 +98,8 @@ class MetadataGenerator:
             repo: Workspace resource name, e.g. org/repo (required)
         """
         directory = Path(directory)
+        if workspace_root is None or repo is None:
+            raise MetadataLocationError("workspace_root and repo are required to write metadata")
         try:
             rel = relative_source_dir(directory, workspace_root, repo)
             metadata_file = sidecar_path(workspace_root, repo, rel)
@@ -160,7 +162,7 @@ class MetadataGenerator:
                 return content_type
 
         # Check for mixed content
-        detected_types = set()
+        detected_types: set[str] = set()
         for handler in self.handlers.values():
             detected = handler.detect_content_type(directory)
             if detected != "unknown":

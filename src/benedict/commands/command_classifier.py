@@ -24,7 +24,7 @@ class CommandClassifier:
         self.command_definitions = command_definitions or COMMAND_DEFINITIONS
         self._compile_patterns()
 
-    def _compile_patterns(self):
+    def _compile_patterns(self) -> None:
         """Pre-compile regex patterns for performance."""
         for cmd_def in self.command_definitions:
             cmd_def.compiled_patterns = []

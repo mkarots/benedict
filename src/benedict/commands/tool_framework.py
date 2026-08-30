@@ -102,7 +102,7 @@ class Tool(ABC):
 class ToolRegistry:
     """Registry for managing tools."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize tool registry."""
         self._tools: Dict[str, Tool] = {}
 

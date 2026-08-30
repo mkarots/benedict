@@ -4,7 +4,7 @@ Mock repository reader for testing purposes.
 """
 
 import logging
-from typing import List, Dict
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ DEFAULT_TEST_REPO = "example-org/example-repo"
 class MockRepoReader:
     """Mock repository reader with in-memory file storage."""
 
-    def __init__(self, repos: Dict[str, Dict[str, str]] = None):
+    def __init__(self, repos: Optional[Dict[str, Dict[str, str]]] = None):
         """Initialize mock repo reader.
 
         Args:

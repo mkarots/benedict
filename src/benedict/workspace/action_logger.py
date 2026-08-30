@@ -30,7 +30,7 @@ class ActionLogger:
         logger.debug(f"Initialized ActionLogger for workspace {workspace_path}")
 
     def log_action(
-        self, action: str, content_type: str, resource: Optional[str] = None, **kwargs
+        self, action: str, content_type: str, resource: Optional[str] = None, **kwargs: Any
     ) -> None:
         """Log an action.
 
@@ -103,7 +103,8 @@ class ActionLogger:
 
         try:
             with open(self.log_file, "r") as f:
-                return json.load(f)
+                payload = json.load(f)
+            return payload if isinstance(payload, dict) else {"actions": []}
         except (json.JSONDecodeError, IOError) as e:
             logger.warning(f"Error loading action log: {e}, creating new log")
             return {"actions": []}

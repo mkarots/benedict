@@ -21,8 +21,8 @@ def build_context(
     semantic_indexer: Optional[SemanticIndexer] = None,
     max_tokens: int = 4000,
     workspace_path: Optional[Path] = None,
-    metadata_reader=None,
-    action_logger=None,
+    metadata_reader: Any = None,
+    action_logger: Any = None,
 ) -> str:
     """Build relevant context for question using semantic search.
 

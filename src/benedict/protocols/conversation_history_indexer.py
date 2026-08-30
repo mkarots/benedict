@@ -3,9 +3,9 @@
 Abstract interface for indexing conversation history from any platform.
 """
 
-from typing import Protocol, Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Optional, Protocol
 
 
 class ConversationReader(Protocol):
@@ -35,7 +35,7 @@ class ConversationHistoryIndexer(Protocol):
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer=None,
+        semantic_indexer: Any = None,
     ) -> None:
         """Index conversations into workspace.
 
@@ -52,7 +52,7 @@ class ConversationHistoryIndexer(Protocol):
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer=None,
+        semantic_indexer: Any = None,
     ) -> None:
         """Incrementally update conversation index with new messages.
 
@@ -77,7 +77,7 @@ class ConversationHistoryIndexer(Protocol):
 
 
 def create_conversation_history_indexer(
-    platform: str = "slack", slack_client=None
+    platform: str = "slack", slack_client: Any = None
 ) -> ConversationHistoryIndexer:
     """Factory function to create ConversationHistoryIndexer instance.
 

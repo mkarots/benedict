@@ -69,7 +69,7 @@ CI on every pull request and on `main` runs the same checks as these targets. Se
 | Check | Command | Tools |
 | --- | --- | --- |
 | Format and lint | `make lint` | [Ruff](https://docs.astral.sh/ruff/) (`ruff check src tests`) and [Black](https://black.readthedocs.io/) (`black --check src tests`) |
-| Type check | `make type-check` | [mypy](https://mypy.readthedocs.io/) on `src/benedict` |
+| Type check | `make type-check` | [mypy](https://mypy.readthedocs.io/) on `src/benedict` using `[tool.mypy]` in `pyproject.toml` |
 | Format files | `make format` | Black rewrite, then Ruff `--fix` |
 | All of the above plus coverage | `make check` | format-check, lint, type-check, test-cov |
 

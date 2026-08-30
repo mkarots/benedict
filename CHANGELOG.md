@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.26] - 2026-08-30
+
+### Changed
+- `[tool.mypy]` now enforces typed public and internal signatures on `src/benedict` (`disallow_untyped_defs`, `check_untyped_defs`, and related flags). The previous per-module ignore list is gone. `make type-check` stays the CI type-check command ([#58](https://github.com/mkarots/benedict/issues/58)).
+
 ## [0.6.25] - 2026-08-30
 
 ### Added
