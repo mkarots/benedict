@@ -156,7 +156,7 @@ class ChromaDBSemanticIndexer:
         query: str,
         top_k: int = 5,
         workspace_path: Optional[Path] = None,
-        metadata_reader=None,
+        metadata_reader: Any = None,
     ) -> List[Dict[str, Any]]:
         """Search repository using semantic similarity.
 
@@ -277,6 +277,8 @@ class ChromaDBSemanticIndexer:
         """Update index using git change detection."""
         logger.info(f"Updating index for {repo} using git change detection (since={since})...")
 
+        if self.change_detector is None:
+            return
         changes = self.change_detector.detect_changes(repo_full_path, since=since)
         added_files = changes.get("added", [])
         modified_files = changes.get("modified", [])
@@ -559,7 +561,7 @@ class ChromaDBSemanticIndexer:
         """
         try:
             collection = self._get_collection(repo)
-            return collection.count() > 0
+            return bool(collection.count() > 0)
         except Exception:
             return False
 
@@ -707,7 +709,7 @@ class ChromaDBSemanticIndexer:
         # Try to chunk at line boundaries
         lines = content.split("\n")
         chunks = []
-        current_chunk = []
+        current_chunk: List[str] = []
         current_size = 0
 
         for line in lines:

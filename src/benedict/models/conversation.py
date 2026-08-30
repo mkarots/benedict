@@ -134,7 +134,7 @@ class ConversationManager:
     Business logic layer that uses ConversationRepository for persistence.
     """
 
-    def __init__(self, repository):
+    def __init__(self, repository: Any) -> None:
         """Initialize conversation manager.
 
         Args:
@@ -143,7 +143,9 @@ class ConversationManager:
         self.repository = repository
         logger.debug("Initialized ConversationManager")
 
-    def get_conversation(self, thread_ts: str, channel_id: str, repo: str) -> Conversation:
+    def get_conversation(
+        self, thread_ts: str, channel_id: str, repo: Optional[str] = None
+    ) -> Conversation:
         """Get or create conversation for thread.
 
         Args:
@@ -157,15 +159,15 @@ class ConversationManager:
         # Try to find existing conversation
         conv = self.repository.find_by_thread_ts(thread_ts)
 
-        if conv:
+        if isinstance(conv, Conversation):
             # Update repo if it changed (e.g., channel was re-onboarded)
-            if conv.repo != repo:
+            if repo is not None and conv.repo != repo:
                 conv.repo = repo
                 self.repository.save(conv)
             return conv
 
         # Create new conversation
-        conv = Conversation(thread_ts=thread_ts, channel_id=channel_id, repo=repo)
+        conv = Conversation(thread_ts=thread_ts, channel_id=channel_id, repo=repo or "")
         self.repository.save(conv)
         return conv
 

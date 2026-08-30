@@ -28,14 +28,14 @@ class StatusMonitor:
         self,
         *,
         data_dir: Path,
-        recorder,
+        recorder: Any,
         state_file: Path,
         workspaces_dir: Path,
         chroma_path: Path,
         started_at: datetime,
         model: str,
         copy_mode: str,
-    ):
+    ) -> None:
         self.data_dir = Path(data_dir)
         self.recorder = recorder
         self.state_file = Path(state_file)
@@ -158,8 +158,10 @@ class _Handler(BaseHTTPRequestHandler):
                 return
             if path == "/api/runs":
                 limit = _int_arg(query, "limit", 50)
-                source = (query.get("source") or [None])[0] or None
-                status = (query.get("status") or [None])[0] or None
+                source_vals = query.get("source") or []
+                status_vals = query.get("status") or []
+                source = source_vals[0] if source_vals else None
+                status = status_vals[0] if status_vals else None
                 runs = self.monitor.recorder.list_runs(limit=limit, source=source, status=status)
                 self._json(200, {"runs": [_summary(row) for row in runs]})
                 return

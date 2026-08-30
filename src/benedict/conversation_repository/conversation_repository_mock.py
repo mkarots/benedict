@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class MockConversationRepository:
     """In-memory mock conversation repository."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock conversation repository."""
         self.conversations: Dict[str, Conversation] = {}
         logger.info("Initialized MockConversationRepository")

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class GetFileMetadataTool(Tool):
     """Tool for getting file metadata."""
 
-    def __init__(self, metadata_reader=None):
+    def __init__(self, metadata_reader: Any = None):
         """Initialize tool.
 
         Args:
@@ -81,7 +81,7 @@ class GetFileMetadataTool(Tool):
 class ListKeyFilesTool(Tool):
     """Tool for listing key files."""
 
-    def __init__(self, metadata_reader=None):
+    def __init__(self, metadata_reader: Any = None):
         """Initialize tool.
 
         Args:
@@ -130,7 +130,7 @@ class ListKeyFilesTool(Tool):
 class GetRepositorySummaryTool(Tool):
     """Tool for getting repository summary."""
 
-    def __init__(self, metadata_reader=None):
+    def __init__(self, metadata_reader: Any = None):
         """Initialize tool.
 
         Args:

@@ -109,7 +109,9 @@ class LocalRepoReader:
             path: Directory path relative to repository root
         """
         full_path = self.base_path / repo / path
-        return full_path.walk()
+        if not full_path.exists():
+            return []
+        return [str(p.relative_to(full_path)) for p in full_path.rglob("*")]
 
     def walk_files(self, repo: str, path: str = "") -> List[str]:
         """Walk through repository directory and return only files.
@@ -118,7 +120,10 @@ class LocalRepoReader:
             repo: Repository name/identifier
             path: Directory path relative to repository root
         """
-        return [p for p in self.walk(repo, path) if p.is_file()]
+        full_path = self.base_path / repo / path
+        if not full_path.exists():
+            return []
+        return [str(p.relative_to(full_path)) for p in full_path.rglob("*") if p.is_file()]
 
     def walk_dirs(self, repo: str, path: str = "") -> List[str]:
         """Walk through repository directory and return only directories.
@@ -127,7 +132,10 @@ class LocalRepoReader:
             repo: Repository name/identifier
             path: Directory path relative to repository root
         """
-        return [p for p in self.walk(repo, path) if p.is_dir()]
+        full_path = self.base_path / repo / path
+        if not full_path.exists():
+            return []
+        return [str(p.relative_to(full_path)) for p in full_path.rglob("*") if p.is_dir()]
 
     def file_exists(self, repo: str, path: str) -> bool:
         """Check if file exists in repository.

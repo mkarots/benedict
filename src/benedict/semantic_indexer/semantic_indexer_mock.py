@@ -4,7 +4,9 @@ Mock semantic indexer for testing purposes.
 """
 
 import logging
-from typing import List, Dict, Any
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from benedict.protocols.repo_reader import RepoReader
 
 logger = logging.getLogger(__name__)
@@ -13,9 +15,9 @@ logger = logging.getLogger(__name__)
 class MockSemanticIndexer:
     """Mock semantic indexer that simulates semantic search."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize mock semantic indexer."""
-        self.indexed_repos: set = set()
+        self.indexed_repos: set[str] = set()
         self._relevant_files: List[Dict[str, Any]] = []
         logger.info("Initialized MockSemanticIndexer")
 
@@ -29,7 +31,9 @@ class MockSemanticIndexer:
             }
         )
 
-    def index_repository(self, repo: str, repo_reader: RepoReader) -> None:
+    def index_repository(
+        self, repo: str, repo_reader: RepoReader, workspace_path: Any = None, force: bool = False
+    ) -> None:
         """Mock repository indexing.
 
         Args:
@@ -39,7 +43,24 @@ class MockSemanticIndexer:
         self.indexed_repos.add(repo)
         logger.debug(f"Mock indexed repository {repo}")
 
-    def search(self, repo: str, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    def update_index(
+        self,
+        repo: str,
+        repo_reader: RepoReader,
+        workspace_path: Any = None,
+        since: Optional[datetime] = None,
+    ) -> None:
+        """Mock incremental update."""
+        self.index_repository(repo, repo_reader, workspace_path=workspace_path)
+
+    def search(
+        self,
+        repo: str,
+        query: str,
+        top_k: int = 5,
+        workspace_path: Any = None,
+        metadata_reader: Any = None,
+    ) -> List[Dict[str, Any]]:
         """Mock semantic search.
 
         Args:

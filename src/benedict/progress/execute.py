@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Protocol
+from typing import Any, List, Optional, Protocol
 
 from benedict.commands.github_tools import RunGithubTool
-from benedict.progress.models import ActionResult, Decision, ProjectSnapshot
+from benedict.progress.models import ActionResult, Decision, GithubItem, ProjectSnapshot
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class NullPoster:
 class SlackWebClientPoster:
     """Poster backed by slack_sdk WebClient."""
 
-    def __init__(self, client):
+    def __init__(self, client: Any) -> None:
         self.client = client
 
     def post(self, channel_id: str, text: str, thread_ts: Optional[str] = None) -> Optional[str]:
@@ -42,7 +42,8 @@ class SlackWebClientPoster:
         response = self.client.chat_postMessage(**kwargs)
         if not response.get("ok"):
             raise RuntimeError(response.get("error") or "chat.postMessage failed")
-        return response.get("ts")
+        ts = response.get("ts")
+        return ts if isinstance(ts, str) else None
 
 
 class ActionExecutor:
@@ -210,7 +211,7 @@ def _title_exists(title: str, snapshot: ProjectSnapshot) -> bool:
     return _matching_issue(title, snapshot) is not None
 
 
-def _matching_issue(title: str, snapshot: ProjectSnapshot):
+def _matching_issue(title: str, snapshot: ProjectSnapshot) -> Optional[GithubItem]:
     needle = _normalize_title(title)
     if not needle:
         return None

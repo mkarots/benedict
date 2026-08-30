@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from benedict.progress.models import Decision, GithubItem, ProjectSnapshot
 
@@ -82,9 +82,10 @@ def parse_decision(raw: Any) -> Optional[Decision]:
     if isinstance(raw, dict):
         payload = raw
     elif isinstance(raw, str):
-        payload = _extract_json(raw)
-        if payload is None:
+        extracted = _extract_json(raw)
+        if extracted is None:
             return None
+        payload = extracted
     else:
         return None
 
@@ -124,7 +125,7 @@ def parse_decision(raw: Any) -> Optional[Decision]:
     return decision
 
 
-def _extract_json(text: str) -> Optional[dict]:
+def _extract_json(text: str) -> Optional[Dict[str, Any]]:
     text = text.strip()
     fenced = _FENCE.search(text)
     if fenced:
@@ -144,7 +145,7 @@ def _extract_json(text: str) -> Optional[dict]:
 class ActionDecider:
     """LLM-backed choice of the next action."""
 
-    def __init__(self, llm):
+    def __init__(self, llm: Any) -> None:
         self.llm = llm
 
     def decide(self, snapshot: ProjectSnapshot) -> Decision:

@@ -54,7 +54,7 @@ class MetadataTools:
 class MetadataToolGenerator:
     """Generates LLM tool schemas from metadata files."""
 
-    def __init__(self, metadata_reader=None):
+    def __init__(self, metadata_reader: Any = None):
         """Initialize tool generator.
 
         Args:

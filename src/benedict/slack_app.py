@@ -7,7 +7,7 @@ import json
 import logging
 import re
 import os
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 from slack_bolt import App
 from benedict.agent import RepoAgent
 from benedict.operator_ui.recorder import NullActiveRun
@@ -40,7 +40,7 @@ def parse_error_message(message: str) -> Tuple[str, str, Optional[List[str]]]:
 
 
 def format_and_send_message(
-    say,
+    say: Any,
     message: str,
     thread_ts: Optional[str] = None,
     message_type: str = "conversation",
@@ -170,7 +170,9 @@ def format_and_send_message(
             say(**formatted, thread_ts=thread_ts)
 
 
-def _begin_slack_run(agent: RepoAgent, *, query, channel_id, user_id, thread_ts):
+def _begin_slack_run(
+    agent: RepoAgent, *, query: Any, channel_id: Any, user_id: Any, thread_ts: Any
+) -> Any:
     recorder = getattr(agent, "run_recorder", None)
     if recorder is None:
         return NullActiveRun()
@@ -191,7 +193,7 @@ def _begin_slack_run(agent: RepoAgent, *, query, channel_id, user_id, thread_ts)
     )
 
 
-def _route_run(run, *, kind, route, label, repo=None):
+def _route_run(run: Any, *, kind: str, route: str, label: str, repo: Any = None) -> None:
     fields = {"kind": kind, "route": route}
     if repo is not None:
         fields["repo"] = repo
@@ -199,7 +201,7 @@ def _route_run(run, *, kind, route, label, repo=None):
     run.add_stage("route", label=label, detail={"matched": route})
 
 
-def _finish_run(run, success, message):
+def _finish_run(run: Any, success: bool, message: Optional[str]) -> None:
     try:
         run.add_stage(
             "reply",
@@ -244,7 +246,7 @@ def create_slack_app(agent: RepoAgent) -> App:
 
     # Register event handlers
     @app.event("app_mention")
-    def handle_app_mention(event, say, client):
+    def handle_app_mention(event: Any, say: Any, client: Any) -> None:
         """Handle @mentions of the bot."""
         logger.info("=" * 60)
         logger.info("APP_MENTION EVENT RECEIVED!")
@@ -375,7 +377,7 @@ def create_slack_app(agent: RepoAgent) -> App:
 
     # Register message event handler for automatic background indexing and thread replies
     @app.event("message")
-    def handle_message(event, say, client):
+    def handle_message(event: Any, say: Any, client: Any) -> None:
         """Handle message events for automatic background indexing and thread replies."""
         try:
             # Skip bot messages and messages without text

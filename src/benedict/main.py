@@ -45,7 +45,7 @@ else:
     logger.info("Using environment variables from system (not loading .env file)")
 
 
-def main():
+def main() -> None:
     """Root composition - wire everything together."""
 
     # Validate environment variables
