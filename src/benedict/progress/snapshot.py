@@ -22,7 +22,6 @@ ROADMAP_CANDIDATES = (
     "ROADMAP.md",
     "roadmap.md",
     "docs/ROADMAP.md",
-    "plans/MILESTONE_STATUS.md",
 )
 
 

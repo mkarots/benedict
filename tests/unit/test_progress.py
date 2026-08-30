@@ -10,7 +10,12 @@ from benedict.progress.decide import ActionDecider, parse_decision, snapshot_to_
 from benedict.progress.execute import ActionExecutor, NullPoster
 from benedict.progress.models import GithubItem, ProjectRef, ProjectSnapshot
 from benedict.progress.scheduler import ProgressScheduler, progress_enabled
-from benedict.progress.snapshot import SnapshotCollector, _parse_items, _purpose_from_metadata
+from benedict.progress.snapshot import (
+    ROADMAP_CANDIDATES,
+    SnapshotCollector,
+    _parse_items,
+    _purpose_from_metadata,
+)
 from benedict.progress.store import ProgressStore
 
 
@@ -136,6 +141,11 @@ def test_parse_decision_filters_require_body_for_issue():
     ok = parse_decision({"action": "issue", "reason": "x", "title": "T", "body": "Do T."})
     assert ok is not None
     assert ok.body == "Do T."
+
+
+def test_roadmap_candidates_are_generic_roadmap_files():
+    assert "plans/MILESTONE_STATUS.md" not in ROADMAP_CANDIDATES
+    assert "ROADMAP.md" in ROADMAP_CANDIDATES
 
 
 def test_snapshot_reads_readme_and_github(tmp_path):

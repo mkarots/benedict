@@ -39,7 +39,7 @@ source .venv/bin/activate
 uv pip install -e ".[dev]"
 ```
 
-You do not need Slack tokens or an Anthropic key to run lint, type check, or tests. You need them only to run the bot (`make run`). See [docs/install.md](docs/install.md) and [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md).
+You do not need Slack tokens or an Anthropic key to run lint, type check, or tests. You need them only to run the bot (`make run`). See [docs/install.md](docs/install.md).
 
 ## Tests
 

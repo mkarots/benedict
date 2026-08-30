@@ -59,7 +59,18 @@ SLACK_APP_TOKEN=xapp-your-app-token-here
 ANTHROPIC_API_KEY=your-anthropic-api-key
 ```
 
-Slack tokens: [Slack setup](SLACK_SETUP.md). Every variable: [Configuration](configuration.md).
+Create the Slack app at [api.slack.com/apps](https://api.slack.com/apps): **Create New App** → **From scratch**. Then:
+
+| Page | What to do |
+| --- | --- |
+| Socket Mode | Turn it on. Create an app-level token with scope `connections:write`. Copy it (`xapp-…`). That is `SLACK_APP_TOKEN`. |
+| OAuth & Permissions | Under Bot Token Scopes add `chat:write`, `channels:history`, `channels:read`. |
+| Event Subscriptions | Turn events on. Add the bot event `app_mention`. |
+| Install App | Install to the workspace. Copy the Bot User OAuth Token (`xoxb-…`). That is `SLACK_BOT_TOKEN`. |
+
+Benedict uses Socket Mode. You do not need a public webhook URL. If a token leaks, regenerate it in the Slack app.
+
+Every variable: [Configuration](configuration.md).
 
 ## Run the Slack bot
 

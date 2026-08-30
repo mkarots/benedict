@@ -38,14 +38,14 @@ Put a **Status** line at the top: `Current` or `Process`.
 | Current | `docs/*.md` | Behavior that ships today |
 | Process | this file | How to change docs |
 
-ADRs and retired classifier designs may live under `docs/` for the repo. Do not add them to `nav`. They are not published.
+ADRs may live under `docs/adr/` for the repo. Do not add them to `nav`. They are not published. Standalone HTML notes live in `artifacts/` at the repository root. They are not in the MkDocs sidebar.
 
 Do not mix current behavior and historical claims on one page.
 
 ## Add a page
 
 1. Write Markdown under `docs/`.
-2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, How it works, Reference, Maintain).
+2. Add the file **once** to `nav` in `mkdocs.yml`, in the section that matches the spine (Get started, Use, Reference, Maintain).
 3. Preview: `make docs` and open the page.
 4. Check: `make docs-build` must pass (strict mode).
 5. If the doc describes shipped behavior, mention it in `CHANGELOG.md`.

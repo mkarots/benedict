@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Status: Historical pointer. The current module map is [docs/CODE_MAP.md](../docs/CODE_MAP.md). This file is milestone archaeology and may duplicate or lag that page.
+Status: Historical pointer. This file is milestone archaeology and may lag the code.
 
 
 ## Entry Point
@@ -30,7 +30,7 @@ python -m benedict.mcp
 
 The MCP process does not start Slack. It reads the same `state.json`, workspaces, and index. See [docs/MCP.md](../docs/MCP.md). The unattended progress loop runs only in the Slack process. See [docs/PROGRESS.md](../docs/PROGRESS.md).
 
-For what happens on a user request (routing, prompt building, tool calls, Slack vs MCP), see [docs/REQUEST_PATH.md](../docs/REQUEST_PATH.md). Slack and MCP share that data directory. They do not share `RepoAgent`.
+For what happens on a user request (routing, prompt building, tool calls, Slack vs MCP), see `artifacts/REQUEST_PATH.html`. Slack and MCP share that data directory. They do not share `RepoAgent`.
 
 ## File Structure
 
@@ -127,7 +127,7 @@ main.py (entry point)
 
 ### Context Building Flow
 
-Full request lifecycle (routes, prompts, tools): [docs/REQUEST_PATH.md](../docs/REQUEST_PATH.md).
+Full request lifecycle (routes, prompts, tools): `artifacts/REQUEST_PATH.html`.
 
 1. User asks a question in a Slack thread
 2. `RepoAgent.handle_conversation()` is called

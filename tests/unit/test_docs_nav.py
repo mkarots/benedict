@@ -9,19 +9,12 @@ DOCS = REPO_ROOT / "docs"
 MKDOCS = REPO_ROOT / "mkdocs.yml"
 
 # In docs/ but not a published page. See docs/PROCESS.md.
-NOT_IN_NAV = frozenset(
-    {
-        "COMMAND_CLASSIFIER_DESIGN.md",
-        "COMMAND_CLASSIFIER_API_DESIGN.md",
-        "LLM_COMMAND_CLASSIFIER_DESIGN.md",
-    }
-)
+NOT_IN_NAV = frozenset()
 
 SPINE_TOP = [
     "Home",
     "Get started",
     "Use",
-    "How it works",
     "Reference",
     "Maintain",
 ]

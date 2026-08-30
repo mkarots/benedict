@@ -17,13 +17,7 @@ INCLUDED_PAGES = {
 }
 
 # In docs/ but not a published MkDocs page (see exclude_docs in mkdocs.yml).
-UNPUBLISHED_DOCS = frozenset(
-    {
-        "docs/COMMAND_CLASSIFIER_DESIGN.md",
-        "docs/COMMAND_CLASSIFIER_API_DESIGN.md",
-        "docs/LLM_COMMAND_CLASSIFIER_DESIGN.md",
-    }
-)
+UNPUBLISHED_DOCS = frozenset()
 
 DEFAULT_BLOB_BASE = "https://github.com/mkarots/benedict/blob/main/"
 
@@ -58,9 +52,11 @@ def rewrite_root_href(href: str, *, blob_base: str = DEFAULT_BLOB_BASE) -> str:
         rest = path[len("docs/") :]
         renamed = {
             "README.md": "index.md",
-            "CODE_READING_GUIDE.md": "CODE_MAP.md",
         }
-        return renamed.get(rest, rest) + frag
+        target = renamed.get(rest, rest)
+        if (REPO_ROOT / "docs" / target.split("#")[0]).is_file():
+            return target + frag
+        return f"{blob_base}{path}{frag}"
 
     if path in _ROOT_PAGE:
         return _ROOT_PAGE[path] + frag

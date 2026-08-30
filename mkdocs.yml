@@ -57,15 +57,10 @@ nav:
   - Home: index.md
   - Get started:
       - Install and run: install.md
-      - Slack setup: SLACK_SETUP.md
       - MCP: MCP.md
   - Use:
       - Slack commands: commands.md
       - Progress loop: PROGRESS.md
-      - Operator console: OPERATOR_UI_DESIGN.md
-  - How it works:
-      - Request path: REQUEST_PATH.md
-      - Code map: CODE_MAP.md
   - Reference:
       - Configuration: configuration.md
       - Troubleshooting: troubleshooting.md
@@ -76,6 +71,3 @@ nav:
 
 exclude_docs: |
   adr/**
-  COMMAND_CLASSIFIER_DESIGN.md
-  COMMAND_CLASSIFIER_API_DESIGN.md
-  LLM_COMMAND_CLASSIFIER_DESIGN.md

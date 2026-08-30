@@ -4,7 +4,7 @@ Status: Current
 
 **Bot does not respond.** Confirm the process is running, the bot is in the channel, and you @mentioned it (or replied in a thread Benedict already joined). Check the terminal log. Event Subscriptions must include `app_mention`.
 
-**Missing `SLACK_BOT_TOKEN` or `SLACK_APP_TOKEN`.** `.env` must exist in the project directory (or at `BENEDICT_ENV_FILE`). Names must match, with no spaces around `=`. Restart after you edit. Tokens come from [Slack setup](SLACK_SETUP.md).
+**Missing `SLACK_BOT_TOKEN` or `SLACK_APP_TOKEN`.** `.env` must exist in the project directory (or at `BENEDICT_ENV_FILE`). Names must match, with no spaces around `=`. Restart after you edit. Tokens come from [Install and run](install.md).
 
 **Bot cannot read channel history.** Add `channels:history` under Bot Token Scopes, reinstall the app, and invite the bot to the channel.
 
@@ -20,6 +20,6 @@ Status: Current
 
 **Corrupt state.** Stop the bot, delete `~/.benedict/state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
-**Wrong or empty Slack reply.** Open the operator console at `http://127.0.0.1:8765` and inspect the run. Spec: [Operator console](OPERATOR_UI_DESIGN.md). Request routing: [Request path](REQUEST_PATH.md).
+**Wrong or empty Slack reply.** Open the operator console at `http://127.0.0.1:8765` and inspect the run. Request routing: `artifacts/REQUEST_PATH.html`.
 
 All variables: [Configuration](configuration.md).
