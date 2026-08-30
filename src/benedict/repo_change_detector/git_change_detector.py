@@ -7,7 +7,7 @@ import logging
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from benedict.lib.dateutil import normalize_to_utc
 
@@ -31,7 +31,7 @@ class GitChangeDetector:
 
     def detect_changes(
         self, repo_path: Path, since: Optional[datetime] = None, branch: str = "main"
-    ) -> Dict[str, List[str]]:
+    ) -> Dict[str, Any]:
         """Detect changes in git repository.
 
         Args:
@@ -86,7 +86,11 @@ class GitChangeDetector:
                 since_utc = normalize_to_utc(since)
 
                 # Get commit timestamps and filter
-                filtered_files = {"added": [], "modified": [], "deleted": []}
+                filtered_files: Dict[str, List[str]] = {
+                    "added": [],
+                    "modified": [],
+                    "deleted": [],
+                }
 
                 for file_type in ["added", "modified", "deleted"]:
                     for file_path in changed_files.get(file_type, []):

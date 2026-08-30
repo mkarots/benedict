@@ -49,7 +49,7 @@ class SlackFormatter:
         code_blocks = []
         code_block_pattern = r"```[\s\S]*?```"
 
-        def replace_code_block(match):
+        def replace_code_block(match: re.Match[str]) -> str:
             original = match.group(0)
             placeholder_id = str(uuid.uuid4())
             code_blocks.append((placeholder_id, original))
@@ -62,7 +62,7 @@ class SlackFormatter:
         inline_code_pattern = r"`([^`]+)`"
         inline_codes = []
 
-        def replace_inline_code(match):
+        def replace_inline_code(match: re.Match[str]) -> str:
             original = match.group(0)
             placeholder_id = str(uuid.uuid4())
             inline_codes.append((placeholder_id, original))
@@ -548,7 +548,7 @@ class BlockKitFormatter:
             # Split code into multiple blocks
             # Try to split at line boundaries
             lines = code.split("\n")
-            current_chunk = []
+            current_chunk: List[str] = []
             current_length = 0
 
             for line in lines:

@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Slack conversations can run Notion through `ntn` (`run_notion`), the same argv-only pattern as `run_github`. `@benedict link notion <url>` stores a per-channel default; `unlink notion` clears it without offboarding the repo. Slack always loads missing keys from `.env` so `NOTION_API_KEY` is not skipped when Slack tokens are already set. Replaces the stale implementation on [#8](https://github.com/mkarots/benedict/pull/8).
 
+## [0.6.26] - 2026-08-30
+
+### Changed
+- `[tool.mypy]` now enforces typed public and internal signatures on `src/benedict` (`disallow_untyped_defs`, `check_untyped_defs`, and related flags). The previous per-module ignore list is gone. `make type-check` stays the CI type-check command ([#58](https://github.com/mkarots/benedict/issues/58)).
+
 ## [0.6.25] - 2026-08-30
 
 ### Added

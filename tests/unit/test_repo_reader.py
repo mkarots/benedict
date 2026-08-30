@@ -3,7 +3,10 @@
 Tests the RepoReader protocol and mock implementation.
 """
 
+from pathlib import Path
+
 from benedict.repo_reader import MockRepoReader
+from benedict.repo_reader.repo_reader_local import LocalRepoReader
 from benedict.repo_reader.repo_reader_mock import DEFAULT_TEST_REPO
 
 
@@ -102,3 +105,31 @@ class TestMockRepoReader:
 
         content = reader.read_file(DEFAULT_TEST_REPO, "file.txt")
         assert content == "New content"
+
+
+class TestLocalRepoReaderWalk:
+    """walk helpers must work on Python 3.10 (no Path.walk)."""
+
+    def test_walk_returns_relative_string_paths(self, tmp_path: Path):
+        repo = tmp_path / "acme" / "widget"
+        (repo / "src").mkdir(parents=True)
+        (repo / "README.md").write_text("hi\n", encoding="utf-8")
+        (repo / "src" / "main.py").write_text("print(1)\n", encoding="utf-8")
+
+        reader = LocalRepoReader(base_path=str(tmp_path))
+        walked = reader.walk("acme/widget")
+        files = reader.walk_files("acme/widget")
+        dirs = reader.walk_dirs("acme/widget")
+
+        assert "README.md" in walked
+        assert "src/main.py" in walked
+        assert "README.md" in files
+        assert "src/main.py" in files
+        assert all(isinstance(path, str) for path in files)
+        assert "src" in dirs
+
+    def test_walk_missing_path_is_empty(self, tmp_path: Path):
+        reader = LocalRepoReader(base_path=str(tmp_path))
+        assert reader.walk("missing") == []
+        assert reader.walk_files("missing") == []
+        assert reader.walk_dirs("missing") == []

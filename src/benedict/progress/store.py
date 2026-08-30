@@ -20,7 +20,9 @@ class ProgressStore:
         self._save = save_state
 
     def _progress(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        progress = state.setdefault("progress", {})
+        raw = state.setdefault("progress", {})
+        progress = raw if isinstance(raw, dict) else {}
+        state["progress"] = progress
         progress.setdefault("projects", {})
         return progress
 

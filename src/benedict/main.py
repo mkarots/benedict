@@ -42,7 +42,7 @@ else:
     logger.info("NOTION_API_KEY is not set")
 
 
-def main():
+def main() -> None:
     """Root composition - wire everything together."""
 
     # Validate environment variables

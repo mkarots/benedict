@@ -10,7 +10,7 @@ import re
 import time
 from datetime import datetime, date
 from pathlib import Path
-from typing import Optional, Dict, Any, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from benedict.protocols import (
     LLM,
@@ -58,9 +58,9 @@ class RepoAgent:
         conversation_repository: Optional[ConversationRepository] = None,
         workspace_manager: Optional[WorkspaceManager] = None,
         conversation_history_indexer: Optional[ConversationHistoryIndexer] = None,
-        run_recorder=None,
-        progress_service=None,
-    ):
+        run_recorder: Any = None,
+        progress_service: Any = None,
+    ) -> None:
         """Initialize repository agent.
 
         Args:
@@ -87,8 +87,8 @@ class RepoAgent:
             run_recorder = NullRunRecorder()
         self.run_recorder = run_recorder
         self.metadata_generator = MetadataGenerator() if workspace_manager else None
-        self.tool_registry = None
-        self.llm_classifier = None
+        self.tool_registry: Optional[ToolRegistry] = None
+        self.llm_classifier: Optional[LLMCommandClassifier] = None
 
         # Create conversation repository if not provided
         if conversation_repository is None:
@@ -107,8 +107,10 @@ class RepoAgent:
             try:
                 with open(self.state_file, "r") as f:
                     state = json.load(f)
-                    logger.debug(f"Loaded state with {len(state.get('channels', {}))} channels")
-                    return state
+                if not isinstance(state, dict):
+                    return {"channels": {}}
+                logger.debug(f"Loaded state with {len(state.get('channels', {}))} channels")
+                return state
             except json.JSONDecodeError:
                 logger.error(f"Failed to parse {self.state_file}, creating new state")
 
@@ -128,7 +130,8 @@ class RepoAgent:
         state = self.load_state()
         channel_config = state.get("channels", {}).get(channel_id)
         if channel_config:
-            return channel_config.get("repo")
+            repo = channel_config.get("repo")
+            return repo if isinstance(repo, str) else None
         return None
 
     def set_channel_repo(self, channel_id: str, repo: str, user_id: str) -> None:
@@ -248,7 +251,10 @@ class RepoAgent:
         """Get architect channel ID."""
         state = self.load_state()
         architect_config = state.get("architect", {})
-        return architect_config.get("channel_id")
+        if not isinstance(architect_config, dict):
+            return None
+        channel = architect_config.get("channel_id")
+        return channel if isinstance(channel, str) else None
 
     def set_architect_channel(self, channel_id: str, user_id: str) -> None:
         """Mark channel as architect channel."""
@@ -724,17 +730,17 @@ class RepoAgent:
             combined_text = " ".join([msg.content for msg in recent_messages if msg.role == "user"])
 
             # Get workspace path and action logger if available
-            workspace_path = None
-            action_logger = None
-            metadata_reader = None
+            ctx_workspace: Optional[Path] = None
+            action_logger: Optional[ActionLogger] = None
+            ctx_metadata: Any = None
             repo_reader = self.repo_reader
 
             if self.workspace_manager:
-                workspace_path = self.workspace_manager.get_workspace_path(channel_id)
-                action_logger = ActionLogger(workspace_path)
+                ctx_workspace = self.workspace_manager.get_workspace_path(channel_id)
+                action_logger = ActionLogger(ctx_workspace)
                 from benedict.metadata import MetadataReader
 
-                metadata_reader = MetadataReader()
+                ctx_metadata = MetadataReader()
 
                 # Use workspace-aware repo reader if workspace manager is available
                 # This ensures we read from the workspace symlinks, not direct paths
@@ -752,13 +758,13 @@ class RepoAgent:
                         f"Could not create workspace repo reader, falling back to default: {e}"
                     )
 
-            context = build_context(
+            repo_context = build_context(
                 repo,
                 combined_text,
                 repo_reader,
                 semantic_indexer=self.semantic_indexer,
-                workspace_path=workspace_path,
-                metadata_reader=metadata_reader,
+                workspace_path=ctx_workspace,
+                metadata_reader=ctx_metadata,
                 action_logger=action_logger,
             )
         except Exception as e:
@@ -848,7 +854,7 @@ class RepoAgent:
             )
         if self.semantic_indexer:
             capabilities.append("- **Semantic search** through the codebase to find relevant files")
-        if workspace_path:
+        if ctx_workspace:
             capabilities.append("- **Access workspace metadata** and action logs")
             capabilities.append(
                 "- **Read directory metadata overlays** that summarize repository contents"
@@ -888,7 +894,7 @@ class RepoAgent:
             f"{capabilities_text}\n\n"
             f"## Repository Context\n\n"
             f"The following context has been automatically gathered from the repository:\n\n"
-            f"{context}\n"
+            f"{repo_context}\n"
             f"{conversation_context}\n\n"
             f"## Instructions\n\n"
             f"- Answer questions about the repository code, architecture, and implementation based on the context above.\n"
@@ -935,9 +941,9 @@ class RepoAgent:
             github_registry = ToolRegistry()
             tool_context: Dict[str, Any] = {"notion": self.get_channel_notion(channel_id)}
             github_registry.register(RunNotionTool())
-            if workspace_path:
+            if ctx_workspace:
                 github_registry.register(RunGithubTool())
-                tool_context["workspace_path"] = str(workspace_path / repo)
+                tool_context["workspace_path"] = str(ctx_workspace / repo)
 
             if github_registry.list_tools():
                 response_text = run_tool_loop(
@@ -1195,7 +1201,7 @@ class RepoAgent:
                         changes = self.semantic_indexer.change_detector.detect_changes(
                             repo_path, since=since
                         )
-                        if changes.get("diff"):
+                        if changes.get("diff") and action_logger:
                             action_logger.log_action(
                                 action="update_index",
                                 content_type="code",

@@ -152,7 +152,7 @@ class MetadataReader:
             with open(metadata_file, "r", encoding="utf-8") as f:
                 metadata = yaml.safe_load(f)
             logger.debug(f"Read .metadata.benedict from {metadata_file}")
-            return metadata
+            return metadata if isinstance(metadata, dict) else None
         except Exception as e:
             logger.warning(f"Error reading metadata file from {metadata_file}: {e}")
             return None

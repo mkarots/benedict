@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class MetadataToolExecutor:
     """Executes tool calls against metadata files."""
 
-    def __init__(self, metadata_reader=None, workspace_path: Optional[str] = None):
+    def __init__(self, metadata_reader: Any = None, workspace_path: Optional[str] = None):
         """Initialize tool executor.
 
         Args:

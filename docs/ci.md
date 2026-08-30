@@ -24,7 +24,7 @@ CI does not publish packages, talk to Slack, or enforce the 80% coverage target.
 
 ## Type check scope
 
-`mypy` uses `[tool.mypy]` in `pyproject.toml`. A listed set of older modules is ignored so the job can stay green while type hints catch up.
+`mypy` uses `[tool.mypy]` in `pyproject.toml`. It checks `src/benedict` with reasonable strictness: untyped and incomplete function signatures are errors (`disallow_untyped_defs`, `disallow_incomplete_defs`), untyped bodies are checked, and unused ignores are warned. Third-party imports without stubs are allowed (`ignore_missing_imports`). Site-packages are not checked (`no_site_packages`) because NumPy 2 stubs use 3.12-only syntax.
 
 ## How to run the same checks
 

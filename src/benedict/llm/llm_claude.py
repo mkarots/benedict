@@ -67,7 +67,7 @@ class ClaudeLLM:
                 raise ValueError("messages must include at least one user message")
 
             # Convert messages to Anthropic format
-            anthropic_messages = []
+            anthropic_messages: List[Dict[str, Any]] = []
             for msg in messages:
                 role = msg.get("role")
                 content = msg.get("content", "")
@@ -102,7 +102,7 @@ class ClaudeLLM:
                     anthropic_messages.append({"role": role, "content": content})
 
             # Prepare API call
-            api_kwargs = {
+            api_kwargs: Dict[str, Any] = {
                 "model": self.model,
                 "max_tokens": max_tokens,
                 "messages": anthropic_messages,

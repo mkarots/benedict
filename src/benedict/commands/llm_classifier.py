@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class LLMCommandClassifier:
     """LLM-based command classifier using tool calling."""
 
-    def __init__(self, llm, tool_registry: ToolRegistry, fallback_to_query: bool = True):
+    def __init__(self, llm: Any, tool_registry: ToolRegistry, fallback_to_query: bool = True):
         """Initialize LLM command classifier.
 
         Args:

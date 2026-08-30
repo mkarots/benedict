@@ -177,7 +177,8 @@ def _command_ok(result: ToolResult) -> bool:
     if not result.success:
         return False
     data = result.data or {}
-    return data.get("exit_code", 1) == 0
+    exit_code = data.get("exit_code", 1)
+    return bool(exit_code == 0)
 
 
 def _stdout_json(result: ToolResult) -> Optional[Dict[str, Any]]:

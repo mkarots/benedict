@@ -8,7 +8,7 @@ import ast
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Any, Protocol
+from typing import Any, Dict, List, Optional, Protocol
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class CodeHandler:
                 "purpose": "Unable to read file",
             }
 
-        summary = {
+        summary: Dict[str, Any] = {
             "name": file_path.name,
             "content_type": "code",
             "purpose": self._extract_file_purpose(content, file_path.suffix),
@@ -298,7 +298,7 @@ class ConversationHistoryHandler:
         # Return top keywords
         return [word for word, _ in word_counts.most_common(10)]
 
-    def _merge_date_ranges(self, date_ranges: List[str]) -> str:
+    def _merge_date_ranges(self, date_ranges: List[str]) -> Optional[str]:
         """Merge multiple date ranges into one."""
         if not date_ranges:
             return None

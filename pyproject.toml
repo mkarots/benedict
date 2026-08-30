@@ -108,31 +108,15 @@ testpaths = ["tests"]
 [tool.mypy]
 python_version = "3.10"
 mypy_path = "src"
+explicit_package_bases = true
 ignore_missing_imports = true
 warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+strict_equality = true
 # Do not type-check site-packages (NumPy 2 stubs use 3.12-only syntax).
 no_site_packages = true
-
-# Existing modules with type errors. Tighten as hints land; do not grow this list.
-[[tool.mypy.overrides]]
-module = [
-    "benedict.agent",
-    "benedict.indexers.slack_history_indexer",
-    "benedict.lib.logging",
-    "benedict.llm.llm_claude",
-    "benedict.llm.llm_mock",
-    "benedict.metadata.content_handlers",
-    "benedict.metadata.metadata_generator",
-    "benedict.operator_ui.recorder",
-    "benedict.operator_ui.server",
-    "benedict.progress.decide",
-    "benedict.protocols.conversation_history_indexer",
-    "benedict.protocols.semantic_indexer",
-    "benedict.repo_change_detector.git_change_detector",
-    "benedict.repo_reader.repo_reader_local",
-    "benedict.repo_reader.repo_reader_mock",
-    "benedict.semantic_indexer.semantic_indexer_chromadb",
-    "benedict.utils.context",
-    "benedict.utils.slack_formatter",
-]
-ignore_errors = true

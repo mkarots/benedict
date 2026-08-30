@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from benedict.mcp.project import ProjectResolver, load_channel_state
 from benedict.mcp.service import BenedictMcpService
@@ -110,7 +110,7 @@ def build_mcp_service(
     )
 
 
-def create_mcp_server(service: BenedictMcpService):
+def create_mcp_server(service: BenedictMcpService) -> Any:
     """Create an MCP server that delegates tools to ``service``."""
     from mcp.server import MCPServer
 

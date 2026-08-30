@@ -47,13 +47,13 @@ class BenedictMcpService:
     def __init__(
         self,
         resolver: ProjectResolver,
-        metadata_reader,
-        semantic_indexer=None,
-        llm=None,
-        workspace_manager=None,
-        repo_reader=None,
-        run_recorder=None,
-    ):
+        metadata_reader: Any,
+        semantic_indexer: Any = None,
+        llm: Any = None,
+        workspace_manager: Any = None,
+        repo_reader: Any = None,
+        run_recorder: Any = None,
+    ) -> None:
         """Initialize service with injected dependencies.
 
         Args:
@@ -77,7 +77,7 @@ class BenedictMcpService:
             run_recorder = NullRunRecorder()
         self._run_recorder = run_recorder
 
-    def _mcp_run(self, route: str, query: str, repo, fn):
+    def _mcp_run(self, route: str, query: str, repo: Any, fn: Any) -> Dict[str, Any]:
         run = self._run_recorder.begin(
             source="mcp",
             kind="mcp",
@@ -103,6 +103,8 @@ class BenedictMcpService:
                     None if success else (result.get("error") if isinstance(result, dict) else None)
                 ),
             )
+            if not isinstance(result, dict):
+                return {"ok": False, "error": "unexpected result"}
             return result
         except Exception as exc:
             run.finish(status="error", error=str(exc))
@@ -111,7 +113,7 @@ class BenedictMcpService:
     def list_projects(self) -> Dict[str, Any]:
         """List onboarded projects."""
 
-        def _do():
+        def _do() -> Dict[str, Any]:
             projects = [project.to_dict() for project in self._resolver.list_projects()]
             return _ok(projects=projects, count=len(projects))
 
@@ -276,7 +278,7 @@ class BenedictMcpService:
             answer = str(answer)
         return _ok(repo=project.repo, channel_id=project.channel_id, answer=str(answer))
 
-    def _repo_reader_for(self, project: Project):
+    def _repo_reader_for(self, project: Project) -> Any:
         """Prefer a workspace-bound reader; fall back to the injected reader."""
         if self._workspace_manager:
             try:

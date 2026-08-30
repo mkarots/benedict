@@ -5,7 +5,7 @@ Creates tool registries from metadata files.
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .metadata_tools import (
     GetFileMetadataTool,
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_tool_registry(
-    metadata_reader=None,
+    metadata_reader: Any = None,
     repo_path: Optional[Path] = None,
     workspace_root: Optional[Path] = None,
     repo: Optional[str] = None,
