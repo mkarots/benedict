@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 DEFAULT_DATA_DIR_NAME = ".benedict"
 
 
@@ -44,3 +46,16 @@ def get_env_file() -> Path:
     if env_file:
         return Path(env_file).resolve()
     return find_repo_root() / ".env"
+
+
+def load_runtime_env() -> Path:
+    """Load missing keys from `.env` into the process environment.
+
+    Always reads the file when it exists, even if Slack tokens are already set.
+    Process environment wins (`override=False`), so keys such as `NOTION_API_KEY`
+    still apply from `.env` when they are unset.
+    """
+    env_path = get_env_file()
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path, override=False)
+    return env_path
