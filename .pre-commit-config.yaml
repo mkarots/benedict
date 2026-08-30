@@ -2,12 +2,10 @@
 # Install once after `make sync-dev`: pre-commit install
 # See CONTRIBUTING.md.
 
-# Historical notes still have trailing whitespace. Do not rewrite them on first install.
+# Do not rewrite leftover sidecar YAML or remaining milestone notes on first install.
 exclude: >
   (?x)^(
     plans/.*|
-    docs/COMMAND_CLASSIFIER_.*|
-    docs/LLM_COMMAND_CLASSIFIER_DESIGN\.md|
     \.benedict\.method\.yaml
   )$
 

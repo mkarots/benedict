@@ -25,7 +25,7 @@ You can ask the same questions from Cursor or Claude Code. When you want a next 
 4. Optional: connect GitHub or Notion on that machine if you want PRs or a board in the conversation.
 5. Optional: `@benedict progress` when you want a next step.
 
-[Install and run](install.md) · [Slack setup](SLACK_SETUP.md) · [Commands](commands.md)
+[Install and run](install.md) · [Commands](commands.md)
 
 ## What it will not do
 
@@ -34,4 +34,4 @@ You can ask the same questions from Cursor or Claude Code. When you want a next 
 - Browse the web, run arbitrary programs, or act as a general computer. GitHub and Notion are optional extras on that host, not a replacement for the folder.
 - Read Google Docs or your editor session history.
 
-How a question is answered, and how the pieces are named, is in [Request path](REQUEST_PATH.md) and [Code map](CODE_MAP.md) if you are changing the product — not if you are using it.
+How a question is answered is in `artifacts/REQUEST_PATH.html` if you are changing the product — not if you are using it.

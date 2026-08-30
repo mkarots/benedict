@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Request path</title>
+  <meta name="theme-color" content="#101010" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Serif:ital,wght@0,400;1,400&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #101010;
+      --panel: #161616;
+      --hover: #1c1c1c;
+      --line: #2a2a2a;
+      --ink: #f4f1ea;
+      --muted: #9a958c;
+      --accent: #d4a574;
+      --sans: "IBM Plex Sans", system-ui, sans-serif;
+      --serif: "IBM Plex Serif", Georgia, serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { background: var(--bg); color: var(--ink); }
+    body {
+      margin: 0;
+      font: 16px/1.55 var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); }
+    code, .mono { font-family: var(--mono); font-size: 0.86em; }
+    p code, li code, td code {
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: var(--hover);
+      border: 1px solid var(--line);
+    }
+    .wrap { width: min(1080px, calc(100% - 48px)); margin: 40px auto 80px; }
+    .kicker {
+      font: 500 12px/1.3 var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 { font: 500 34px/1.15 var(--serif); margin: 8px 0 12px; }
+    h2 { font: 500 20px/1.25 var(--serif); margin: 40px 0 14px; }
+    h3 { font: 500 16px/1.3 var(--sans); margin: 28px 0 10px; }
+    p { max-width: 72ch; }
+    pre {
+      margin: 0 0 16px;
+      padding: 16px 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font: 12.5px/1.55 var(--mono);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0 20px; }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 500; font-size: 12px; }
+    ul, ol { padding-left: 1.2em; max-width: 72ch; }
+    li { margin: 6px 0; }
+    strong { color: var(--ink); }
+    hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+    .dim { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="kicker">Artifact · request path</div>
+    <h1>Request path</h1>
+<p>One-sentence summary:
+What Benedict does with a user request, from entry point through routing, prompt building, and tool calls, to the reply — and why each step exists.</p>
+<h2>1. Overview</h2>
+<p><strong>What:</strong>
+This document traces a Benedict request. It covers Slack mentions, Slack thread replies, and MCP <code>ask_benedict</code>. It names the code that runs, what the model sees, and which tools (if any) the model may call. The unattended progress loop is a separate path: <a href="../docs/PROGRESS.md">PROGRESS.md</a>.</p>
+<p><strong>Why:</strong>
+Slack and MCP share data (state, workspaces, index) but they do <strong>not</strong> share one request handler. Existing architecture docs list modules. They do not say which path a request takes, or why two LLM tool mechanisms exist.</p>
+<p><strong>When to use:</strong>
+- You need to change prompt, tools, routing, or context
+- You are debugging a wrong or missing answer
+- You are deciding whether a new capability belongs on Slack, MCP, or both</p>
+<h2>2. Non-Goals</h2>
+<p>Not responsible for:</p>
+<ul>
+<li>Onboarding, indexing, or workspace lifecycle internals</li>
+<li>Operator UI rendering (it <em>records</em> this path; open <code>http://127.0.0.1:8765</code>)</li>
+<li>Incremental index mechanics (git-based reindex; not a separate design page)</li>
+</ul>
+<p>Out of scope: a single unified agent that Slack and MCP both call. That is a possible future, not the current design.</p>
+<h2>3. Key Concepts &amp; Terminology</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Route</strong></td>
+<td>Deterministic branch chosen before any conversational LLM call</td>
+</tr>
+<tr>
+<td><strong>Retrieve-then-stuff</strong></td>
+<td>Search/read files first, then put the text in the system prompt. The model does not have a <code>read_file</code> tool</td>
+</tr>
+<tr>
+<td><strong>Metadata shortcut</strong></td>
+<td>One-shot classifier + metadata tools. Returns YAML to the user. Does not loop</td>
+</tr>
+<tr>
+<td><strong>Tool loop</strong></td>
+<td>Call the model, run requested tools, feed results back, repeat until text</td>
+</tr>
+<tr>
+<td><strong>Conversation path</strong></td>
+<td>Slack Q&amp;A for one onboarded repo. Has thread history, <code>run_github</code>, and <code>run_notion</code></td>
+</tr>
+<tr>
+<td><strong>Architect path</strong></td>
+<td>Slack Q&amp;A across all onboarded repos. No tools</td>
+</tr>
+<tr>
+<td><strong>MCP ask</strong></td>
+<td>Single-turn Q&amp;A from indexed repo context. No Slack history, no tools</td>
+</tr>
+</tbody>
+</table>
+<h2>4. High-Level Design</h2>
+<p>Two processes, one data directory.</p>
+<pre><code>Slack process (main.py)                    MCP process (benedict-mcp)
+        │                                          │
+        ▼                                          ▼
+  slack_app.py                               mcp/server.py
+        │                                          │
+        ▼                                          ▼
+    RepoAgent                              BenedictMcpService
+        │                                          │
+        └──────────────┬───────────────────────────┘
+                       ▼
+              Shared read-only memory
+              state.json · workspaces · Chroma · workspace metadata sidecar
+                       │
+                       ▼
+                 build_context()
+</code></pre>
+<p><strong>Main components</strong></p>
+<ul>
+<li><code>slack_app.py</code> — Slack events, command routing, reply formatting</li>
+<li><code>RepoAgent</code> — Slack command handlers, conversation, architect</li>
+<li><code>BenedictMcpService</code> — MCP tools; <code>ask()</code> is the only LLM path</li>
+<li><code>build_context()</code> — retrieve-then-stuff for a single repo</li>
+<li><code>LLMCommandClassifier</code> — metadata-only intent, one shot</li>
+<li><code>run_tool_loop()</code> — conversation-path GitHub interpretation</li>
+<li><code>ClaudeLLM.generate()</code> — Anthropic call; returns text or <code>tool_calls</code></li>
+</ul>
+<p><strong>Data flow</strong></p>
+<p>A request is routed first. Commands never call the conversational LLM. Q&amp;A builds a system prompt from retrieved files, then calls the model. Slack conversation may loop on <code>run_github</code> and <code>run_notion</code>. MCP ask and architect do not.</p>
+<p><strong>Key invariants</strong></p>
+<ul>
+<li>Pattern match routes Slack commands. The LLM does not decide onboard/status/index/progress.</li>
+<li>The metadata classifier never sees <code>run_github</code>. GitHub and code Q&amp;A stay on the conversation path.</li>
+<li>MCP <code>ask_benedict</code> does not call <code>RepoAgent</code>. It does not persist a thread. It does not run tools.</li>
+<li>File reading for Q&amp;A is retrieve-then-stuff. Tools exist for GitHub (<code>run_github</code>), Notion (<code>run_notion</code>), and metadata files (shortcut). Not a general shell.</li>
+<li>The progress loop may create GitHub issues without a chat confirmation. Conversation-path <code>run_github</code> still asks before mutating.</li>
+</ul>
+<h2>5. API / Interface</h2>
+<h3>Slack (Bolt events)</h3>
+<p><strong>Input:</strong>
+- <code>channel_id</code>: Slack channel
+- <code>user_id</code>: Slack user
+- <code>text</code>: mention stripped of <code>&lt;@BOTID&gt;</code>
+- <code>thread_ts</code>: thread id, or the mention <code>ts</code> if not already in a thread</p>
+<p><strong>Output:</strong>
+- <code>(success, message)</code> from the agent
+- Slack mrkdwn / Block Kit posted in the thread</p>
+<h3>MCP <code>ask_benedict</code></h3>
+<p><strong>Input:</strong>
+- <code>question</code>: user question
+- <code>repo</code>: optional onboarded id (<code>org/name</code>). If omitted, cwd is resolved to a project</p>
+<p><strong>Output:</strong>
+- <code>{ok, repo, channel_id, answer}</code> or <code>{ok: false, error}</code>
+- No Slack formatting. No tool loop.</p>
+<h2>6. Happy Path Example</h2>
+<h3>Slack: <code>@benedict how does onboarding create a workspace?</code></h3>
+<p>Step 1: <code>app_mention</code> in <code>slack_app.py</code>. Mention is stripped.</p>
+<p>Step 2: Pattern checks fail (not progress, not architect, not onboard/status/index). Route is <code>handle_conversation</code>.</p>
+<p>Step 3: Channel maps to a repo in <code>state.json</code>. User text is appended to the thread conversation.</p>
+<p>Step 4: <code>is_metadata_command</code> is false. Classifier is skipped.</p>
+<p>Step 5: <code>build_context()</code> loads recent actions, root metadata, README, and semantic-search hits (full file text, truncated). Those strings become <code>## Repository Context</code> in the system prompt.</p>
+<p>Step 6: System prompt adds identity, capability list, Slack formatting rules, and <code>run_github</code> instructions. Messages are the last 10 turns.</p>
+<p>Step 7: <code>run_tool_loop()</code> calls Claude with the <code>run_github</code> schema. For this question the model returns text. No tool runs.</p>
+<p>Step 8: Assistant text is saved on the conversation and posted to Slack.</p>
+<h3>Slack: <code>@benedict list open PRs</code></h3>
+<p>Same through step 6. At step 7 Claude returns a <code>tool_use</code> for <code>run_github</code> with <code>argv=["pr", "list", "--json", ...]</code>. The loop runs <code>gh</code> in the workspace clone, appends a <code>tool_result</code>, and calls Claude again. Claude writes the Slack reply from that output.</p>
+<h3>MCP: <code>ask_benedict("how does onboarding create a workspace?")</code></h3>
+<p>Step 1: MCP tool → <code>BenedictMcpService.ask()</code>.</p>
+<p>Step 2: <code>ProjectResolver</code> maps <code>repo</code> or cwd to an onboarded project.</p>
+<p>Step 3: Same <code>build_context()</code> as Slack.</p>
+<p>Step 4: A shorter system prompt (no Slack mrkdwn, no GitHub tool instructions, explicit “no Slack history”).</p>
+<p>Step 5: One <code>llm.generate()</code> with a single user message. No tools. Return <code>answer</code>.</p>
+<h2>7. Edge Cases &amp; Failure Modes</h2>
+<h3>Slack routing</h3>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>What happens</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@benedict progress</code> (any channel)</td>
+<td><code>handle_progress</code> before architect/conversation</td>
+<td>Progress is a command, including in the architect channel</td>
+</tr>
+<tr>
+<td>Architect channel + other mention</td>
+<td><code>handle_architect_query</code></td>
+<td>Cross-repo answers must not be scoped to one channel’s repo</td>
+</tr>
+<tr>
+<td>Channel not onboarded</td>
+<td>Error, no LLM</td>
+<td>There is no workspace or index to retrieve from</td>
+</tr>
+<tr>
+<td>Thread reply, bot already in thread</td>
+<td><code>handle_conversation</code> without a new mention</td>
+<td>Continuations should not require <code>@benedict</code> every turn</td>
+</tr>
+<tr>
+<td>Channel message that “looks like” a question</td>
+<td>Heuristic may start a conversation</td>
+<td>Convenience; can false-positive</td>
+</tr>
+<tr>
+<td>Mention that also matches a command</td>
+<td>Command wins</td>
+<td>Deterministic ops must not go through the model</td>
+</tr>
+</tbody>
+</table>
+<h3>Metadata shortcut (<code>handle_conversation</code>)</h3>
+<p>Wording must include <code>metadata</code>, <code>list files</code>, <code>list key files</code>, <code>repository summary</code>, or <code>repo summary</code>.</p>
+<p>Then a <strong>second</strong> LLM call classifies into <code>get_file_metadata</code>, <code>list_key_files</code>, or <code>get_repository_summary</code>. On success, the tool output is the user reply. On miss, failure, or exception, the request <strong>falls through</strong> to the conversation path.</p>
+<p>This gate exists because the classifier registry has no <code>run_github</code>. Before the gate, “create a GitHub issue” could be classified as metadata and die with “Metadata file not found”.</p>
+<h3>Context building</h3>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>What happens</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Index missing</td>
+<td><code>index_repository()</code> then search</td>
+<td>First question should still work</td>
+</tr>
+<tr>
+<td>Indexer missing or search fails</td>
+<td>Keyword match on file paths</td>
+<td>Graceful degradation</td>
+</tr>
+<tr>
+<td>Question names a file (<code>show me src/agent.py</code>)</td>
+<td>That file is read first</td>
+<td>Semantic search can miss an explicit path</td>
+</tr>
+<tr>
+<td>Context over ~4000 tokens</td>
+<td>Truncated</td>
+<td>Prompt budget</td>
+</tr>
+</tbody>
+</table>
+<p>Slack conversation also injects thread conversations from <code>ConversationRepository</code> when the text looks like a “summarize today’s chats” request. MCP never does this.</p>
+<h3>Tool loop</h3>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>What happens</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No workspace</td>
+<td><code>run_github</code> is not registered; single <code>generate()</code></td>
+<td><code>gh</code> needs a clone cwd</td>
+</tr>
+<tr>
+<td>5 tool rounds with no text</td>
+<td>Stop; tell the user to narrow the question</td>
+<td>Prevents unbounded <code>gh</code> loops</td>
+</tr>
+<tr>
+<td><code>gh</code> missing / unauthenticated</td>
+<td>Tool returns an error string; model explains</td>
+<td>Host setup is outside Benedict</td>
+</tr>
+<tr>
+<td><code>gh auth token</code></td>
+<td>Refused</td>
+<td>Must not leak credentials</td>
+</tr>
+<tr>
+<td>Token-shaped strings in stdout</td>
+<td>Redacted</td>
+<td>Same reason</td>
+</tr>
+</tbody>
+</table>
+<p>The metadata shortcut is <strong>not</strong> a loop. It executes classifier tool calls once and either replies or falls through.</p>
+<h3>MCP ask</h3>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>What happens</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Empty question / no LLM / no reader</td>
+<td><code>{ok: false, error}</code></td>
+<td>Fail closed</td>
+</tr>
+<tr>
+<td>Ambiguous cwd</td>
+<td>Resolution error; client should pass <code>repo</code></td>
+<td>Several projects can be onboarded</td>
+</tr>
+<tr>
+<td>Other MCP tools</td>
+<td>No LLM</td>
+<td>Summary, search, and actions are direct reads</td>
+</tr>
+</tbody>
+</table>
+<h2>8. Constraints &amp; Assumptions</h2>
+<p><strong>Prompt construction is retrieve-then-stuff.</strong> The model cannot page through the repo. Answer quality is bounded by <code>build_context()</code> (top-k files, 1000 lines each, ~4000 tokens).</p>
+<p><strong>Two tool mechanisms, different jobs.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Tools</th>
+<th>Loop?</th>
+<th>Result goes to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LLMCommandClassifier</code></td>
+<td>metadata only</td>
+<td>No</td>
+<td>User (YAML/text)</td>
+</tr>
+<tr>
+<td><code>run_tool_loop</code></td>
+<td><code>run_github</code> only</td>
+<td>Yes (max 5)</td>
+<td>Model, then user</td>
+</tr>
+</tbody>
+</table>
+<p>GitHub output must be interpreted. Metadata dumps do not.</p>
+<p><strong>MCP ask is a thin slice of the Slack conversation path.</strong> Shared: <code>build_context</code>, workspace reader, indexer, metadata, action log. Not shared: <code>RepoAgent</code>, thread persistence, Slack history, command router, architect, tools.</p>
+<p><strong>Security assumptions:</strong>
+- <code>run_github</code> is <code>gh</code> only, cwd locked to the workspace clone, 30s timeout, 32k output cap
+- MCP tools are read-only
+- Slack commands that mutate state (onboard, offboard, index) never go through the model</p>
+<p><strong>Environment:</strong> Slack needs bot tokens. MCP needs the same <code>BENEDICT_DATA_DIR</code>. <code>ask_benedict</code> and the Slack conversation path need <code>ANTHROPIC_API_KEY</code>.</p>
+<h2>9. Alternatives Considered</h2>
+<p><strong>One <code>RepoAgent</code> for Slack and MCP</strong> — rejected for now. MCP is read-only, single-turn, and must not pull Slack history. Sharing the agent would drag thread state and Slack formatting into the IDE path. The cost is duplicated system-prompt text.</p>
+<p><strong>Give the conversation model a <code>read_file</code> tool</strong> — rejected. Retrieve-then-stuff keeps one predictable prompt and bounds tokens. The trade-off is missed files when search is wrong.</p>
+<p><strong>Put <code>run_github</code> on the metadata classifier</strong> — rejected. That classifier is a shortcut that returns tool output as the user reply. GitHub needs a loop so the model can interpret <code>gh</code> JSON.</p>
+<p><strong>LLM-classify all Slack commands</strong> — rejected. Onboard, offboard, status, and index are side-effecting. Pattern match is cheaper and safer.</p>
+<p><strong>Always run the metadata classifier</strong> — rejected. Extra LLM call on every question, and the classifier used to steal GitHub/code questions.</p>
+<h2>10. Open Questions</h2>
+<p>Q1: Should MCP <code>ask_benedict</code> grow a tool loop (<code>run_github</code>, or a <code>read_file</code> tool) now that Cursor is a first-class client?</p>
+<p>Q2: Should Slack conversation and MCP ask share one prompt builder so identity and instructions cannot drift?</p>
+<p>Q3: Should the metadata shortcut die, and metadata become either retrieve-then-stuff or tools on the conversation loop?</p>
+<p>Q4: Is the “message directed at bot” heuristic worth the false positives, or should channel messages require a mention except in existing threads?</p>
+<h2>11. Appendix</h2>
+<h3>A. Slack route table</h3>
+<p>Order in <code>create_slack_app</code> (<code>app_mention</code>):</p>
+<ol>
+<li><code>is_architect_onboard_command</code> → <code>handle_onboard_architect</code></li>
+<li>Channel is architect channel → <code>handle_architect_query</code></li>
+<li><code>is_onboard_command</code> → <code>handle_onboard</code></li>
+<li><code>is_offboard_command</code> → <code>handle_offboard</code></li>
+<li><code>is_status_command</code> → <code>handle_status</code></li>
+<li><code>is_update_index_command</code> → <code>handle_update_index</code></li>
+<li>Else → <code>handle_conversation</code></li>
+</ol>
+<p><code>message</code> events never run commands. They run architect or conversation if the bot is already in the thread, or if <code>is_message_directed_at_bot</code> is true. They also trigger background Slack-history indexing.</p>
+<h3>B. Conversation-path sequence</h3>
+<pre><code>handle_conversation
+  ├─ require channel → repo
+  ├─ load/save Conversation (thread_ts)
+  ├─ if is_metadata_command:
+  │     LLMCommandClassifier + metadata ToolRegistry
+  │     success → return tool text
+  │     else → fall through
+  ├─ build_context(...)                  # retrieve-then-stuff
+  ├─ optional conversation_context       # “summarize chats” only
+  ├─ assemble system prompt
+  └─ if workspace: run_tool_loop(run_github)
+     else: llm.generate()
+</code></pre>
+<h3>C. What the conversation model sees</h3>
+<p><strong>System (assembled in <code>RepoAgent.handle_conversation</code>):</strong>
+1. Identity: Benedict for <code>{repo}</code>
+2. Capability bullets (files, search, metadata, <code>run_github</code>, conversation history)
+3. <code>build_context()</code> output (actions, metadata summary, README, search files)
+4. Optional dumped thread conversations
+5. Instructions (answer from context; GitHub usage rules; ask before mutating GitHub)
+6. Slack mrkdwn rules</p>
+<p><strong>Messages:</strong> last 10 turns, including the current user text.</p>
+<p><strong>Tools (if workspace exists):</strong> <code>run_github</code> schema only.</p>
+<p>Architect uses <code>ARCHITECT_SYSTEM_PROMPT</code> plus <code>build_architect_context()</code> (project list + top-10 cross-repo chunks). No tools.</p>
+<p>MCP ask uses a short system prompt plus the same <code>build_context()</code> output. One user message. No tools.</p>
+<h3>D. Why the model cannot “just read the repo”</h3>
+<p><code>RepoReader</code> is used by <code>build_context()</code> and by tools, not exposed to the model as a generic file API. The conversation system prompt <em>describes</em> file access. The actual files in the prompt are whatever retrieval already chose.</p>
+<h3>E. Code map</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>File</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Slack events + route</td>
+<td><code>src/benedict/slack_app.py</code></td>
+</tr>
+<tr>
+<td>Agent + prompts + shortcut</td>
+<td><code>src/benedict/agent.py</code></td>
+</tr>
+<tr>
+<td>Context retrieval</td>
+<td><code>src/benedict/utils/context.py</code></td>
+</tr>
+<tr>
+<td>Architect identity</td>
+<td><code>src/benedict/architect/prompts.py</code></td>
+</tr>
+<tr>
+<td>Metadata classifier</td>
+<td><code>src/benedict/commands/llm_classifier.py</code></td>
+</tr>
+<tr>
+<td>Metadata tools</td>
+<td><code>src/benedict/commands/tool_registry_factory.py</code>, <code>metadata_tools.py</code></td>
+</tr>
+<tr>
+<td>Tool loop</td>
+<td><code>src/benedict/commands/tool_loop.py</code></td>
+</tr>
+<tr>
+<td>GitHub tool</td>
+<td><code>src/benedict/commands/github_tools.py</code></td>
+</tr>
+<tr>
+<td>Tool registry</td>
+<td><code>src/benedict/commands/tool_framework.py</code></td>
+</tr>
+<tr>
+<td>Claude + tool_use parse</td>
+<td><code>src/benedict/llm/llm_claude.py</code></td>
+</tr>
+<tr>
+<td>MCP compose</td>
+<td><code>src/benedict/mcp/server.py</code></td>
+</tr>
+<tr>
+<td>MCP ask</td>
+<td><code>src/benedict/mcp/service.py</code></td>
+</tr>
+</tbody>
+</table>
+<h3>F. Related docs</h3>
+<ul>
+<li><a href="../docs/MCP.md">MCP</a> — MCP tool contract</li>
+</ul>
+    <p class="dim">Open this file in a browser: <code>artifacts/REQUEST_PATH.html</code></p>
+  </div>
+</body>
+</html>

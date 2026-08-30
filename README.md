@@ -42,7 +42,7 @@ Put Slack tokens and `ANTHROPIC_API_KEY` in `.env`, then:
 make run
 ```
 
-Slack app tokens: [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md). MCP (Cursor / Claude Code): [docs/MCP.md](docs/MCP.md).
+Slack app tokens: [docs/install.md](docs/install.md). MCP (Cursor / Claude Code): [docs/MCP.md](docs/MCP.md).
 
 ## Commands
 

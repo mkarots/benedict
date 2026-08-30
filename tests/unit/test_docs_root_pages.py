@@ -29,7 +29,9 @@ def test_docs_hrefs_become_in_site_paths():
     assert hooks.rewrite_root_href("CHANGELOG.md") == "changelog.md"
     assert hooks.rewrite_root_href("README.md") == "index.md"
     assert hooks.rewrite_root_href("docs/README.md") == "index.md"
-    assert hooks.rewrite_root_href("docs/CODE_READING_GUIDE.md") == "CODE_MAP.md"
+    assert hooks.rewrite_root_href("docs/CODE_READING_GUIDE.md") == (
+        "https://github.com/mkarots/benedict/blob/main/docs/CODE_READING_GUIDE.md"
+    )
 
 
 def test_unpublished_docs_href_stays_on_github():
@@ -62,11 +64,11 @@ def test_rewrite_root_markdown_rewrites_only_links():
 def test_merge_stub_keeps_front_matter():
     hooks = _hooks()
     stub = "---\ntitle: Changelog\n---\n\nstale\n"
-    source = "# Changelog\n\nSee [setup](docs/SLACK_SETUP.md).\n"
+    source = "# Changelog\n\nSee [setup](docs/install.md).\n"
     out = hooks.merge_stub_and_source(stub, source)
     assert out.startswith("---\ntitle: Changelog")
     assert "# Changelog" in out
-    assert "[setup](SLACK_SETUP.md)" in out
+    assert "[setup](install.md)" in out
     assert "stale" not in out
 
 
@@ -102,11 +104,11 @@ def test_on_page_markdown_leaves_other_pages():
 
 def test_current_docs_do_not_github_link_readme():
     bounce = "github.com/mkarots/benedict/blob/main/README.md"
-    setup = (DOCS / "SLACK_SETUP.md").read_text(encoding="utf-8")
+    install = (DOCS / "install.md").read_text(encoding="utf-8")
     home = (DOCS / "index.md").read_text(encoding="utf-8")
-    assert bounce not in setup
+    assert bounce not in install
     assert bounce not in home
-    assert "(commands.md)" in setup
+    assert "(commands.md)" in install
     assert "(install.md)" in home
     assert 'src="assets/logo.png"' in home
     assert "<em>repo bene(volent)dict(ator) agent</em>" in home

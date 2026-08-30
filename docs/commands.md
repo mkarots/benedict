@@ -53,7 +53,7 @@ It does not clone from GitHub. The directory must already exist on the machine t
 
 Benedict searches the index, reads relevant files from the workspace, and replies in the thread. Later replies in that thread are treated as continuation even without a mention, once Benedict has already participated.
 
-How that request is routed: [Request path](REQUEST_PATH.md).
+How that request is routed: `artifacts/REQUEST_PATH.html`.
 
 ## GitHub CLI
 

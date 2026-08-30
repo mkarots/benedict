@@ -29,7 +29,7 @@ Issue [#22](https://github.com/mkarots/benedict/issues/22) asked for a thin oper
 4. **Serve a single static HTML page** from the Slack process on `127.0.0.1:8765` using stdlib `ThreadingHTTPServer`. No React, no FastAPI, no extra runtime dependency. The shipped page is `src/benedict/operator_ui/static/index.html`.
 5. **Recording and HTTP must not raise into Slack or MCP.** `begin` / `record_stage` / `finish` swallow exceptions. Bind failure leaves the bot running. The HTTP server is a daemon thread.
 6. **On by default.** Set `BENEDICT_OPERATOR_UI=0` to use `NullRunRecorder` and skip the server.
-7. **Keep the decision and the spec in `docs/`.** Do not keep HTML mocks or walkthroughs under `plans/`. Spec: [OPERATOR_UI_DESIGN.md](../OPERATOR_UI_DESIGN.md).
+7. **Keep the decision in `docs/adr/`.** Do not keep HTML mocks or walkthroughs under `plans/`. The live UI is `src/benedict/operator_ui/static/index.html`.
 
 ## Consequences
 
@@ -67,6 +67,5 @@ Issue [#22](https://github.com/mkarots/benedict/issues/22) asked for a thin oper
 
 ## References
 
-- Spec: [OPERATOR_UI_DESIGN.md](../OPERATOR_UI_DESIGN.md)
 - Live UI: `src/benedict/operator_ui/static/index.html`
 - Issue [#22](https://github.com/mkarots/benedict/issues/22), draft [#23](https://github.com/mkarots/benedict/pull/23)

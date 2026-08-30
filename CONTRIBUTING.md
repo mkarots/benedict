@@ -47,7 +47,7 @@ pre-commit install
 
 Run the hooks against the whole tree once with `pre-commit run --all-files`. Hook versions match the Black and Ruff pins in the `dev` extra (`.pre-commit-config.yaml`).
 
-You do not need Slack tokens or an Anthropic key to run lint, type check, or tests. You need them only to run the bot (`make run`). See [docs/install.md](docs/install.md) and [docs/SLACK_SETUP.md](docs/SLACK_SETUP.md).
+You do not need Slack tokens or an Anthropic key to run lint, type check, or tests. You need them only to run the bot (`make run`). See [docs/install.md](docs/install.md).
 
 ## Tests
 
