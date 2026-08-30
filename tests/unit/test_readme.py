@@ -31,6 +31,8 @@ def test_readme_has_ci_license_and_python_badges():
     assert "https://github.com/mkarots/benedict/discussions" in text
     assert "astral-sh/ruff" in text
     assert "code%20style-black" in text
+    assert "pre--commit-enabled" in text
+    assert "https://github.com/pre-commit/pre-commit" in text
 
 
 def test_readme_links_community_files():

@@ -90,10 +90,10 @@ Tests follow the Arrange-Act-Assert (AAA) pattern:
 def test_example(self, fixture):
     # Arrange - Set up test data and dependencies
     agent = RepoAgent(state_file="test.json")
-    
+
     # Act - Execute the code being tested
     result = agent.do_something()
-    
+
     # Assert - Verify the expected outcome
     assert result == expected_value
 ```
@@ -237,7 +237,7 @@ def test_create_message(self):
 class TestBad:
     def test_step_1(self):
         self.data = "value"
-    
+
     def test_step_2(self):
         assert self.data == "value"  # Fails if step_1 doesn't run first
 ```

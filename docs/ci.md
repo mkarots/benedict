@@ -14,7 +14,7 @@ The workflow is [`.github/workflows/ci.yml`](https://github.com/mkarots/benedict
 | Type check | `mypy src/benedict` | 3.12 |
 | Tests | `pytest` with coverage | 3.10, 3.11, 3.12 |
 
-Local equivalents: `make lint`, `make type-check`, `make test`.
+Local equivalents: `make lint`, `make type-check`, `make test`. After `pre-commit install`, Git hooks in `.pre-commit-config.yaml` run Black, Ruff, trailing-whitespace, and end-of-file-fixer on commit. Those Black and Ruff versions match the `dev` extra. Setup: `CONTRIBUTING.md` at the repository root.
 
 Ruff, Black, and mypy versions are pinned in `pyproject.toml` so CI matches a local `make sync-dev`.
 

@@ -31,7 +31,7 @@
 | 12 | Set up test framework | ☐ | | pytest + conftest.py |
 | 13 | Write core unit tests | ☐ | | Target: >50% coverage |
 | 14 | Add type hints | ☐ | | Use mypy |
-| 15 | Set up pre-commit hooks | ☐ | | .pre-commit-config.yaml |
+| 15 | Set up pre-commit hooks | ☑ | | .pre-commit-config.yaml. Recorded on #59 |
 | 16 | Add .editorconfig | ☐ | | Consistent formatting |
 | 17 | Configure Dependabot | ☐ | | .github/dependabot.yml |
 | 18 | Update pyproject.toml | ☑ | | Authors, classifiers, URLs, keywords. License Apache-2.0. Recorded on #62 |
@@ -70,7 +70,7 @@
 - [x] CONTRIBUTING.md
 - [x] MAINTAINERS.md
 - [ ] .editorconfig
-- [ ] .pre-commit-config.yaml
+- [x] .pre-commit-config.yaml
 
 ### .github/ Directory
 - [x] .github/ISSUE_TEMPLATE/bug_report.md
@@ -228,7 +228,7 @@
 - ✅ CI workflow green
 - ✅ Documentation accurate
 
-**Decision**: 
+**Decision**:
 - [ ] GO - Launch approved
 - [ ] NO-GO - More work needed
 - [ ] DELAYED - Needs: _______________________
