@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.25] - 2026-08-30
 
 ### Added
-- Pre-commit hooks (`.pre-commit-config.yaml`): Black, Ruff, trailing-whitespace, and end-of-file-fixer. Versions match the `dev` extra. Install with `pre-commit install` after `make sync-dev` ([#59](https://github.com/mkarots/benedict/issues/59)).
+- Pre-commit hooks (`.pre-commit-config.yaml`): Black, Ruff, trailing-whitespace, and end-of-file-fixer. Versions match the `dev` extra. Install with `pre-commit install` after `make sync-dev`. README shows a pre-commit badge ([#59](https://github.com/mkarots/benedict/issues/59)).
 
 ## [0.6.24] - 2026-08-29
 
