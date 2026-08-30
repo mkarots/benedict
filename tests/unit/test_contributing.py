@@ -64,3 +64,9 @@ def test_contributing_points_at_pull_request_template():
     text = CONTRIBUTING.read_text(encoding="utf-8")
     assert ".github/PULL_REQUEST_TEMPLATE.md" in text
     assert "A pull request template is not in the repository yet" not in text
+
+
+def test_contributing_documents_pre_commit_install():
+    text = CONTRIBUTING.read_text(encoding="utf-8")
+    assert "pre-commit install" in text
+    assert ".pre-commit-config.yaml" in text
