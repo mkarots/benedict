@@ -29,7 +29,7 @@ source .venv/bin/activate
 make sync-dev
 ```
 
-`make setup` creates `.venv`. `make sync-dev` installs the package and the `dev` extra (pytest, Ruff, Black, mypy, Pylint, and the docs tools).
+`make setup` creates `.venv`. `make sync-dev` installs the package and the `dev` extra (pytest, Ruff, Black, mypy, Pylint, pre-commit, and the docs tools).
 
 Without Make:
 
@@ -38,6 +38,14 @@ uv venv
 source .venv/bin/activate
 uv pip install -e ".[dev]"
 ```
+
+Install the Git hooks so Black, Ruff, trailing whitespace, and end-of-file checks run on `git commit`:
+
+```bash
+pre-commit install
+```
+
+Run the hooks against the whole tree once with `pre-commit run --all-files`. Hook versions match the Black and Ruff pins in the `dev` extra (`.pre-commit-config.yaml`).
 
 You do not need Slack tokens or an Anthropic key to run lint, type check, or tests. You need them only to run the bot (`make run`). See [docs/install.md](docs/install.md).
 
@@ -69,7 +77,7 @@ Line length is 100 (`[tool.black]` and `[tool.pylint]` in `pyproject.toml`).
 
 Pylint is in the `dev` extra (`pylint src/benedict`). It is not part of `make lint` or CI. Use it locally if you want a second pass.
 
-Ruff, Black, and mypy versions are pinned in `pyproject.toml` so a local `make sync-dev` matches CI.
+Ruff, Black, and mypy versions are pinned in `pyproject.toml` so a local `make sync-dev` matches CI. After `pre-commit install`, the same Black and Ruff versions run on each commit.
 
 ## Commit messages
 
@@ -109,7 +117,7 @@ Cursor and Claude Code follow the project rules in `.cursor/rules/`.
 2. Keep the change small and focused. Do not mix unrelated refactors.
 3. Add or update tests for the behavior you change.
 4. If behavior, commands, paths, env vars, or architecture changed, update `README.md` and the matching pages under `docs/` in the same change. Do not leave current docs describing the old system.
-5. Run `make lint`, `make type-check`, and `make test` (or `make check`) before you push.
+5. Run `make lint`, `make type-check`, and `make test` (or `make check`) before you push. If you ran `pre-commit install`, Black and Ruff also run on `git commit`.
 6. Open a pull request against `main`. Link the issue (`Fixes #52` or `Closes #52`).
 7. GitHub pre-fills [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Complete every section: description, related issues, type of change, testing done, and the checklist (tests, docs, changelog).
 

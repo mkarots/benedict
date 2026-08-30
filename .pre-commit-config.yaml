@@ -1,0 +1,26 @@
+# Hook versions match the pinned Black and Ruff in the pyproject.toml `dev` extra.
+# Install once after `make sync-dev`: pre-commit install
+# See CONTRIBUTING.md.
+
+# Do not rewrite leftover sidecar YAML or remaining milestone notes on first install.
+exclude: >
+  (?x)^(
+    plans/.*|
+    \.benedict\.method\.yaml
+  )$
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+  - repo: https://github.com/psf/black
+    rev: 26.1.0
+    hooks:
+      - id: black
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0
+    hooks:
+      - id: ruff
+        args: [--fix]

@@ -12,6 +12,7 @@
 [![Discussions](https://img.shields.io/badge/GitHub-Discussions-blue?logo=github)](https://github.com/mkarots/benedict/discussions)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 Benedict is an agent that knows your code and the Slack conversations you have about it — and can help you plan the work.
 
@@ -19,7 +20,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.24. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.6.25. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 

@@ -109,7 +109,7 @@ Serves this site at `http://127.0.0.1:8000`. If that port is busy: `DOCS_PORT=80
 
 ## Checks
 
-Pull requests and pushes to `main` run lint, type check, and tests. See [Continuous integration](ci.md). Contributor setup, tests, and pull request expectations are in `CONTRIBUTING.md` at the repository root.
+Pull requests and pushes to `main` run lint, type check, and tests. See [Continuous integration](ci.md). After `pre-commit install`, the same Black and Ruff versions run on `git commit`. Contributor setup, tests, and pull request expectations are in `CONTRIBUTING.md` at the repository root.
 
 ```bash
 make lint
