@@ -5,6 +5,7 @@ from benedict.operator_ui.recorder import (
     JsonlRunRecorder,
     NullRunRecorder,
     current_run,
+    hits_for_recorder,
     record_llm_stage,
     record_stage,
 )
@@ -15,6 +16,7 @@ __all__ = [
     "JsonlRunRecorder",
     "NullRunRecorder",
     "current_run",
+    "hits_for_recorder",
     "record_llm_stage",
     "record_stage",
     "start_operator_ui",

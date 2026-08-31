@@ -85,7 +85,7 @@ python -m benedict.main
 # after install: benedict
 ```
 
-You should see: `Bot is running! Press Ctrl+C to stop.` and `Operator UI http://127.0.0.1:8765`.
+You should see: `Bot is running! Press Ctrl+C to stop.` and `Operator UI http://127.0.0.1:8765`. After a mention, that page shows the chunks retrieved for the answer.
 
 Then invite the bot, onboard a repo, and ask. See [Slack commands](commands.md).
 

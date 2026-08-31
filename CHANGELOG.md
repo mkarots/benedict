@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-31
+
+### Added
+- Operator console shows the **chunks Chroma returned** for a question (path, score, expandable text), then the files stuffed into the prompt and why each was included (always README, semantic hit, keyword match, or asked-for file). Slack Q&A, architect, MCP `ask_benedict`, and MCP `search_code` all record this. The model still has no `read_file` tool: chunks pick files, then full file text is stuffed.
+
 ## [0.7.0] - 2026-08-30
 
 ### Added

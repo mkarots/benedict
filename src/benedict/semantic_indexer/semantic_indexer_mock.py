@@ -21,12 +21,14 @@ class MockSemanticIndexer:
         self._relevant_files: List[Dict[str, Any]] = []
         logger.info("Initialized MockSemanticIndexer")
 
-    def add_relevant_file(self, file_path: str, score: float = 0.9) -> None:
+    def add_relevant_file(
+        self, file_path: str, score: float = 0.9, content: Optional[str] = None
+    ) -> None:
         """Pre-populate a search hit (test helper)."""
         self._relevant_files.append(
             {
                 "file_path": file_path,
-                "content": f"[Mock content for {file_path}]",
+                "content": content if content is not None else f"[Mock content for {file_path}]",
                 "score": score,
             }
         )

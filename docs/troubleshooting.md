@@ -20,6 +20,6 @@ Status: Current
 
 **Corrupt state.** Stop the bot, delete `~/.benedict/state.json`, restart, and re-onboard channels. Conversations in that file are lost.
 
-**Wrong or empty Slack reply.** Open the operator console at `http://127.0.0.1:8765` and inspect the run. Request routing: `artifacts/REQUEST_PATH.html`.
+**Wrong or empty Slack reply.** Open the operator console at `http://127.0.0.1:8765` and inspect the run. **Chunks retrieved** is what Chroma returned; **Files stuffed into prompt** is what Claude actually saw. Request routing: `artifacts/REQUEST_PATH.html`.
 
 All variables: [Configuration](configuration.md).
