@@ -26,6 +26,8 @@ git clone https://github.com/mkarots/benedict.git
 cd benedict
 ```
 
+The clone includes `src/benedict/lib` (logging and date helpers used at startup). Git ignores a `/lib/` directory at the repository root only, not that package.
+
 Install uv if needed:
 
 ```bash
@@ -85,7 +87,7 @@ python -m benedict.main
 # after install: benedict
 ```
 
-You should see: `Bot is running! Press Ctrl+C to stop.` and `Operator UI http://127.0.0.1:8765`. After a mention, that page shows the chunks retrieved for the answer.
+You should see: `Bot is running! Press Ctrl+C to stop.` and `Operator UI http://127.0.0.1:8765`. After a mention, that page shows the chunks retrieved for the answer. Use **Light** or **Dark** in the header (zinc palette; default follows the OS).
 
 Then invite the bot, onboard a repo, and ask. See [Slack commands](commands.md).
 
