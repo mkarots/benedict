@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Operator console pipeline stages collapse when you click an already-open title again.
-- Install docs no longer mention a Light/Dark zinc theme. The operator console stays on the brown IBM Plex palette.
 
 ## [0.8.1] - 2026-08-31
 
