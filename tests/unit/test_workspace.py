@@ -3,6 +3,8 @@
 Tests WorkspaceManager and ActionLogger functionality.
 """
 
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 from benedict.workspace import WorkspaceManager, ActionLogger
@@ -74,8 +76,13 @@ class TestActionLogger:
         logger.log_action("test_action", "code", resource="example-org/repo")
 
         assert logger.log_file.exists()
-        content = logger.log_file.read_text()
-        assert "test_action" in content
+        content = json.loads(logger.log_file.read_text())
+        assert content["actions"][0]["action"] == "test_action"
+        timestamp = content["actions"][0]["timestamp"]
+        assert timestamp.endswith("Z")
+        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        assert parsed.tzinfo is not None
+        assert abs((datetime.now(timezone.utc) - parsed).total_seconds()) < 5
 
     def test_multiple_actions(self, temp_dir):
         """Test logging multiple actions."""

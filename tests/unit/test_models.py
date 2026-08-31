@@ -4,10 +4,18 @@ Tests the Message and Conversation domain models.
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 from benedict.models import Message, Conversation
+
+
+def _utcnow_warnings(caught: list) -> list:
+    return [
+        warning
+        for warning in caught
+        if issubclass(warning.category, DeprecationWarning) and "utcnow" in str(warning.message)
+    ]
 
 
 class TestMessage:
@@ -68,8 +76,16 @@ class TestMessage:
 
         assert message.timestamp
         assert message.timestamp.endswith("Z")
-        # Parse to ensure it's valid ISO format
-        datetime.fromisoformat(message.timestamp.rstrip("Z"))
+        parsed = datetime.fromisoformat(message.timestamp.replace("Z", "+00:00"))
+        assert parsed.tzinfo is not None
+        assert abs((datetime.now(timezone.utc) - parsed).total_seconds()) < 5
+
+    def test_message_from_dict_without_timestamp_uses_utc(self):
+        """Missing timestamps are filled with timezone-aware UTC."""
+        message = Message.from_dict({"role": "user", "content": "Hi"})
+
+        assert message.timestamp.endswith("Z")
+        datetime.fromisoformat(message.timestamp.replace("Z", "+00:00"))
 
 
 class TestConversation:
@@ -219,6 +235,21 @@ class TestConversation:
         assert conv.thread_ts == "1234567890.123456"
         assert len(conv.messages) == 1
         assert conv.messages[0].content == "Question"
+
+    def test_conversation_from_dict_without_timestamps_uses_utc(self):
+        """Missing created_at and updated_at are filled with timezone-aware UTC."""
+        conv = Conversation.from_dict(
+            {
+                "thread_ts": "1234567890.123456",
+                "channel_id": "C123456",
+                "repo": "example-org/repo",
+            }
+        )
+
+        assert conv.created_at.endswith("Z")
+        assert conv.updated_at.endswith("Z")
+        datetime.fromisoformat(conv.created_at.replace("Z", "+00:00"))
+        datetime.fromisoformat(conv.updated_at.replace("Z", "+00:00"))
 
 
 class TestConversationManager:

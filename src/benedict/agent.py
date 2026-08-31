@@ -39,6 +39,7 @@ from benedict.commands.notion_tools import (
 )
 from benedict.commands.tool_loop import run_tool_loop
 from benedict.operator_ui.recorder import record_llm_stage, record_stage
+from benedict.lib.dateutil import utc_now_iso
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ class RepoAgent:
         existing = state["channels"].get(channel_id, {})
         channel = {
             "repo": repo,
-            "onboarded_at": datetime.utcnow().isoformat() + "Z",
+            "onboarded_at": utc_now_iso(),
             "onboarded_by": user_id,
         }
         if existing.get("notion"):
@@ -262,7 +263,7 @@ class RepoAgent:
         if "architect" not in state:
             state["architect"] = {}
         state["architect"]["channel_id"] = channel_id
-        state["architect"]["onboarded_at"] = datetime.utcnow().isoformat() + "Z"
+        state["architect"]["onboarded_at"] = utc_now_iso()
         state["architect"]["onboarded_by"] = user_id
         self.save_state(state)
         logger.info(f"Onboarded architect channel {channel_id}")
