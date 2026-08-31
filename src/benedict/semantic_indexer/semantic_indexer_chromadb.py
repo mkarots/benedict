@@ -229,6 +229,38 @@ class ChromaDBSemanticIndexer:
         )
         return formatted_results
 
+    def search_slack_channel(
+        self, channel_id: str, query: str, top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Search indexed Slack channel messages. Does not create a collection."""
+        from benedict.indexers.slack_history_indexer import (
+            _embedding_as_list,
+            format_slack_channel_hits,
+            slack_channel_collection_name,
+        )
+
+        if not channel_id or not str(query).strip():
+            return []
+
+        collection_name = slack_channel_collection_name(channel_id)
+        try:
+            collection = self.client.get_collection(collection_name)
+        except Exception:
+            logger.debug("No Slack channel collection for %s", channel_id)
+            return []
+
+        if collection.count() == 0:
+            return []
+
+        query_embedding = self.embedding_model.encode([str(query).strip()])[0]
+        n_results = min(max(top_k, 1), collection.count())
+        results = collection.query(
+            query_embeddings=[_embedding_as_list(query_embedding)], n_results=n_results
+        )
+        formatted = format_slack_channel_hits(results, channel_id)
+        logger.debug("Slack channel search for %s returned %s hits", channel_id, len(formatted))
+        return formatted
+
     def update_index(
         self,
         repo: str,

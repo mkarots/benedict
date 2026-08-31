@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-08-31
+
+### Fixed
+- Slack questions retrieve indexed channel history from the existing `slack_channel_*` Chroma collection. MCP `ask_benedict` still omits Slack ([#120](https://github.com/mkarots/benedict/issues/120)).
+
 ## [0.8.5] - 2026-08-31
 
 ### Fixed

@@ -45,7 +45,7 @@ If `repo` is omitted, the server uses the process working directory when it matc
 
 `ask_benedict`, `list_projects`, and `search_code` write a run to `$BENEDICT_DATA_DIR/runs.jsonl`. If the Slack bot is running, the operator console at `http://127.0.0.1:8765` reloads that file and shows the MCP call in Activity. **Why this answer** lists retrieved chunks (path, score, chunk text) and, for `ask_benedict`, the files stuffed into the prompt plus the prompt sent to the model. `get_repository_summary` and `get_recent_actions` are not recorded yet.
 
-`ask_benedict` shares `build_context()` with Slack. It does not use `RepoAgent`, thread history, or `run_github`. See `artifacts/REQUEST_PATH.html`.
+`ask_benedict` shares `build_context()` with Slack. It does not use `RepoAgent`, Slack channel history, thread history, or `run_github`. See `artifacts/REQUEST_PATH.html`.
 
 ## 4. Configuration
 

@@ -242,6 +242,72 @@ def build_context(
     return truncate_to_tokens(full_context, max_tokens)
 
 
+def build_slack_channel_context(
+    semantic_indexer: Optional[Any],
+    channel_id: str,
+    question: str,
+    top_k: int = 5,
+) -> str:
+    """Build context from indexed Slack channel messages.
+
+    Always queries the Slack collection when an indexer is present. Does not
+    require the question to mention conversations.
+    """
+    from benedict.indexers.slack_history_indexer import search_indexed_slack_channel
+
+    started = time.perf_counter()
+    try:
+        hits = search_indexed_slack_channel(semantic_indexer, channel_id, question, top_k=top_k)
+    except Exception as exc:
+        logger.warning("Error searching Slack channel history: %s", exc)
+        record_stage(
+            "slack_search",
+            status="error",
+            duration_ms=int((time.perf_counter() - started) * 1000),
+            label="slack search failed",
+            detail={"error": str(exc), "channel_id": channel_id},
+        )
+        return ""
+
+    if not hits:
+        record_stage(
+            "slack_search",
+            status="skip",
+            duration_ms=int((time.perf_counter() - started) * 1000),
+            label="no channel hits",
+            detail={"query": question, "channel_id": channel_id, "hits": []},
+        )
+        return ""
+
+    record_stage(
+        "slack_search",
+        duration_ms=int((time.perf_counter() - started) * 1000),
+        label=f"{len(hits)} channel messages",
+        detail={
+            "query": question,
+            "channel_id": channel_id,
+            "mode": "semantic",
+            "stuffed": "chunks",
+            "hits": hits_for_recorder(hits),
+        },
+    )
+
+    lines = [
+        "## Channel discussion",
+        "",
+        "Relevant messages from this Slack channel:",
+        "",
+    ]
+    for hit in hits:
+        kind = hit.get("type") or "message"
+        user = hit.get("user") or "unknown"
+        ts = hit.get("message_ts") or ""
+        score = float(hit.get("score") or 0)
+        content = str(hit.get("content") or "").strip()
+        lines.append(f"- ({kind}, score {score:.2f}, user {user}, ts {ts}) {content}")
+    return "\n".join(lines)
+
+
 def extract_keywords(question: str) -> List[str]:
     """Extract keywords from question.
 
