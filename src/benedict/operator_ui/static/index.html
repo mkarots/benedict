@@ -356,7 +356,7 @@
         ? `<pre class="payload mono">${escapeHtml(s.detail ? JSON.stringify(s.detail, null, 2) : "No payload recorded for this stage.")}</pre>`
         : "";
       return `
-        <button class="stage ${open ? "open" : ""} ${s.child ? "child" : ""}" data-stage="${i}">
+        <button class="stage ${open ? "open" : ""} ${s.child ? "child" : ""}" data-stage="${i}" aria-expanded="${open ? "true" : "false"}">
           <i class="pip ${pipClass(s.status)}"></i>
           <span class="name mono">${escapeHtml(s.name)}</span>
           <span class="label">${escapeHtml(s.label || s.name)}</span>
@@ -535,7 +535,8 @@
       }
       const stage = e.target.closest(".stage");
       if (stage) {
-        openStage = Number(stage.dataset.stage);
+        const i = Number(stage.dataset.stage);
+        openStage = openStage === i ? -1 : i;
         renderInspector(true);
       }
     });
