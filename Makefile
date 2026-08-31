@@ -1,4 +1,4 @@
-.PHONY: help install install-dev sync sync-dev run mcp test clean format format-check lint type-check check deps venv setup recreate-env docs docs-build
+.PHONY: help install install-dev sync sync-dev run mcp test clean format format-check lint type-check check venv setup recreate-env docs docs-build
 
 # Default target
 help:
@@ -11,7 +11,6 @@ help:
 	@echo "  make install-dev - Install all dependencies including dev tools"
 	@echo "  make sync        - Sync production dependencies with uv"
 	@echo "  make sync-dev    - Sync all dependencies including dev tools"
-	@echo "  make deps        - Check if dependencies are installed"
 	@echo "  make recreate-env - Remove and recreate virtual environment with all deps"
 	@echo ""
 	@echo "Running:"
@@ -55,15 +54,6 @@ install-dev:
 	@echo "Installing all dependencies (including dev tools) with uv..."
 	uv pip install -e ".[dev]"
 	@echo "✅ All dependencies (including dev tools) installed"
-
-# Check if dependencies are installed
-deps:
-	@echo "Checking dependencies..."
-	@python3 -c "import slack_bolt; print('✅ slack-bolt')" || echo "❌ slack-bolt not installed"
-	@python3 -c "import dotenv; print('✅ python-dotenv')" || echo "❌ python-dotenv not installed"
-	@python3 -c "import anthropic; print('✅ anthropic')" || echo "❌ anthropic not installed"
-	@python3 -c "import sentence_transformers; print('✅ sentence-transformers')" || echo "❌ sentence-transformers not installed"
-	@python3 -c "import chromadb; print('✅ chromadb')" || echo "❌ chromadb not installed"
 
 # Run the bot
 run:
