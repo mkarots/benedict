@@ -65,6 +65,15 @@ def test_benedict_lib_python_files_are_tracked():
     assert missing == [], f"src/benedict/lib files missing from git: {missing}"
 
 
+def test_clone_docs_mention_benedict_lib():
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    install = (REPO_ROOT / "docs" / "install.md").read_text(encoding="utf-8")
+    contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    troubleshooting = (REPO_ROOT / "docs" / "troubleshooting.md").read_text(encoding="utf-8")
+    for text in (readme, install, contributing, troubleshooting):
+        assert "src/benedict/lib" in text
+
+
 def test_lib_package_files_exist_on_disk():
     missing = [name for name in LIB_PY_FILES if not (LIB_DIR / name).is_file()]
     assert missing == [], f"missing lib modules: {missing}"

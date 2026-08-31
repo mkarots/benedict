@@ -36,6 +36,8 @@ source .venv/bin/activate
 make sync-dev
 ```
 
+A clone includes `src/benedict/lib` (logging and date helpers used at startup). Git ignores a `/lib/` directory at the repository root only, not that package.
+
 Put Slack tokens and `ANTHROPIC_API_KEY` in `.env`, then:
 
 ```bash
