@@ -220,3 +220,11 @@ def test_conversation_records_not_onboarded(tmp_path: Path):
     assert success is False
     loaded = recorder.get(run.id)
     assert any(stage["label"] == "not onboarded" for stage in loaded["stages"])
+
+
+def test_operator_page_toggles_pipeline_stage_closed():
+    from benedict.operator_ui.server import STATIC_DIR
+
+    page = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+    assert "openStage = openStage === i ? -1 : i" in page
+    assert 'aria-expanded="${open ? "true" : "false"}"' in page
