@@ -36,4 +36,4 @@ Commands you ran and what you verified.
 
 ## Screenshots
 
-Required if a human sees the change (operator UI, landing page, docs chrome, Slack Block Kit). Otherwise delete this section.
+Required for operator UI, landing page, docs chrome, or Slack Block Kit. Commit a PNG under `docs/assets/` and embed it here. For operator UI, use a desktop-width capture of the inspector (not only the activity list). Delete this section only when the change has no human-visible surface.

@@ -66,6 +66,13 @@ def test_contributing_points_at_pull_request_template():
     assert "A pull request template is not in the repository yet" not in text
 
 
+def test_contributing_requires_screenshots_for_visible_ui():
+    text = CONTRIBUTING.read_text(encoding="utf-8")
+    assert "Screenshots" in text
+    assert "operator UI" in text or "Operator UI" in text
+    assert "docs/assets/" in text
+
+
 def test_contributing_documents_pre_commit_install():
     text = CONTRIBUTING.read_text(encoding="utf-8")
     assert "pre-commit install" in text

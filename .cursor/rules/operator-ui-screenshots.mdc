@@ -1,0 +1,14 @@
+---
+description: Operator UI changes must include pull-request screenshots
+alwaysApply: true
+---
+
+# Operator UI screenshots
+
+When you change `src/benedict/operator_ui/` (the HTML page, recorded stages, or the HTTP API the page reads):
+
+1. Verify in the browser at a **desktop width** (~1280px). A phone-width clip of the activity list is not enough.
+2. Commit PNG screenshots under `docs/assets/` of the changed view. For inspector work, include **Why this answer** with the new panel visible; if the change is chunk text, show an expanded chunk.
+3. Embed those images in the pull request **Screenshots** section. Do not omit or delete that section for operator UI work.
+
+The PR template and CONTRIBUTING.md require the same for landing page, docs chrome, and Slack Block Kit.

@@ -10,7 +10,7 @@ REQUIRED_HEADINGS = (
     "## Related issues",
     "## Type of change",
     "## Testing done",
-    "## Checklist",
+    "## Screenshots",
 )
 
 CHECKLIST_ITEMS = (
@@ -44,3 +44,5 @@ def test_pr_template_covers_change_types_and_checklist():
     missing_checks = [item for item in CHECKLIST_ITEMS if item not in text]
     assert missing_checks == [], f"checklist missing: {missing_checks}"
     assert "Fixes #" in text
+    assert "operator UI" in text
+    assert "docs/assets/" in text
