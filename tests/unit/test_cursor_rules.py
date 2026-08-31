@@ -12,6 +12,7 @@ RULE_FILES = (
     "design-documents.mdc",
     "code-architecture.mdc",
     "version-bump.mdc",
+    "operator-ui-screenshots.mdc",
 )
 
 
@@ -60,3 +61,11 @@ def test_gitignore_tracks_cursor_rules():
     assert ".cursor/*" in text
     assert "!.cursor/rules/" in text
     assert "!.cursor/rules/**" in text
+
+
+def test_operator_ui_screenshots_rule_requires_pr_images():
+    text = (RULES_DIR / "operator-ui-screenshots.mdc").read_text(encoding="utf-8")
+    assert "alwaysApply: true" in text
+    assert "docs/assets/" in text
+    assert "Screenshots" in text
+    assert "src/benedict/operator_ui/" in text

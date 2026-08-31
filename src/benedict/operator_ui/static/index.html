@@ -122,8 +122,16 @@
     .ctx-block { padding: 12px 14px; border-bottom: 1px solid var(--line); }
     .ctx-block h2 { margin: 0 0 10px; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
     .hit, .file, .tool-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 5px 0; font-size: 12px; }
+    .hit { width: 100%; text-align: left; color: inherit; border-radius: 3px; }
+    .hit:hover, .hit.open { background: var(--hover); }
     .hit .path, .file { color: var(--ink); }
-    .score, .n { color: var(--faint); font-variant-numeric: tabular-nums; }
+    .score, .n, .reason { color: var(--faint); font-variant-numeric: tabular-nums; }
+    .chunk {
+      grid-column: 1 / -1; margin: 0 0 6px; padding: 8px 9px; max-height: 180px; overflow: auto;
+      background: #0a0908; border: 1px solid var(--line); border-radius: 3px;
+      color: var(--muted); font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word;
+    }
+    .search-note { margin: 0 0 10px; color: var(--faint); font-size: 11.5px; line-height: 1.45; }
     .prompt {
       margin: 0; max-height: 360px; overflow: auto;
       color: var(--muted); font-size: 11.5px; line-height: 1.55;
@@ -177,6 +185,7 @@
     let filter = "all";
     let selected = null;
     let openStage = 0;
+    let openHits = new Set();
     let inspectorFingerprint = "";
     const $ = (id) => document.getElementById(id);
 
@@ -242,6 +251,7 @@
       if (resetStage) {
         const i = (detail.stages || []).findIndex((s) => ["search", "tool", "classify"].includes(s.name));
         openStage = i >= 0 ? i : 0;
+        openHits = new Set();
       }
       renderInspector(!resetStage);
     }
@@ -288,10 +298,20 @@
       const files = [];
       const tools = [];
       let prompt = null;
+      let searchNote = "";
+      let contextNote = "";
       for (const s of r.stages || []) {
-        if (s.name === "search" && s.detail && Array.isArray(s.detail.hits)) hits.push(...s.detail.hits);
-        if (s.name === "context" && s.detail && Array.isArray(s.detail.files)) {
-          files.push(...s.detail.files.map((p) => [p, ""]));
+        if (s.name === "search" && s.detail) {
+          if (Array.isArray(s.detail.hits)) hits.push(...s.detail.hits);
+          if (!searchNote) searchNote = searchCaption(s.detail);
+        }
+        if (s.name === "context" && s.detail) {
+          if (Array.isArray(s.detail.items) && s.detail.items.length) {
+            files.push(...s.detail.items.map((item) => [item.path || item, item.reason || ""]));
+          } else if (Array.isArray(s.detail.files)) {
+            files.push(...s.detail.files.map((p) => [p, ""]));
+          }
+          if (s.detail.note) contextNote = s.detail.note;
         }
         if (s.name === "tool") {
           const name = (s.detail && s.detail.name) || s.label || "tool";
@@ -301,7 +321,33 @@
           prompt = s.detail;
         }
       }
-      return { hits, files, tools, prompt };
+      return { hits, files, tools, prompt, searchNote, contextNote };
+    }
+
+    function searchCaption(detail) {
+      if (!detail) return "";
+      if (detail.mode === "semantic" && detail.stuffed === "full_files") {
+        return "The question is embedded and compared to indexed chunks in Chroma. Hits below are those chunks. Benedict then reads the matching files in full (plus README) and stuffs them into the prompt. The model has no read_file tool.";
+      }
+      if (detail.mode === "semantic" && detail.stuffed === "chunks") {
+        return "The question is embedded and compared to indexed chunks. The chunk text itself is stuffed into the prompt (not the full files).";
+      }
+      if (detail.mode === "keyword") {
+        return "No semantic index. File names were matched against words in the question, then those files were read in full.";
+      }
+      return "";
+    }
+
+    function hitPath(h) {
+      if (Array.isArray(h)) return h[0] || "";
+      const path = h.file_path || h.path || "";
+      return h.project ? h.project + " · " + path : path;
+    }
+    function hitScore(h) {
+      return Array.isArray(h) ? h[1] : h.score;
+    }
+    function hitContent(h) {
+      return Array.isArray(h) ? "" : (h.content || "");
     }
 
     function stageMarkup(s, i) {
@@ -355,6 +401,7 @@
         error: r.error,
         stages: r.stages,
         openStage: stage,
+        openHits: [...openHits].sort(),
       });
     }
 
@@ -397,12 +444,19 @@
       const ctx = deriveContext(r);
       const context = `
         <div class="pane-head">Why this answer</div>
-        ${ctx.hits.length ? `<div class="ctx-block"><h2>Search</h2>${ctx.hits.map((h) => {
-          const path = Array.isArray(h) ? h[0] : h.file_path || h;
-          const score = Array.isArray(h) ? h[1] : h.score;
-          return `<div class="hit"><span class="path mono">${escapeHtml(path)}</span><span class="score mono">${score == null ? "" : Number(score).toFixed(2)}</span></div>`;
+        ${ctx.hits.length ? `<div class="ctx-block"><h2>Chunks retrieved</h2>${ctx.searchNote ? `<p class="search-note">${escapeHtml(ctx.searchNote)}</p>` : ""}${ctx.hits.map((h, i) => {
+          const path = hitPath(h);
+          const score = hitScore(h);
+          const content = hitContent(h);
+          const open = openHits.has(i);
+          const body = content && open ? `<pre class="chunk mono">${escapeHtml(content)}</pre>` : "";
+          return `<button class="hit ${open ? "open" : ""}" data-hit="${i}" ${content ? "" : "disabled"} title="${content ? "Show retrieved chunk" : ""}">
+            <span class="path mono">${escapeHtml(path)}</span>
+            <span class="score mono">${score == null || score === "" ? "" : Number(score).toFixed(2)}</span>
+            ${body}
+          </button>`;
         }).join("")}</div>` : ""}
-        ${ctx.files.length ? `<div class="ctx-block"><h2>In context</h2>${ctx.files.map(([p]) => `<div class="file"><span class="mono">${escapeHtml(p)}</span></div>`).join("")}</div>` : ""}
+        ${ctx.files.length ? `<div class="ctx-block"><h2>Files stuffed into prompt</h2>${ctx.contextNote ? `<p class="search-note">${escapeHtml(ctx.contextNote)}</p>` : ""}${ctx.files.map(([p, reason]) => `<div class="file"><span class="mono">${escapeHtml(p)}</span><span class="reason">${escapeHtml(reason)}</span></div>`).join("")}</div>` : ""}
         ${ctx.tools.length ? `<div class="ctx-block"><h2>Tools</h2>${ctx.tools.map(([n, t, st]) => `<div class="tool-row"><span class="mono">${escapeHtml(n)}</span><span class="n">${escapeHtml(t)} · ${escapeHtml(st)}</span></div>`).join("")}</div>` : ""}
         ${ctx.prompt ? `<div class="ctx-block"><h2>Prompt${ctx.prompt.iteration ? " · call " + escapeHtml(ctx.prompt.iteration) : ""}${ctx.prompt.truncated ? " · truncated" : ""}</h2><pre class="prompt mono">${escapeHtml(formatPrompt(ctx.prompt))}</pre></div>` : ""}
         ${!ctx.hits.length && !ctx.files.length && !ctx.tools.length && !ctx.prompt ? `<div class="empty">No retrieval or tools on this run.</div>` : ""}
@@ -469,6 +523,14 @@
         selected = run.dataset.id;
         renderList();
         loadDetail(selected, true);
+        return;
+      }
+      const hit = e.target.closest("[data-hit]");
+      if (hit) {
+        const i = Number(hit.dataset.hit);
+        if (openHits.has(i)) openHits.delete(i);
+        else openHits.add(i);
+        renderInspector(true);
         return;
       }
       const stage = e.target.closest(".stage");

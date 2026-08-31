@@ -92,6 +92,20 @@ def test_search_code_indexed_and_unindexed(tmp_path: Path):
     assert "not indexed" in skipped["note"]
 
 
+def test_search_code_records_chunks(tmp_path: Path):
+    recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
+    service = _build_service(tmp_path, index=True, run_recorder=recorder)
+    hits = service.search_code("authentication flow", repo="acme/example")
+    assert hits["ok"] is True
+    runs = recorder.list_runs(limit=10)
+    assert len(runs) == 1
+    assert runs[0]["route"] == "BenedictMcpService.search_code"
+    search = next(stage for stage in runs[0]["stages"] if stage["name"] == "search")
+    assert search["detail"]["mode"] == "semantic"
+    assert search["detail"]["hits"][0]["file_path"] == "file_authentication.py"
+    assert search["detail"]["hits"][0]["content"]
+
+
 def test_search_requires_query(tmp_path: Path):
     service = _build_service(tmp_path)
     result = service.search_code("  ")
@@ -129,6 +143,9 @@ def test_ask_records_operator_run(tmp_path: Path):
     assert "Repository context" in prompt["system"]
     assert prompt["messages"][0]["role"] == "user"
     assert "What does this repo do?" in prompt["messages"][0]["content"]
+    search_stages = [stage for stage in runs[0]["stages"] if stage["name"] == "search"]
+    assert search_stages
+    assert "hits" in search_stages[0]["detail"]
 
 
 def test_unknown_project_error(tmp_path: Path):

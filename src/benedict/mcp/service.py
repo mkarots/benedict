@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from benedict.mcp.project import Project, ProjectResolutionError, ProjectResolver
-from benedict.operator_ui.recorder import record_llm_stage
+from benedict.operator_ui.recorder import hits_for_recorder, record_llm_stage, record_stage
 from benedict.workspace.action_logger import ActionLogger
 
 MAX_SEARCH_CONTENT_CHARS = 4000
@@ -156,7 +156,22 @@ class BenedictMcpService:
         """Semantic search over an onboarded repository index."""
         if not query or not str(query).strip():
             return _err("query must be a non-empty string.")
+        return self._mcp_run(
+            "BenedictMcpService.search_code",
+            f"search_code  {query.strip()}",
+            repo,
+            lambda: self._search_untraced(query, repo, cwd, top_k),
+        )
+
+    def _search_untraced(
+        self,
+        query: str,
+        repo: Optional[str] = None,
+        cwd: Optional[Path] = None,
+        top_k: int = DEFAULT_SEARCH_TOP_K,
+    ) -> Dict[str, Any]:
         if not self._semantic_indexer:
+            record_stage("search", status="error", label="no indexer")
             return _err("Semantic index is not available on this Benedict instance.")
 
         try:
@@ -166,6 +181,12 @@ class BenedictMcpService:
 
         limit = max(1, min(int(top_k), MAX_SEARCH_TOP_K))
         if not self._semantic_indexer.is_indexed(project.repo):
+            record_stage(
+                "search",
+                status="skip",
+                label="not indexed",
+                detail={"query": query.strip(), "mode": "semantic", "hits": []},
+            )
             return _ok(
                 repo=project.repo,
                 channel_id=project.channel_id,
@@ -186,8 +207,22 @@ class BenedictMcpService:
                     "content": _truncate(str(item.get("content") or ""), MAX_SEARCH_CONTENT_CHARS),
                 }
             )
+        record_stage(
+            "search",
+            label=f"{len(results)} Chroma chunks",
+            detail={
+                "query": query.strip(),
+                "mode": "semantic",
+                "stuffed": "chunks",
+                "hits": hits_for_recorder(raw_results),
+            },
+        )
         return _ok(
-            repo=project.repo, channel_id=project.channel_id, query=query.strip(), results=results
+            repo=project.repo,
+            channel_id=project.channel_id,
+            query=query.strip(),
+            results=results,
+            summary=f"{len(results)} hits",
         )
 
     def get_recent_actions(

@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 MAX_DETAIL_BYTES = 32 * 1024
 MAX_RUNS = 2000
+SEARCH_HIT_LIMIT = 8
+SEARCH_HIT_PREVIEW_CHARS = 1200
 _current: ContextVar[Optional["ActiveRun"]] = ContextVar("benedict_run", default=None)
 
 
@@ -117,6 +119,30 @@ def _truncate(value: Any) -> Any:
 
 def current_run() -> Optional["ActiveRun"]:
     return _current.get()
+
+
+def hits_for_recorder(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Serialize semantic-search hits for a run stage.
+
+    Keeps path, score, and a short chunk preview so the operator console can
+    show what Chroma returned without dumping full files into ``runs.jsonl``.
+    """
+    hits: List[Dict[str, Any]] = []
+    for item in list(results or [])[:SEARCH_HIT_LIMIT]:
+        content = str(item.get("content") or "")
+        omitted = max(0, len(content) - SEARCH_HIT_PREVIEW_CHARS)
+        preview = content[:SEARCH_HIT_PREVIEW_CHARS]
+        if omitted:
+            preview = preview + f"\n...[{omitted} chars omitted]"
+        hit: Dict[str, Any] = {
+            "file_path": item.get("file_path") or "unknown",
+            "score": round(float(item.get("score") or 0), 2),
+            "content": preview,
+        }
+        if item.get("project"):
+            hit["project"] = item["project"]
+        hits.append(hit)
+    return hits
 
 
 def record_stage(

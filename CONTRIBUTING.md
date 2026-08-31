@@ -119,8 +119,8 @@ Cursor and Claude Code follow the project rules in `.cursor/rules/`.
 4. If behavior, commands, paths, env vars, or architecture changed, update `README.md` and the matching pages under `docs/` in the same change. Do not leave current docs describing the old system.
 5. Run `make lint`, `make type-check`, and `make test` (or `make check`) before you push. If you ran `pre-commit install`, Black and Ruff also run on `git commit`.
 6. Open a pull request against `main`. Link the issue (`Fixes #52` or `Closes #52`).
-7. GitHub pre-fills [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Complete every section: description, related issues, type of change, testing done, and the checklist (tests, docs, changelog).
+7. GitHub pre-fills [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Complete every section: description, related issues, type of change, testing done, checklist, and **Screenshots**.
 
 CI must pass. Reviewers look for correctness, a readable diff, and docs that match the code. Who merges, and how disagreements are resolved, is in [MAINTAINERS.md](MAINTAINERS.md).
 
-If the change is something a human sees (operator UI, landing page, docs chrome, Slack Block Kit), include a screenshot in the PR body or under `docs/` and link it.
+Operator UI changes must include a desktop-width screenshot in the PR **Screenshots** section. Commit the PNG under `docs/assets/` and embed it. The same applies to the landing page, docs chrome, and Slack Block Kit.

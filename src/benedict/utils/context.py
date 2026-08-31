@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from benedict.protocols import RepoReader, SemanticIndexer
-from benedict.operator_ui.recorder import record_stage
+from benedict.operator_ui.recorder import hits_for_recorder, record_stage
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,9 @@ def build_context(
     """
     parts = []
     context_files: List[str] = []
+    context_items: List[Dict[str, str]] = []
     search_started = time.perf_counter()
+    search_recorded = False
 
     # Include recent actions if available
     if action_logger and workspace_path:
@@ -84,6 +86,7 @@ def build_context(
             content = repo_reader.read_file(repo, requested_file)
             parts.append(f"# {requested_file}\n{content}")
             context_files.append(requested_file)
+            context_items.append({"path": requested_file, "reason": "asked for this file"})
             logger.info(f"Added directly requested file {requested_file} to context")
             # Still include other context, but prioritize the direct file read
         except FileNotFoundError:
@@ -96,6 +99,7 @@ def build_context(
         readme = repo_reader.read_file(repo, "README.md")
         parts.append(f"# README.md\n{readme}")
         context_files.append("README.md")
+        context_items.append({"path": "README.md", "reason": "always included"})
         logger.debug(f"Added README.md to context for {repo}")
     except FileNotFoundError:
         logger.debug(f"No README.md found for {repo}")
@@ -125,15 +129,18 @@ def build_context(
                 workspace_path=workspace_path,
                 metadata_reader=metadata_reader,
             )
-            hits = []
-            for item in results[:8]:
-                hits.append([item.get("file_path"), round(float(item.get("score") or 0), 2)])
             record_stage(
                 "search",
                 duration_ms=int((time.perf_counter() - search_started) * 1000),
-                label=f"{len(results)} hits",
-                detail={"query": question, "hits": hits},
+                label=f"{len(results)} Chroma chunks",
+                detail={
+                    "query": question,
+                    "mode": "semantic",
+                    "stuffed": "full_files",
+                    "hits": hits_for_recorder(results),
+                },
             )
+            search_recorded = True
 
             # Group results by file and get full file content
             seen_files = set()
@@ -153,6 +160,7 @@ def build_context(
                     content = truncate_file_content(content, max_lines=1000)
                     parts.append(f"# {file_path}\n{content}")
                     context_files.append(file_path)
+                    context_items.append({"path": file_path, "reason": "semantic hit"})
                     logger.debug(
                         f"Added {file_path} to context (semantic match, score: {result['score']:.2f})"
                     )
@@ -169,13 +177,13 @@ def build_context(
                 label="search failed",
                 detail={"error": str(e)},
             )
+            search_recorded = True
             # Fall through to keyword matching
-    else:
-        record_stage("search", status="skip", label="no indexer")
 
     # Fallback to keyword matching if semantic search not available or failed
     if not semantic_indexer or len(parts) == 1:  # Only README added
         keywords = extract_keywords(question)
+        keyword_hits: List[Dict[str, Any]] = []
         if keywords:
             try:
                 all_files = repo_reader.list_files(repo)
@@ -188,12 +196,33 @@ def build_context(
                         content = truncate_file_content(content, max_lines=1000)
                         parts.append(f"# {file_path}\n{content}")
                         context_files.append(file_path)
+                        context_items.append({"path": file_path, "reason": "keyword match"})
+                        keyword_hits.append({"file_path": file_path, "score": 0, "content": ""})
                         logger.debug(f"Added {file_path} to context (keyword match)")
                     except Exception as e:
                         logger.warning(f"Error reading {file_path}: {e}")
                         continue
             except Exception as e:
                 logger.warning(f"Error listing files for {repo}: {e}")
+        if not search_recorded:
+            if keyword_hits:
+                record_stage(
+                    "search",
+                    duration_ms=int((time.perf_counter() - search_started) * 1000),
+                    label=f"{len(keyword_hits)} keyword files",
+                    detail={
+                        "query": question,
+                        "mode": "keyword",
+                        "stuffed": "full_files",
+                        "hits": keyword_hits,
+                    },
+                )
+            else:
+                record_stage(
+                    "search",
+                    status="skip",
+                    label="no indexer" if not semantic_indexer else "no keyword matches",
+                )
 
     # Combine and truncate to fit token limit
     full_context = "\n\n".join(parts)
@@ -201,7 +230,14 @@ def build_context(
         "context",
         duration_ms=int((time.perf_counter() - search_started) * 1000),
         label=f"{len(context_files)} files",
-        detail={"files": context_files},
+        detail={
+            "files": context_files,
+            "items": context_items,
+            "note": (
+                "Chunks pick files. Full file text (truncated) is stuffed into "
+                "the prompt. The model has no read_file tool."
+            ),
+        },
     )
     return truncate_to_tokens(full_context, max_tokens)
 
@@ -406,6 +442,16 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
         # Sort by score (descending) and take top 10
         all_results.sort(key=lambda x: x.get("score", 0), reverse=True)
         top_results = all_results[:10]
+        record_stage(
+            "search",
+            label=f"{len(top_results)} cross-repo chunks",
+            detail={
+                "query": query,
+                "mode": "semantic",
+                "stuffed": "chunks",
+                "hits": hits_for_recorder(top_results),
+            },
+        )
 
         results_context = f"\n# Relevant Code Across Projects ({len(all_results)} total results, showing top {len(top_results)})\n\n"
         for result in top_results:
@@ -418,7 +464,21 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
             results_context += f"```\n{content[:500]}{'...' if len(content) > 500 else ''}\n```\n\n"
 
         parts.append(results_context)
+        record_stage(
+            "context",
+            label=f"{len(top_results)} chunks",
+            detail={
+                "files": [f"{item.get('project')}/{item.get('file_path')}" for item in top_results],
+                "note": "Architect stuffs matching chunk text, not full files.",
+            },
+        )
     else:
         parts.append("\n# Relevant Code Across Projects\n\nNo relevant code found across projects.")
+        record_stage(
+            "search",
+            status="skip",
+            label="no cross-repo chunks",
+            detail={"query": query, "mode": "semantic", "stuffed": "chunks", "hits": []},
+        )
 
     return "\n".join(parts)

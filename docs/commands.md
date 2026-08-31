@@ -51,7 +51,9 @@ It does not clone from GitHub. The directory must already exist on the machine t
 @benedict what files handle authentication?
 ```
 
-Benedict searches the index, reads relevant files from the workspace, and replies in the thread. Later replies in that thread are treated as continuation even without a mention, once Benedict has already participated.
+Benedict embeds the question, retrieves similar chunks from the Chroma index, then reads those files (plus README) from the workspace and sends them to Claude. The model has no `read_file` tool. Later replies in that thread are treated as continuation even without a mention, once Benedict has already participated.
+
+Open `http://127.0.0.1:8765` to see the retrieved chunks and the files that went into the prompt.
 
 How that request is routed: `artifacts/REQUEST_PATH.html`.
 
