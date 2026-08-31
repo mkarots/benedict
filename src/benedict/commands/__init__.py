@@ -8,6 +8,7 @@ from .command_classifier import CommandClassifier, CommandIntent, CommandType
 from .command_definitions import COMMAND_DEFINITIONS
 from .github_tools import RunGithubTool
 from .llm_classifier import LLMCommandClassifier
+from .notion_tools import RunNotionTool
 from .metadata_tools import (
     GetFileMetadataTool,
     GetRepositorySummaryTool,
@@ -31,5 +32,6 @@ __all__ = [
     "GetRepositorySummaryTool",
     "LLMCommandClassifier",
     "RunGithubTool",
+    "RunNotionTool",
     "run_tool_loop",
 ]

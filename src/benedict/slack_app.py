@@ -324,6 +324,16 @@ def create_slack_app(agent: RepoAgent) -> App:
                     success, message = agent.handle_onboard(channel_id, user_id, text_clean)
                     format_and_send_message(say, message, thread_ts, message_type="command")
 
+                elif agent.is_unlink_notion_command(text_clean):
+                    _route_run(run, kind="command", route="handle_unlink_notion", label="command")
+                    success, message = agent.handle_unlink_notion(channel_id)
+                    format_and_send_message(say, message, thread_ts, message_type="command")
+
+                elif agent.is_link_notion_command(text_clean):
+                    _route_run(run, kind="command", route="handle_link_notion", label="command")
+                    success, message = agent.handle_link_notion(channel_id, text_clean)
+                    format_and_send_message(say, message, thread_ts, message_type="command")
+
                 elif agent.is_offboard_command(text_clean):
                     _route_run(run, kind="command", route="handle_offboard", label="command")
                     success, message = agent.handle_offboard(channel_id, user_id)

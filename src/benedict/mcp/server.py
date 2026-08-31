@@ -12,11 +12,9 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
-from dotenv import load_dotenv
-
 from benedict.mcp.project import ProjectResolver, load_channel_state
 from benedict.mcp.service import BenedictMcpService
-from benedict.paths import get_data_dir, get_env_file
+from benedict.paths import get_data_dir, load_runtime_env
 from benedict.workspace import WorkspaceManager
 
 logger = logging.getLogger(__name__)
@@ -33,9 +31,8 @@ def _setup_logging() -> None:
 
 
 def _load_env() -> None:
-    env_path = get_env_file()
+    env_path = load_runtime_env()
     if env_path.exists():
-        load_dotenv(dotenv_path=env_path, override=False)
         logger.info("Loaded environment from %s", env_path)
     else:
         logger.info("No .env file at %s; using process environment", env_path)

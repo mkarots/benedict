@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-30
+
+### Added
+- Slack conversations can run Notion through `ntn` (`run_notion`), the same argv-only pattern as `run_github`. `@benedict link notion <url>` stores a per-channel default; `unlink notion` clears it without offboarding the repo. Slack always loads missing keys from `.env` so `NOTION_API_KEY` is not skipped when Slack tokens are already set. Replaces the stale implementation on [#8](https://github.com/mkarots/benedict/pull/8).
+
 ## [0.6.26] - 2026-08-30
 
 ### Changed

@@ -31,6 +31,12 @@ from benedict.commands import (
     create_tool_registry,
 )
 from benedict.commands.github_tools import RunGithubTool
+from benedict.commands.notion_tools import (
+    LINK_NOTION_EXAMPLE,
+    RunNotionTool,
+    parse_notion_id,
+    probe_notion_id,
+)
 from benedict.commands.tool_loop import run_tool_loop
 from benedict.operator_ui.recorder import record_llm_stage, record_stage
 
@@ -134,13 +140,101 @@ class RepoAgent:
         if "channels" not in state:
             state["channels"] = {}
 
-        state["channels"][channel_id] = {
+        existing = state["channels"].get(channel_id, {})
+        channel = {
             "repo": repo,
             "onboarded_at": datetime.utcnow().isoformat() + "Z",
             "onboarded_by": user_id,
         }
+        if existing.get("notion"):
+            channel["notion"] = existing["notion"]
+        state["channels"][channel_id] = channel
         self.save_state(state)
         logger.info(f"Onboarded channel {channel_id} to repo {repo}")
+
+    def get_channel_notion(self, channel_id: str) -> Dict[str, str]:
+        """Get linked Notion ids for a channel."""
+        state = self.load_state()
+        channel_config = state.get("channels", {}).get(channel_id) or {}
+        notion = channel_config.get("notion") or {}
+        return {key: value for key, value in notion.items() if value}
+
+    def set_channel_notion(self, channel_id: str, notion: Dict[str, str]) -> None:
+        """Store linked Notion ids on an onboarded channel."""
+        state = self.load_state()
+        if channel_id not in state.get("channels", {}):
+            return
+        state["channels"][channel_id]["notion"] = {
+            key: value for key, value in notion.items() if value
+        }
+        self.save_state(state)
+
+    def clear_channel_notion(self, channel_id: str) -> None:
+        """Remove linked Notion ids without offboarding the repo."""
+        state = self.load_state()
+        channel = state.get("channels", {}).get(channel_id)
+        if not channel:
+            return
+        channel.pop("notion", None)
+        self.save_state(state)
+
+    def handle_link_notion(self, channel_id: str, text: str) -> Tuple[bool, str]:
+        """Link a Notion page or database URL to this channel."""
+        if not self.get_channel_repo(channel_id):
+            return (
+                False,
+                "Onboard a repository before linking Notion.\n\n"
+                f"Use `@benedict onboard repo org/repo`, then `{LINK_NOTION_EXAMPLE}`.",
+            )
+        notion_id = parse_notion_id(text)
+        if not notion_id:
+            return (
+                False,
+                "⚠️ Notion URL Not Found\n\n"
+                "I couldn't find a Notion page or database id in your message.\n\n"
+                "*Next steps:*\n"
+                f"• `{LINK_NOTION_EXAMPLE}`",
+            )
+        ok, message, notion_state = probe_notion_id(notion_id)
+        if not ok:
+            return False, f"⚠️ Notion Not Reachable\n\n{message}"
+        self.set_channel_notion(channel_id, notion_state)
+        title = notion_state.get("title") or message
+        kind = (
+            "database"
+            if notion_state.get("database_id") and not notion_state.get("page_id")
+            else "page"
+        )
+        extra = ""
+        if notion_state.get("page_id") and notion_state.get("database_id"):
+            extra = " (page is in a database)"
+        return (
+            True,
+            f"✅ Linked Notion {kind}: *{title}*{extra}\n"
+            f"I'll use this as the default for `run_notion` in this channel.",
+        )
+
+    def handle_unlink_notion(self, channel_id: str) -> Tuple[bool, str]:
+        """Forget the channel's Notion mapping. Does not revoke Notion access."""
+        if not self.get_channel_repo(channel_id):
+            return False, "This channel is not onboarded."
+        if not self.get_channel_notion(channel_id):
+            return True, "No Notion page is linked to this channel."
+        self.clear_channel_notion(channel_id)
+        return (
+            True,
+            "✅ Unlinked Notion from this channel. The repo mapping is unchanged.\n"
+            "Remove the connection from the page in Notion if you also want to revoke access.",
+        )
+
+    @staticmethod
+    def is_link_notion_command(text: str) -> bool:
+        lowered = text.lower()
+        return "link notion" in lowered and "unlink notion" not in lowered
+
+    @staticmethod
+    def is_unlink_notion_command(text: str) -> bool:
+        return "unlink notion" in text.lower()
 
     def remove_channel_repo(self, channel_id: str) -> None:
         """Remove repository association from channel (offboard)."""
@@ -419,6 +513,10 @@ class RepoAgent:
             f"⏰ Onboarded: {formatted_time}\n"
             f"👤 By: <@{onboarded_by}>"
         )
+        notion = channel_config.get("notion") or {}
+        if notion.get("title") or notion.get("page_id") or notion.get("database_id"):
+            label = notion.get("title") or notion.get("page_id") or notion.get("database_id")
+            message += f"\n🔗 Notion: `{label}`"
 
         return (True, message, channel_config)
 
@@ -765,6 +863,9 @@ class RepoAgent:
                 "- **Run GitHub CLI (`gh`)** in this repository via the `run_github` tool"
             )
         capabilities.append(
+            "- **Read and write Notion** via the `run_notion` tool (`ntn` on this host)"
+        )
+        capabilities.append(
             "- **Access conversation history** - I can read and summarize past conversations in this channel"
         )
 
@@ -773,6 +874,18 @@ class RepoAgent:
             if capabilities
             else "- Limited access (no repository reader configured)"
         )
+
+        linked_notion = self.get_channel_notion(channel_id)
+        if linked_notion:
+            notion_ids = ", ".join(f"{key}={value}" for key, value in linked_notion.items())
+            notion_link_text = f"This channel's linked Notion: {notion_ids}. Prefer these ids."
+        else:
+            notion_link_text = (
+                "This channel has no linked Notion page. Tell the user to run this "
+                f"exact Slack command: `{LINK_NOTION_EXAMPLE}`. They replace the "
+                "example URL with their real Notion page or database URL. "
+                "The host must have `ntn` installed and `ntn login` (or NOTION_API_KEY)."
+            )
 
         system = (
             f"You are Benedict, a helpful technical engineer assistant for the repository '{repo}'.\n\n"
@@ -788,7 +901,7 @@ class RepoAgent:
             f"- You can reference specific files, functions, and code patterns from the context.\n"
             f"- If asked about conversations, summarize them, extract key topics, decisions, and action items.\n"
             f"- If asked about your capabilities, explain that you have access to repository files, semantic search, "
-            f"workspace metadata, conversation history, and GitHub via `run_github`.\n"
+            f"workspace metadata, conversation history, GitHub via `run_github`, and Notion via `run_notion`.\n"
             f"- Be confident about your access - you are not a generic LLM without repository access, "
             f"but rather an agent with integrated repository reading capabilities.\n"
             f"- **GitHub (`run_github`)**: To inspect PRs, issues, checks, or other GitHub data, call "
@@ -797,7 +910,15 @@ class RepoAgent:
             f"results. This is not a general shell — only `gh` runs. Ask the user before mutating GitHub "
             f"(create, merge, close, comment). Never print tokens or secrets. If `gh` is missing or not "
             f"authenticated, explain that the host running Benedict must install GitHub CLI and run "
-            f"`gh auth login`.\n\n"
+            f"`gh auth login`.\n"
+            f"- **Notion (`run_notion`)**: {notion_link_text} "
+            f"Call `run_notion` with argv only (do not include `ntn`). "
+            f"You may call it many times in one reply to walk Notion. Typical path: "
+            f"`pages get` → follow `collection://` data-source ids → `datasources query`. "
+            f"Ask the user before mutating (pages create, pages edit, pages trash). "
+            f"If `ntn` is missing, tell the user to install the Notion CLI "
+            f"(`curl -fsSL https://ntn.dev | bash`) and run `ntn login`. "
+            f"NOTION_API_KEY in .env is copied to NOTION_API_TOKEN for ntn.\n\n"
             f"## Response Formatting (Slack-compatible)\n\n"
             f"- Format your responses using Slack mrkdwn format:\n"
             f"  - Use `*bold*` for emphasis and headings (not `**bold**`)\n"
@@ -818,7 +939,8 @@ class RepoAgent:
         # GitHub is a conversation tool (interpret output), not a classifier command.
         try:
             github_registry = ToolRegistry()
-            tool_context: Dict[str, Any] = {}
+            tool_context: Dict[str, Any] = {"notion": self.get_channel_notion(channel_id)}
+            github_registry.register(RunNotionTool())
             if ctx_workspace:
                 github_registry.register(RunGithubTool())
                 tool_context["workspace_path"] = str(ctx_workspace / repo)
@@ -830,6 +952,7 @@ class RepoAgent:
                     system=system,
                     tool_registry=github_registry,
                     context=tool_context,
+                    max_iterations=12,
                 )
             else:
                 llm_started = time.perf_counter()
@@ -1131,7 +1254,7 @@ class RepoAgent:
             or "unonboard" in text_lower
             or "remove channel" in text_lower
             or "disconnect" in text_lower
-            or "unlink" in text_lower
+            or ("unlink" in text_lower and "notion" not in text_lower)
         )
 
     @staticmethod

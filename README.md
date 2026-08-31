@@ -20,7 +20,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.6.26. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.7.0. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 
@@ -55,6 +55,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 | `status` | Shows the linked repo |
 | `update index` | Incremental reindex (`force` for a full rebuild) |
 | `link notion <url>` | Sets this channel's default Notion page or database |
+| `unlink notion` | Clears the Notion mapping (repo stays onboarded) |
 | `onboard architect` | Cross-project architect channel |
 | `progress` | Run the progress loop (`all`, `now`) |
 | Any other question | Repo-scoped conversation |
