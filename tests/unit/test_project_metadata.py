@@ -14,7 +14,6 @@ else:
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT = REPO_ROOT / "pyproject.toml"
-
 REQUIRED_URLS = ("Homepage", "Repository", "Issues")
 REQUIRED_CLASSIFIER_FRAGMENTS = (
     "Programming Language :: Python :: 3.10",

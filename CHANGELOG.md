@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] - 2026-08-31
+
+### Changed
+- Runtime dependencies declare `numpy` and `slack-sdk` because the package imports them. Unused `rich` is no longer a direct dependency.
+
+### Removed
+- Unused `dev` extra packages: Flake8, pytest-asyncio, and pytest-mock. The leftover `make deps` target is gone.
+
 ## [0.8.3] - 2026-08-31
 
 ### Changed
