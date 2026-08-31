@@ -4,6 +4,7 @@ Tests the core agent logic including command parsing and conversation handling.
 """
 
 import json
+from datetime import datetime
 
 
 from benedict.agent import RepoAgent, REPO_PATTERN
@@ -160,6 +161,21 @@ class TestRepoAgent:
         with open(temp_state_file, "r") as f:
             state = json.load(f)
         assert state["channels"]["C123456"]["repo"] == "example-org/repo"
+        onboarded_at = state["channels"]["C123456"]["onboarded_at"]
+        assert onboarded_at.endswith("Z")
+        datetime.fromisoformat(onboarded_at.replace("Z", "+00:00"))
+
+    def test_set_architect_channel_records_utc_onboarded_at(self, temp_state_file):
+        """Architect onboarding stores a timezone-aware UTC timestamp."""
+        agent = RepoAgent(state_file=str(temp_state_file))
+        agent.set_architect_channel("C999", "U123456")
+
+        with open(temp_state_file, "r") as f:
+            state = json.load(f)
+        onboarded_at = state["architect"]["onboarded_at"]
+        assert state["architect"]["channel_id"] == "C999"
+        assert onboarded_at.endswith("Z")
+        datetime.fromisoformat(onboarded_at.replace("Z", "+00:00"))
 
     def test_is_onboard_command(self, temp_state_file):
         """Test detecting onboard commands."""

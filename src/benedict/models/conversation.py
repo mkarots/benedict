@@ -5,9 +5,10 @@ Tracks message history for a conversation thread.
 
 import json
 import logging
-from datetime import datetime
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
+
+from benedict.lib.dateutil import utc_now_iso
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class Message:
 
     role: str  # "user" or "assistant"
     content: str
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    timestamp: str = field(default_factory=utc_now_iso)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -38,7 +39,7 @@ class Message:
         return cls(
             role=data["role"],
             content=data["content"],
-            timestamp=data.get("timestamp", datetime.utcnow().isoformat() + "Z"),
+            timestamp=data.get("timestamp", utc_now_iso()),
         )
 
 
@@ -50,8 +51,8 @@ class Conversation:
     channel_id: str
     repo: str
     messages: List[Message] = field(default_factory=list)
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    created_at: str = field(default_factory=utc_now_iso)
+    updated_at: str = field(default_factory=utc_now_iso)
 
     def add_message(self, role: str, content: str) -> None:
         """Add a message to the conversation.
@@ -62,7 +63,7 @@ class Conversation:
         """
         message = Message(role=role, content=content)
         self.messages.append(message)
-        self.updated_at = datetime.utcnow().isoformat() + "Z"
+        self.updated_at = utc_now_iso()
         logger.debug(f"Added {role} message to conversation {self.thread_ts}")
 
     def get_messages(self, max_messages: Optional[int] = None) -> List[Message]:
@@ -123,8 +124,8 @@ class Conversation:
             channel_id=data["channel_id"],
             repo=data["repo"],
             messages=[Message.from_dict(msg) for msg in data.get("messages", [])],
-            created_at=data.get("created_at", datetime.utcnow().isoformat() + "Z"),
-            updated_at=data.get("updated_at", datetime.utcnow().isoformat() + "Z"),
+            created_at=data.get("created_at", utc_now_iso()),
+            updated_at=data.get("updated_at", utc_now_iso()),
         )
 
 

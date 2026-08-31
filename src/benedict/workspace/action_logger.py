@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
+from benedict.lib.dateutil import utc_now_iso
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +43,7 @@ class ActionLogger:
             **kwargs: Additional metadata
         """
         action_entry = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": utc_now_iso(),
             "action": action,
             "content_type": content_type,
             "resource": resource,
