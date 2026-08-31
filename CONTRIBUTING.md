@@ -29,6 +29,8 @@ source .venv/bin/activate
 make sync-dev
 ```
 
+A clone includes `src/benedict/lib` (logging and date helpers used at startup). Git ignores a `/lib/` directory at the repository root only, not that package.
+
 `make setup` creates `.venv`. `make sync-dev` installs the package and the `dev` extra (pytest, Ruff, Black, mypy, Pylint, pre-commit, and the docs tools).
 
 Without Make:

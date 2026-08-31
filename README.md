@@ -20,7 +20,7 @@ Each channel is one project. You point the channel at a local folder. Benedict a
 
 You can ask the same questions from Cursor or Claude Code. When you want a next step, it can ask, open a GitHub issue, or mark work as ready to implement.
 
-Python 3.10+. Version 0.8.0. It does not download the project from GitHub for you.
+Python 3.10+. Version 0.8.1. It does not download the project from GitHub for you.
 
 Package name, authors, classifiers, keywords, and project URLs live in [`pyproject.toml`](pyproject.toml).
 
@@ -35,6 +35,8 @@ make setup
 source .venv/bin/activate
 make sync-dev
 ```
+
+A clone includes `src/benedict/lib` (logging and date helpers used at startup). Git ignores a `/lib/` directory at the repository root only, not that package.
 
 Put Slack tokens and `ANTHROPIC_API_KEY` in `.env`, then:
 

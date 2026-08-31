@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-08-31
+
+### Fixed
+- `.gitignore` no longer treats `src/benedict/lib/` as a virtualenv path. Logging and date helpers are tracked so a fresh clone can import them ([#118](https://github.com/mkarots/benedict/issues/118)).
+
 ## [0.8.0] - 2026-08-31
 
 ### Added
