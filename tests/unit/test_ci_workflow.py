@@ -30,6 +30,12 @@ def test_ci_has_lint_typecheck_and_test_jobs():
     assert set(jobs) == {"lint", "typecheck", "test"}
 
 
-def test_test_job_covers_supported_python_versions():
-    versions = _workflow()["jobs"]["test"]["strategy"]["matrix"]["python-version"]
-    assert versions == ["3.10", "3.11", "3.12"]
+def test_test_job_runs_python_3_12_only():
+    job = _workflow()["jobs"]["test"]
+    assert "strategy" not in job
+    versions = [
+        step["with"]["python-version"]
+        for step in job["steps"]
+        if "with" in step and "python-version" in step["with"]
+    ]
+    assert versions == ["3.12"]

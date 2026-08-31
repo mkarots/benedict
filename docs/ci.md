@@ -12,7 +12,9 @@ The workflow is [`.github/workflows/ci.yml`](https://github.com/mkarots/benedict
 | --- | --- | --- |
 | Lint | `ruff check src tests` and `black --check src tests` | 3.12 |
 | Type check | `mypy src/benedict` | 3.12 |
-| Tests | `pytest` with coverage | 3.10, 3.11, 3.12 |
+| Tests | `pytest` with coverage | 3.12 |
+
+The package still installs on Python 3.10 and 3.11 (`requires-python = ">=3.10"`). CI does not run those versions.
 
 Local equivalents: `make lint`, `make type-check`, `make test`. After `pre-commit install`, Git hooks in `.pre-commit-config.yaml` run Black, Ruff, trailing-whitespace, and end-of-file-fixer on commit. Those Black and Ruff versions match the `dev` extra. Setup: `CONTRIBUTING.md` at the repository root.
 

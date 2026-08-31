@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-08-31
+
+### Changed
+- CI runs pytest on Python 3.12 only. Pull requests no longer wait on 3.10 and 3.11 test jobs. The package still declares `requires-python = ">=3.10"`.
+
 ## [0.8.2] - 2026-08-31
 
 ### Fixed
