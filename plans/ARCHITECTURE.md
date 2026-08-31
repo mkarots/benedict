@@ -93,6 +93,8 @@ For what happens on a user request (routing, prompt building, tool calls, Slack 
 Benedict does not have a method-file subsystem. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
 
 ### Utilities
+- **`lib/logging.py`** - Process-wide logging setup (`setup_logging`, `get_logger`)
+- **`lib/dateutil.py`** - UTC normalization for incremental indexers
 - **`utils/context.py`** - Context building functions (uses semantic search when available)
 
 ## Dependency Flow
