@@ -7,167 +7,16 @@ import json
 import logging
 import re
 import os
-from typing import Any, List, Optional, Tuple
+from typing import Any, Optional
 from slack_bolt import App
 from benedict.agent import RepoAgent
 from benedict.operator_ui.recorder import NullActiveRun
-from benedict.utils import SlackFormatter, BlockKitFormatter
+from benedict.slack_messages import format_and_send_message
 
 logger = logging.getLogger(__name__)
 
 # Slack app will be initialized in create_slack_app() after .env is loaded
 app = None
-
-
-def parse_error_message(message: str) -> Tuple[str, str, Optional[List[str]]]:
-    """Split an agent error string into header, body, and optional next steps.
-
-    Accepts both `⚠️ Type\\n\\nbody` and `⚠️ Type:\\n- detail` so Slack does not
-    wrap the original warning in a second "Error" header.
-    """
-    error_match = re.match(r"⚠️\s*(.+?)\n+(.+)", message, re.DOTALL)
-    if not error_match:
-        return "Error", message, None
-
-    error_type = error_match.group(1).strip().rstrip(":")
-    error_msg = error_match.group(2).strip()
-    next_steps_match = re.search(r"Next steps?[:\n]+(.+)", error_msg, re.IGNORECASE)
-    next_steps = None
-    if next_steps_match:
-        steps_text = next_steps_match.group(1)
-        next_steps = [s.strip() for s in steps_text.split("\n") if s.strip()]
-    return error_type, error_msg, next_steps
-
-
-def format_and_send_message(
-    say: Any,
-    message: str,
-    thread_ts: Optional[str] = None,
-    message_type: str = "conversation",
-    use_block_kit: Optional[bool] = None,
-) -> None:
-    """Format and send a message to Slack.
-
-    Handles message formatting, chunking, and Block Kit formatting based on
-    message type and content.
-
-    Args:
-        say: Slack say function
-        message: Message text to send
-        thread_ts: Optional thread timestamp for replies
-        message_type: Type of message ("conversation", "status", "error", "command")
-        use_block_kit: Force Block Kit usage (auto-detect if None)
-    """
-    if not message:
-        return
-
-    # Format based on message type
-    if message_type == "status":
-        # Status messages use Block Kit with structured format
-        # Parse status message format: "📊 *Title*\n━━━━━━━━━━━━━━━\n🔗 Field: value\n..."
-        lines = message.split("\n")
-        title = ""
-        fields = {}
-
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            # Extract title (first line with emoji and bold)
-            if not title and ("📊" in line or "✅" in line or "⚠️" in line):
-                title_match = re.search(r"[📊✅⚠️]\s*\*{1,2}(.+?)\*{1,2}", line)
-                if title_match:
-                    title = title_match.group(1).strip()
-                elif line.startswith("📊") or line.startswith("✅") or line.startswith("⚠️"):
-                    title = (
-                        line.replace("📊", "")
-                        .replace("✅", "")
-                        .replace("⚠️", "")
-                        .replace("*", "")
-                        .strip()
-                    )
-                continue
-
-            # Skip divider lines
-            if line.startswith("━") or line.startswith("─"):
-                continue
-
-            # Extract fields (emoji + key: value format)
-            field_match = re.match(r"([📊🔗⏰👤📺])\s*(.+?):\s*(.+)", line)
-            if field_match:
-                emoji, key, value = field_match.groups()
-                # Clean up key (remove markdown)
-                key = re.sub(r"\*+", "", key).strip()
-                fields[key] = value.strip()
-            else:
-                # Try format without emoji: "Key: value"
-                key_value_match = re.match(r"(.+?):\s*(.+)", line)
-                if key_value_match:
-                    key, value = key_value_match.groups()
-                    key = re.sub(r"\*+", "", key).strip()
-                    fields[key] = value.strip()
-
-        # Determine emoji from original message
-        emoji = None
-        if "📊" in message:
-            emoji = "📊"
-        elif "✅" in message:
-            emoji = "✅"
-        elif "⚠️" in message:
-            emoji = "⚠️"
-
-        if title and fields:
-            formatted = BlockKitFormatter.format_status_message(title, fields, emoji)
-        else:
-            # Fallback to regular formatting
-            formatted = BlockKitFormatter.format_message(message, use_block_kit=use_block_kit)
-
-    elif message_type == "error":
-        error_type, error_msg, next_steps = parse_error_message(message)
-        formatted = BlockKitFormatter.format_error_message(error_type, error_msg, next_steps)
-
-    elif message_type == "command":
-        # Command responses (onboard, update-index) - use Block Kit for better structure
-        formatted = BlockKitFormatter.format_message(message, use_block_kit=True)
-
-    else:
-        # Conversation responses - auto-detect Block Kit usage
-        formatted = BlockKitFormatter.format_message(message, use_block_kit=use_block_kit)
-
-    # Check if message needs chunking
-    if "blocks" in formatted:
-        # Block Kit message - check total length
-        total_text = sum(
-            len(block.get("text", {}).get("text", ""))
-            for block in formatted["blocks"]
-            if block.get("type") == "section" and "text" in block
-        )
-        if total_text > SlackFormatter.MAX_MESSAGE_LENGTH:
-            # Split into multiple messages
-            chunks = SlackFormatter.split_message(message)
-            for i, chunk in enumerate(chunks):
-                chunk_formatted = BlockKitFormatter.format_message(chunk, use_block_kit=True)
-                if len(chunks) > 1:
-                    # Add part indicator to first chunk
-                    if i == 0 and "blocks" in chunk_formatted:
-                        chunk_formatted["blocks"].insert(
-                            0, BlockKitFormatter.create_context(f"_Part {i + 1} of {len(chunks)}_")
-                        )
-                say(**chunk_formatted, thread_ts=thread_ts)
-        else:
-            say(**formatted, thread_ts=thread_ts)
-    else:
-        # Simple text message - check length
-        text = formatted.get("text", "")
-        if len(text) > SlackFormatter.MAX_MESSAGE_LENGTH:
-            chunks = SlackFormatter.split_message(text)
-            for i, chunk in enumerate(chunks):
-                if len(chunks) > 1:
-                    chunk = f"_Part {i + 1} of {len(chunks)}_\n\n{chunk}"
-                say(text=chunk, thread_ts=thread_ts)
-        else:
-            say(**formatted, thread_ts=thread_ts)
 
 
 def _begin_slack_run(
