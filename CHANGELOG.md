@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.9] - 2026-09-01
-
 ### Added
 - Design plan and ADR for Operator UI token usage: billed counts on every LLM stage, turn totals, and a spend ledger that survives `runs.jsonl` rotation ([#131](https://github.com/mkarots/benedict/issues/131)). See [docs/TOKEN_USAGE.md](docs/TOKEN_USAGE.md).
 
