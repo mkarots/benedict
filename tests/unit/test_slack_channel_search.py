@@ -1,5 +1,6 @@
 """Tests for Slack channel collection search."""
 
+from pathlib import Path
 from types import SimpleNamespace
 
 from benedict.indexers.slack_history_indexer import (
@@ -120,28 +121,28 @@ def test_search_indexed_slack_channel_missing_collection():
     assert search_indexed_slack_channel(indexer, "Cgone", "anything") == []
 
 
-def test_chromadb_search_slack_channel_does_not_create_collection():
+def test_search_indexed_slack_channel_does_not_create_collection():
     collection = _FakeCollection(count=2)
     client = _FakeClient(collection)
-    indexer = ChromaDBSemanticIndexer.__new__(ChromaDBSemanticIndexer)
-    indexer.client = client
-    indexer.embedding_model = _FakeEncoder()
+    indexer = SimpleNamespace(client=client, embedding_model=_FakeEncoder())
 
-    hits = indexer.search_slack_channel("Cchan", "token header", top_k=5)
+    hits = search_indexed_slack_channel(indexer, "Cchan", "token header", top_k=5)
 
     assert client.requested == [slack_channel_collection_name("Cchan")]
     assert collection.queries[0]["n_results"] == 2
     assert hits[0]["file_path"] == "slack:Cchan:2.2"
 
 
-def test_chromadb_search_slack_channel_missing_or_empty():
-    indexer = ChromaDBSemanticIndexer.__new__(ChromaDBSemanticIndexer)
-    indexer.client = _MissingCollectionClient()
-    indexer.embedding_model = _FakeEncoder()
-    assert indexer.search_slack_channel("Cgone", "anything") == []
-    assert indexer.search_slack_channel("C1", "") == []
-
+def test_search_indexed_slack_channel_empty_collection():
     empty = _FakeCollection(count=0)
-    indexer.client = _FakeClient(empty)
-    assert indexer.search_slack_channel("Cempty", "anything") == []
+    indexer = SimpleNamespace(client=_FakeClient(empty), embedding_model=_FakeEncoder())
+    assert search_indexed_slack_channel(indexer, "Cempty", "anything") == []
     assert empty.queries == []
+
+
+def test_chromadb_indexer_has_no_slack_api():
+    from benedict.semantic_indexer import semantic_indexer_chromadb as chromadb_mod
+
+    assert not hasattr(ChromaDBSemanticIndexer, "search_slack_channel")
+    text = Path(chromadb_mod.__file__).read_text(encoding="utf-8")
+    assert "slack" not in text.lower()

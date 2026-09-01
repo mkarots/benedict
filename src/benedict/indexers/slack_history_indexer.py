@@ -63,8 +63,9 @@ def search_indexed_slack_channel(
 ) -> List[Dict[str, Any]]:
     """Query the Slack channel collection written on onboard / index update.
 
-    Prefers ``search_slack_channel`` on the indexer (Chroma and test mocks).
-    Falls back to the same ``client`` + ``embedding_model`` the writer uses.
+    Test doubles may implement ``search_slack_channel``. Production Chroma is
+    queried through ``client`` and ``embedding_model`` only — the repo indexer
+    does not know about Slack.
     """
     if semantic_indexer is None or not channel_id or not str(query).strip():
         return []

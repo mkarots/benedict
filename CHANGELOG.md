@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Slack questions retrieve indexed channel history from the existing `slack_channel_*` Chroma collection. MCP `ask_benedict` still omits Slack ([#120](https://github.com/mkarots/benedict/issues/120)).
 
+### Changed
+- Slack channel search lives on the Slack history indexer. The Chroma repo indexer does not mention Slack.
+
 ## [0.8.5] - 2026-08-31
 
 ### Fixed
