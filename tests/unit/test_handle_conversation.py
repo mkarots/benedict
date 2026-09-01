@@ -94,33 +94,33 @@ def test_github_issue_request_is_not_a_metadata_command():
 
 def test_create_github_issue_does_not_fail_on_missing_metadata(tmp_path):
     agent = _onboarded_agent(tmp_path, MockLLM())
-    success, message = agent.handle_conversation("C123", GITHUB_ISSUE_TEXT, "111.222")
+    reply = agent.handle_conversation("C123", GITHUB_ISSUE_TEXT, "111.222")
 
-    assert success is True
-    assert "Metadata file not found" not in message
-    assert "Some operations failed" not in message
+    assert reply.success is True
+    assert "Metadata file not found" not in reply.text()
+    assert "Some operations failed" not in reply.text()
 
 
 def test_github_issue_skips_classifier_even_when_metadata_exists(tmp_path):
     """If the classifier ran, this LLM would return repository summary YAML."""
     agent = _onboarded_agent(tmp_path, MetadataToolCallingLLM(), with_metadata=True)
-    success, message = agent.handle_conversation("C123", GITHUB_ISSUE_TEXT, "111.223")
+    reply = agent.handle_conversation("C123", GITHUB_ISSUE_TEXT, "111.223")
 
-    assert success is True
-    assert "Example service" not in message
-    assert "Some operations failed" not in message
-    assert "[conversation]" in message
+    assert reply.success is True
+    assert "Example service" not in reply.text()
+    assert "Some operations failed" not in reply.text()
+    assert "[conversation]" in reply.text()
 
 
 def test_missing_metadata_does_not_register_classifier_tools(tmp_path):
     """repo_path wiring: no sidecar means the classifier has no tools to call."""
     llm = MetadataToolCallingLLM()
     agent = _onboarded_agent(tmp_path, llm, with_metadata=False)
-    success, message = agent.handle_conversation("C123", "show metadata for README.md", "111.224")
+    reply = agent.handle_conversation("C123", "show metadata for README.md", "111.224")
 
-    assert success is True
-    assert "Metadata file not found" not in message
-    assert "[conversation]" in message
+    assert reply.success is True
+    assert "Metadata file not found" not in reply.text()
+    assert "[conversation]" in reply.text()
 
 
 def test_failed_metadata_tools_fall_through_to_conversation(tmp_path):
@@ -129,11 +129,11 @@ def test_failed_metadata_tools_fall_through_to_conversation(tmp_path):
         metadata_input={"file_path": "missing.py"},
     )
     agent = _onboarded_agent(tmp_path, llm, with_metadata=True)
-    success, message = agent.handle_conversation("C123", "show metadata for missing.py", "111.225")
+    reply = agent.handle_conversation("C123", "show metadata for missing.py", "111.225")
 
-    assert success is True
-    assert "Some operations failed" not in message
-    assert "[conversation]" in message
+    assert reply.success is True
+    assert "Some operations failed" not in reply.text()
+    assert "[conversation]" in reply.text()
 
 
 def test_conversation_records_llm_prompt(tmp_path):
@@ -142,10 +142,10 @@ def test_conversation_records_llm_prompt(tmp_path):
     recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
     agent = _onboarded_agent(tmp_path, MockLLM(), run_recorder=recorder)
     run = recorder.begin(query="what is this repo?", channel_id="C123")
-    success, message = agent.handle_conversation("C123", "what is this repo?", "111.226")
-    run.finish(status="ok" if success else "error", reply=message)
+    reply = agent.handle_conversation("C123", "what is this repo?", "111.226")
+    run.finish(status="ok" if reply.success else "error", reply=reply.text())
 
-    assert success is True
+    assert reply.success is True
     loaded = recorder.get(run.id)
     llm_stages = [stage for stage in loaded["stages"] if stage["name"] == "llm"]
     assert llm_stages
@@ -171,12 +171,10 @@ def test_channel_history_is_queried_without_conversation_keyword(tmp_path):
     )
     agent = _onboarded_agent(tmp_path, MockLLM(), run_recorder=recorder, semantic_indexer=indexer)
     run = recorder.begin(query="what did we decide about the API?", channel_id="C123")
-    success, message = agent.handle_conversation(
-        "C123", "what did we decide about the API?", "111.227"
-    )
-    run.finish(status="ok" if success else "error", reply=message)
+    reply = agent.handle_conversation("C123", "what did we decide about the API?", "111.227")
+    run.finish(status="ok" if reply.success else "error", reply=reply.text())
 
-    assert success is True
+    assert reply.success is True
     loaded = recorder.get(run.id)
     slack_search = next(stage for stage in loaded["stages"] if stage["name"] == "slack_search")
     assert slack_search["status"] == "ok"

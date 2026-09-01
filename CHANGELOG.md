@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.9] - 2026-09-01
+
+### Changed
+- Slack handlers return structured payloads (`StatusPayload`, `ErrorPayload`, `MarkdownPayload`) instead of emoji-prefixed strings. Block Kit rendering no longer regex-parses those strings ([#117](https://github.com/mkarots/benedict/issues/117)).
+
 ## [0.8.8] - 2026-09-01
 
 ### Changed

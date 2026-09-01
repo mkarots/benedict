@@ -208,6 +208,7 @@ def test_conversation_records_not_onboarded(tmp_path: Path):
     from benedict.conversation_repository.conversation_repository_mock import (
         MockConversationRepository,
     )
+    from benedict.slack.payloads import ErrorPayload
 
     recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
     agent = RepoAgent(
@@ -216,8 +217,10 @@ def test_conversation_records_not_onboarded(tmp_path: Path):
         run_recorder=recorder,
     )
     run = recorder.begin(query="what's in auth?", channel_id="Cnone")
-    success, message = agent.handle_conversation("Cnone", "what's in auth?", "1.2")
-    run.finish(status="ok" if success else "error", reply=message)
-    assert success is False
+    reply = agent.handle_conversation("Cnone", "what's in auth?", "1.2")
+    run.finish(status="ok" if reply.success else "error", reply=reply.text())
+    assert reply.success is False
+    assert isinstance(reply, ErrorPayload)
+    assert reply.error_type == "Not Onboarded"
     loaded = recorder.get(run.id)
     assert any(stage["label"] == "not onboarded" for stage in loaded["stages"])

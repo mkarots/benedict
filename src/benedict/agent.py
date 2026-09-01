@@ -10,7 +10,7 @@ import re
 import time
 from datetime import datetime, date
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from benedict.conversation_history_indexer.protocol import (
     ConversationHistoryIndexer,
@@ -18,23 +18,23 @@ from benedict.conversation_history_indexer.protocol import (
 from benedict.conversation_repository.protocol import (
     ConversationRepository,
 )  # conversation container for the agent
-from benedict.llm.protocol import LLM
-from benedict.repo_reader.protocol import RepoReader
-from benedict.semantic_indexer.protocol import SemanticIndexer
-from benedict.models import ConversationManager
+from benedict.llm.protocol import LLM  # language model for the agent
+from benedict.repo_reader.protocol import RepoReader  # repository reader for the agent
+from benedict.semantic_indexer.protocol import SemanticIndexer  # semantic indexer for the agent
+from benedict.models import ConversationManager  # conversation manager for the agent
 from benedict.context import (
     build_architect_context,
     build_context,
     build_slack_channel_context,
-)
-from benedict.architect.prompts import ARCHITECT_SYSTEM_PROMPT
-from benedict.workspace import WorkspaceManager, ActionLogger
-from benedict.semantic_indexer.metadata import MetadataGenerator
+)  # context for the agent
+from benedict.architect.prompts import ARCHITECT_SYSTEM_PROMPT  # prompts for the architect
+from benedict.workspace import WorkspaceManager, ActionLogger  # workspace manager for the agent
+from benedict.semantic_indexer.metadata import MetadataGenerator  # metadata generator for the agent
 
 from benedict.tools import (
-    LLMCommandClassifier,
-    ToolRegistry,
-    create_tool_registry,
+    LLMCommandClassifier,  # command classifier for the agent
+    ToolRegistry,  # tool registry for the agent
+    create_tool_registry,  # create tool registry for the agent
 )
 from benedict.tools.github_tools import RunGithubTool
 from benedict.tools.notion_tools import (
@@ -46,6 +46,7 @@ from benedict.tools.notion_tools import (
 from benedict.tools.tool_loop import run_tool_loop
 from benedict.operator_ui.recorder import record_llm_stage, record_stage
 from benedict.lib.dateutil import utc_now_iso
+from benedict.slack.payloads import SlackPayload, error, markdown, status
 
 logger = logging.getLogger(__name__)
 
@@ -185,17 +186,17 @@ class RepoAgent:
         channel.pop("notion", None)
         self.save_state(state)
 
-    def handle_link_notion(self, channel_id: str, text: str) -> Tuple[bool, str]:
+    def handle_link_notion(self, channel_id: str, text: str) -> SlackPayload:
         """Link a Notion page or database URL to this channel."""
         if not self.get_channel_repo(channel_id):
-            return (
+            return markdown(
                 False,
                 "Onboard a repository before linking Notion.\n\n"
                 f"Use `@benedict onboard repo org/repo`, then `{LINK_NOTION_EXAMPLE}`.",
             )
         notion_id = parse_notion_id(text)
         if not notion_id:
-            return (
+            return markdown(
                 False,
                 "⚠️ Notion URL Not Found\n\n"
                 "I couldn't find a Notion page or database id in your message.\n\n"
@@ -204,7 +205,7 @@ class RepoAgent:
             )
         ok, message, notion_state = probe_notion_id(notion_id)
         if not ok:
-            return False, f"⚠️ Notion Not Reachable\n\n{message}"
+            return markdown(False, f"⚠️ Notion Not Reachable\n\n{message}")
         self.set_channel_notion(channel_id, notion_state)
         title = notion_state.get("title") or message
         kind = (
@@ -215,20 +216,20 @@ class RepoAgent:
         extra = ""
         if notion_state.get("page_id") and notion_state.get("database_id"):
             extra = " (page is in a database)"
-        return (
+        return markdown(
             True,
             f"✅ Linked Notion {kind}: *{title}*{extra}\n"
             f"I'll use this as the default for `run_notion` in this channel.",
         )
 
-    def handle_unlink_notion(self, channel_id: str) -> Tuple[bool, str]:
+    def handle_unlink_notion(self, channel_id: str) -> SlackPayload:
         """Forget the channel's Notion mapping. Does not revoke Notion access."""
         if not self.get_channel_repo(channel_id):
-            return False, "This channel is not onboarded."
+            return markdown(False, "This channel is not onboarded.")
         if not self.get_channel_notion(channel_id):
-            return True, "No Notion page is linked to this channel."
+            return markdown(True, "No Notion page is linked to this channel.")
         self.clear_channel_notion(channel_id)
-        return (
+        return markdown(
             True,
             "✅ Unlinked Notion from this channel. The repo mapping is unchanged.\n"
             "Remove the connection from the page in Notion if you also want to revoke access.",
@@ -274,16 +275,16 @@ class RepoAgent:
         self.save_state(state)
         logger.info(f"Onboarded architect channel {channel_id}")
 
-    def handle_onboard(self, channel_id: str, user_id: str, text: str) -> Tuple[bool, str]:
+    def handle_onboard(self, channel_id: str, user_id: str, text: str) -> SlackPayload:
         """Handle onboard command.
 
         Returns:
-            Tuple of (success, message)
+            Structured Slack reply
         """
         repo = self.extract_repo_name(text)
 
         if not repo:
-            return (
+            return markdown(
                 False,
                 "⚠️ Repository Not Found\n\n"
                 "I couldn't find a repository name in your message.\n\n"
@@ -347,7 +348,7 @@ class RepoAgent:
                 if not repo_source:
                     # Build error message with tried paths
                     tried_paths_str = "\n".join([f"• `{p}`" for p in tried_paths])
-                    return (
+                    return markdown(
                         False,
                         f"⚠️ Repository Not Found\n\n"
                         f"Could not find repository `{repo}` locally.\n\n"
@@ -425,7 +426,7 @@ class RepoAgent:
 
             except Exception as e:
                 logger.error(f"Error setting up workspace for {repo}: {e}", exc_info=True)
-                return (
+                return markdown(
                     False,
                     f"⚠️ Workspace Setup Error\n\n"
                     f"Error setting up workspace: {str(e)}\n\n"
@@ -442,9 +443,9 @@ class RepoAgent:
             f"I'll remember this repo for all our conversations here.\n"
         )
 
-        return True, message
+        return markdown(True, message)
 
-    def handle_offboard(self, channel_id: str, user_id: str) -> Tuple[bool, str]:
+    def handle_offboard(self, channel_id: str, user_id: str) -> SlackPayload:
         """Handle offboard command to remove channel from repository.
 
         Args:
@@ -452,13 +453,13 @@ class RepoAgent:
             user_id: User ID who requested offboarding
 
         Returns:
-            Tuple of (success, message)
+            Structured Slack reply
         """
         state = self.load_state()
         channels = state.get("channels", {})
 
         if channel_id not in channels:
-            return (
+            return markdown(
                 False,
                 "⚠️ Channel Not Onboarded\n\n"
                 "This channel is not currently onboarded to any repository.\n\n"
@@ -481,25 +482,24 @@ class RepoAgent:
             f"To re-onboard, use `@agent onboard repo {repo}`"
         )
 
-        return True, message
+        return markdown(True, message)
 
-    def handle_status(self, channel_id: str) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    def handle_status(self, channel_id: str) -> SlackPayload:
         """Handle status command.
 
         Returns:
-            Tuple of (success, message, channel_config)
+            Status fields on success, markdown when the channel is not onboarded
         """
         state = self.load_state()
         channel_config = state.get("channels", {}).get(channel_id)
 
         if not channel_config:
-            return (
+            return markdown(
                 False,
                 "⚠️ Not Onboarded\n\n"
                 "This channel hasn't been onboarded yet.\n\n"
                 "*Next steps:*\n"
                 "• Use `@agent onboard repo your-org/your-repo` to get started",
-                None,
             )
 
         repo = channel_config.get("repo")
@@ -513,19 +513,17 @@ class RepoAgent:
         except Exception:
             formatted_time = onboarded_at
 
-        message = (
-            f"📊 *Channel Status*\n"
-            f"━━━━━━━━━━━━━━━\n"
-            f"🔗 Repository: `{repo}`\n"
-            f"⏰ Onboarded: {formatted_time}\n"
-            f"👤 By: <@{onboarded_by}>"
-        )
+        fields = {
+            "Repository": f"`{repo}`",
+            "Onboarded": formatted_time,
+            "By": f"<@{onboarded_by}>",
+        }
         notion = channel_config.get("notion") or {}
         if notion.get("title") or notion.get("page_id") or notion.get("database_id"):
             label = notion.get("title") or notion.get("page_id") or notion.get("database_id")
-            message += f"\n🔗 Notion: `{label}`"
+            fields["Notion"] = f"`{label}`"
 
-        return (True, message, channel_config)
+        return status(title="Channel Status", fields=fields)
 
     @staticmethod
     def is_progress_command(text: str) -> bool:
@@ -538,12 +536,11 @@ class RepoAgent:
             )
         )
 
-    def handle_progress(self, channel_id: str, text: str) -> Tuple[bool, str]:
+    def handle_progress(self, channel_id: str, text: str) -> SlackPayload:
         """Run the unattended progress loop for this channel or all onboarded repos."""
         if not self.progress_service:
-            return (
-                False,
-                "⚠️ Progress loop is not running\n\n"
+            return error(
+                "Progress loop is not running",
                 "The Slack process needs an LLM (`ANTHROPIC_API_KEY`) and "
                 "`BENEDICT_PROGRESS` must not be `0`.",
             )
@@ -555,9 +552,9 @@ class RepoAgent:
             results = self.progress_service.run_all(force=force)
         else:
             results = [self.progress_service.run_one(channel_id, force=force)]
-        return True, format_cycle_message(results)
+        return markdown(True, format_cycle_message(results))
 
-    def handle_conversation(self, channel_id: str, text: str, thread_ts: str) -> Tuple[bool, str]:
+    def handle_conversation(self, channel_id: str, text: str, thread_ts: str) -> SlackPayload:
         """Handle conversation with LLM, maintaining conversation history.
 
         Args:
@@ -566,7 +563,7 @@ class RepoAgent:
             thread_ts: Thread timestamp (unique conversation identifier)
 
         Returns:
-            Tuple of (success, message)
+            Structured Slack reply
         """
         repo = self.get_channel_repo(channel_id)
 
@@ -577,12 +574,10 @@ class RepoAgent:
                 label="not onboarded",
                 detail={"reason": "no channel → repo mapping"},
             )
-            return (
-                False,
-                "⚠️ Not Onboarded\n\n"
-                "This channel hasn't been onboarded yet.\n\n"
-                "*Next steps:*\n"
-                "• Use `@agent onboard repo your-org/your-repo` to get started",
+            return error(
+                "Not Onboarded",
+                "This channel hasn't been onboarded yet.",
+                next_steps=["Use `@agent onboard repo your-org/your-repo` to get started"],
             )
 
         # Get or create conversation for this thread
@@ -685,7 +680,7 @@ class RepoAgent:
                                 message = "✅ Operations completed successfully."
                             conversation.add_message("assistant", message)
                             self.conversation_manager.save_conversation(conversation)
-                            return (True, message)
+                            return markdown(True, message)
 
                         errors = [r.error or "Unknown error" for r in results if not r.success]
                         logger.warning(
@@ -728,10 +723,9 @@ class RepoAgent:
             )
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
-            return (True, response_text)
+            return markdown(True, response_text)
 
         # Build context from repository (consider conversation history for better file selection)
-        combined_text = text
         try:
             # Use conversation history to improve context building
             recent_messages = conversation.get_messages(max_messages=5)
@@ -777,13 +771,13 @@ class RepoAgent:
             )
         except Exception as e:
             logger.error(f"Error building context for {repo}: {e}")
-            return (
-                False,
-                f"⚠️ Repository Read Error\n\n"
-                f"Error reading repository `{repo}`: {str(e)}\n\n"
-                f"*Next steps:*\n"
-                f"• Check repository path and permissions\n"
-                f"• Verify repository is accessible",
+            return error(
+                "Repository Read Error",
+                f"Error reading repository `{repo}`: {str(e)}",
+                next_steps=[
+                    "Check repository path and permissions",
+                    "Verify repository is accessible",
+                ],
             )
 
         slack_channel_context = build_slack_channel_context(
@@ -987,21 +981,19 @@ class RepoAgent:
 
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
-            return (True, response_text)
+            return markdown(True, response_text)
         except Exception as e:
             logger.error(f"LLM error: {e}", exc_info=True)
-            return (
-                False,
-                "⚠️ Response Generation Error\n\n"
-                "Error generating response. Please try again.\n\n"
-                "*Next steps:*\n"
-                "• Check your question and try rephrasing\n"
-                "• Verify repository context is available",
+            return error(
+                "Response Generation Error",
+                "Error generating response. Please try again.",
+                next_steps=[
+                    "Check your question and try rephrasing",
+                    "Verify repository context is available",
+                ],
             )
 
-    def handle_architect_query(
-        self, channel_id: str, text: str, thread_ts: str
-    ) -> Tuple[bool, str]:
+    def handle_architect_query(self, channel_id: str, text: str, thread_ts: str) -> SlackPayload:
         """Handle architect query across all projects.
 
         Args:
@@ -1010,13 +1002,13 @@ class RepoAgent:
             thread_ts: Thread timestamp (unique conversation identifier)
 
         Returns:
-            Tuple of (success, message)
+            Structured Slack reply
         """
         # 1. Verify this is architect channel
         state = self.load_state()
         architect_channel = state.get("architect", {}).get("channel_id")
         if architect_channel != channel_id:
-            return False, "This channel is not the architect channel."
+            return markdown(False, "This channel is not the architect channel.")
 
         # 2. Get or create conversation for this thread
         conversation = self.conversation_manager.get_conversation(
@@ -1035,18 +1027,16 @@ class RepoAgent:
             )
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
-            return (True, response_text)
+            return markdown(True, response_text)
 
         # 5. Build architect context
         try:
             architect_context = build_architect_context(self, text, state)
         except Exception as e:
             logger.error(f"Error building architect context: {e}", exc_info=True)
-            return (
-                False,
-                f"⚠️ Context Building Error\n\n"
-                f"Error building architect context: {str(e)}\n\n"
-                f"Please try again.",
+            return error(
+                "Context Building Error",
+                f"Error building architect context: {str(e)}\n\nPlease try again.",
             )
 
         # 6. Build system message with architect prompt
@@ -1090,19 +1080,19 @@ class RepoAgent:
             response_text = response if isinstance(response, str) else str(response)
             conversation.add_message("assistant", response_text)
             self.conversation_manager.save_conversation(conversation)
-            return (True, response_text)
+            return markdown(True, response_text)
         except Exception as e:
             logger.error(f"LLM error in architect query: {e}", exc_info=True)
-            return (
-                False,
-                "⚠️ Response Generation Error\n\n"
-                "Error generating architect response. Please try again.\n\n"
-                "*Next steps:*\n"
-                "• Check your question and try rephrasing\n"
-                "• Verify projects are onboarded and indexed",
+            return error(
+                "Response Generation Error",
+                "Error generating architect response. Please try again.",
+                next_steps=[
+                    "Check your question and try rephrasing",
+                    "Verify projects are onboarded and indexed",
+                ],
             )
 
-    def handle_update_index(self, channel_id: str, user_id: str, text: str) -> Tuple[bool, str]:
+    def handle_update_index(self, channel_id: str, user_id: str, text: str) -> SlackPayload:
         """Handle update index command.
 
         Args:
@@ -1111,12 +1101,12 @@ class RepoAgent:
             text: Command text
 
         Returns:
-            Tuple of (success, message)
+            Structured Slack reply
         """
         repo = self.get_channel_repo(channel_id)
 
         if not repo:
-            return (
+            return markdown(
                 False,
                 "⚠️ Not Onboarded\n\n"
                 "This channel hasn't been onboarded yet.\n\n"
@@ -1125,7 +1115,7 @@ class RepoAgent:
             )
 
         if not self.semantic_indexer or not self.repo_reader:
-            return (
+            return markdown(
                 False,
                 "⚠️ Indexer Not Available\n\n"
                 "Semantic indexer or repo reader not available.\n\n"
@@ -1165,7 +1155,7 @@ class RepoAgent:
                     action_logger.log_action(
                         action="force_reindex_repository", content_type="code", resource=repo
                     )
-                return (
+                return markdown(
                     True,
                     f"✅ Force reindexed repository `{repo}`.\n"
                     f"All files have been re-indexed for semantic search.",
@@ -1238,7 +1228,7 @@ class RepoAgent:
                         since=since.isoformat() if since else None,
                     )
 
-                return (
+                return markdown(
                     True,
                     f"✅ Updated index for repository `{repo}`.\n"
                     f"New and changed files have been indexed for semantic search.",
@@ -1246,7 +1236,7 @@ class RepoAgent:
 
         except Exception as e:
             logger.error(f"Error updating index for {repo}: {e}", exc_info=True)
-            return (
+            return markdown(
                 False,
                 f"⚠️ Index Update Error\n\n"
                 f"Error updating index: {str(e)}\n\n"
@@ -1283,12 +1273,12 @@ class RepoAgent:
             or "architect channel" in text_lower
         )
 
-    def handle_onboard_architect(
-        self, channel_id: str, user_id: str, text: str
-    ) -> Tuple[bool, str]:
+    def handle_onboard_architect(self, channel_id: str, user_id: str, text: str) -> SlackPayload:
         """Handle architect onboarding."""
         self.set_architect_channel(channel_id, user_id)
-        return True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
+        return markdown(
+            True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
+        )
 
     @staticmethod
     def is_metadata_command(text: str) -> bool:
