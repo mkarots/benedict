@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 
 @dataclass(frozen=True)
@@ -14,6 +14,17 @@ class SearchHit:
     content: str
     score: float
     project: Optional[str] = None
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> SearchHit:
+        """Coerce a dict-like hit (Slack channel search still returns mappings)."""
+        project = data.get("project")
+        return cls(
+            file_path=str(data.get("file_path") or "unknown"),
+            content=str(data.get("content") or ""),
+            score=float(data.get("score") or 0),
+            project=str(project) if project else None,
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """JSON-serializable hit. Omits ``project`` when unset."""

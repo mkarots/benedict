@@ -256,7 +256,9 @@ def build_slack_channel_context(
     Always queries the Slack collection when an indexer is present. Does not
     require the question to mention conversations.
     """
-    from benedict.conversation_history_indexer.slack_history_indexer import search_indexed_slack_channel
+    from benedict.conversation_history_indexer.slack_history_indexer import (
+        search_indexed_slack_channel,
+    )
 
     started = time.perf_counter()
     try:
@@ -291,7 +293,7 @@ def build_slack_channel_context(
             "channel_id": channel_id,
             "mode": "semantic",
             "stuffed": "chunks",
-            "hits": hits_for_recorder(hits),
+            "hits": hits_for_recorder([SearchHit.from_mapping(hit) for hit in hits]),
         },
     )
 

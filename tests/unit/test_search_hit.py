@@ -30,6 +30,14 @@ def test_replace_score_and_project():
     assert hit.project is None
 
 
+def test_from_mapping_fills_defaults():
+    hit = SearchHit.from_mapping({"score": None, "content": "hello"})
+    assert hit.file_path == "unknown"
+    assert hit.content == "hello"
+    assert hit.score == 0.0
+    assert hit.project is None
+
+
 def test_frozen():
     hit = SearchHit(file_path="src/a.py", content="", score=0.1)
     with pytest.raises(FrozenInstanceError):
