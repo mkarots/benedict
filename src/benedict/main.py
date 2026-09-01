@@ -19,7 +19,7 @@ from benedict.protocols import (
     create_conversation_repository,
     create_conversation_history_indexer,
 )
-from benedict.slack_app import create_slack_app
+from benedict.slack.app import create_slack_app
 from benedict.workspace import WorkspaceManager
 from benedict.lib.logging import setup_logging, get_logger
 from slack_sdk import WebClient

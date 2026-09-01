@@ -139,7 +139,7 @@ Slack and MCP share data (state, workspaces, index) but they do <strong>not</str
 <pre><code>Slack process (main.py)                    MCP process (benedict-mcp)
         │                                          │
         ▼                                          ▼
-  slack_app.py                               mcp/server.py
+  slack/app.py                               mcp/server.py
         │                                          │
         ▼                                          ▼
     RepoAgent                              BenedictMcpService
@@ -154,7 +154,8 @@ Slack and MCP share data (state, workspaces, index) but they do <strong>not</str
 </code></pre>
 <p><strong>Main components</strong></p>
 <ul>
-<li><code>slack_app.py</code> — Slack events, command routing, reply formatting</li>
+<li><code>slack/app.py</code> — Slack events and command routing</li>
+<li><code>slack/messages.py</code> — reply formatting, chunking, and <code>say()</code></li>
 <li><code>RepoAgent</code> — Slack command handlers, conversation, architect</li>
 <li><code>BenedictMcpService</code> — MCP tools; <code>ask()</code> is the only LLM path</li>
 <li><code>build_context()</code> — retrieve-then-stuff for a single repo</li>
@@ -191,7 +192,7 @@ Slack and MCP share data (state, workspaces, index) but they do <strong>not</str
 - No Slack formatting. No tool loop.</p>
 <h2>6. Happy Path Example</h2>
 <h3>Slack: <code>@benedict how does onboarding create a workspace?</code></h3>
-<p>Step 1: <code>app_mention</code> in <code>slack_app.py</code>. Mention is stripped.</p>
+<p>Step 1: <code>app_mention</code> in <code>slack/app.py</code>. Mention is stripped.</p>
 <p>Step 2: Pattern checks fail (not progress, not architect, not onboard/status/index). Route is <code>handle_conversation</code>.</p>
 <p>Step 3: Channel maps to a repo in <code>state.json</code>. User text is appended to the thread conversation.</p>
 <p>Step 4: <code>is_metadata_command</code> is false. Classifier is skipped.</p>
@@ -449,7 +450,7 @@ Slack and MCP share data (state, workspaces, index) but they do <strong>not</str
 <tbody>
 <tr>
 <td>Slack events + route</td>
-<td><code>src/benedict/slack_app.py</code></td>
+<td><code>src/benedict/slack/app.py</code></td>
 </tr>
 <tr>
 <td>Agent + prompts + shortcut</td>

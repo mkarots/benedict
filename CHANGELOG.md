@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-09-01
+
+### Changed
+- Slack lives in `benedict.slack`: `messages` for delivery, `app` for Bolt handlers, `formatter` for Block Kit ([#128](https://github.com/mkarots/benedict/issues/128)).
+
 ## [0.8.6] - 2026-08-31
 
 ### Fixed

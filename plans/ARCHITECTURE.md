@@ -36,7 +36,10 @@ For what happens on a user request (routing, prompt building, tool calls, Slack 
 
 ### Core Application
 - **`main.py`** - Composition root (wires all dependencies together)
-- **`slack_app.py`** - Slack Bolt app configuration and event handlers
+- **`slack/`** - Slack Bolt app, message delivery, and Block Kit formatting
+  - **`app.py`** - Bolt event handlers
+  - **`messages.py`** - message types, parsing, chunking, and `say()`
+  - **`formatter.py`** - mrkdwn and Block Kit construction
 - **`agent.py`** - Main agent logic (handles commands and conversations)
 - **`paths.py`** - Shared data-dir and `.env` path helpers
 - **`mcp/`** - MCP server (project resolver, read-only service, stdio composition root)
