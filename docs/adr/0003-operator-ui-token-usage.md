@@ -1,6 +1,6 @@
 # ADR 0003: Operator UI token usage
 
-Status: Proposed
+Status: Accepted
 
 Date: 2026-09-01
 
