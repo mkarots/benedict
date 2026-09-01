@@ -21,7 +21,7 @@ from benedict.protocols import (
 )
 from benedict.models import ConversationManager
 from benedict.utils import build_context
-from benedict.utils.context import build_architect_context
+from benedict.utils.context import build_architect_context, build_slack_channel_context
 from benedict.architect.prompts import ARCHITECT_SYSTEM_PROMPT
 from benedict.workspace import WorkspaceManager, ActionLogger
 from benedict.metadata import MetadataGenerator
@@ -725,6 +725,7 @@ class RepoAgent:
             return (True, response_text)
 
         # Build context from repository (consider conversation history for better file selection)
+        combined_text = text
         try:
             # Use conversation history to improve context building
             recent_messages = conversation.get_messages(max_messages=5)
@@ -778,6 +779,12 @@ class RepoAgent:
                 f"• Check repository path and permissions\n"
                 f"• Verify repository is accessible",
             )
+
+        slack_channel_context = build_slack_channel_context(
+            self.semantic_indexer,
+            channel_id,
+            combined_text or text,
+        )
 
         # Check if query is about conversations and gather conversation data if needed
         conversation_context = ""
@@ -896,10 +903,12 @@ class RepoAgent:
             f"## Repository Context\n\n"
             f"The following context has been automatically gathered from the repository:\n\n"
             f"{repo_context}\n"
+            f"{slack_channel_context}\n"
             f"{conversation_context}\n\n"
             f"## Instructions\n\n"
             f"- Answer questions about the repository code, architecture, and implementation based on the context above.\n"
             f"- You can reference specific files, functions, and code patterns from the context.\n"
+            f"- Use channel discussion messages when they answer the question (decisions, debates, agreements).\n"
             f"- If asked about conversations, summarize them, extract key topics, decisions, and action items.\n"
             f"- If asked about your capabilities, explain that you have access to repository files, semantic search, "
             f"workspace metadata, conversation history, GitHub via `run_github`, and Notion via `run_notion`.\n"

@@ -57,7 +57,11 @@ class MetadataToolCallingLLM:
 
 
 def _onboarded_agent(
-    tmp_path: Path, llm, with_metadata: bool = False, run_recorder=None
+    tmp_path: Path,
+    llm,
+    with_metadata: bool = False,
+    run_recorder=None,
+    semantic_indexer=None,
 ) -> RepoAgent:
     repo = "example-org/example-repo"
     workspace_manager = WorkspaceManager(
@@ -70,6 +74,7 @@ def _onboarded_agent(
         workspace_manager=workspace_manager,
         conversation_repository=MockConversationRepository(),
         run_recorder=run_recorder,
+        semantic_indexer=semantic_indexer,
     )
     agent.set_channel_repo("C123", repo, "Ualice")
     repo_path = workspace_manager.get_workspace_path("C123") / repo
@@ -151,6 +156,34 @@ def test_conversation_records_llm_prompt(tmp_path):
         msg.get("role") == "user" and "what is this repo?" in str(msg.get("content"))
         for msg in prompt["messages"]
     )
+
+
+def test_channel_history_is_queried_without_conversation_keyword(tmp_path):
+    from benedict.operator_ui.recorder import JsonlRunRecorder
+    from benedict.semantic_indexer.semantic_indexer_mock import MockSemanticIndexer
+
+    recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
+    indexer = MockSemanticIndexer()
+    indexer.add_slack_hit(
+        content="we decided the API is REST with versioned paths",
+        score=0.88,
+        channel_id="C123",
+    )
+    agent = _onboarded_agent(tmp_path, MockLLM(), run_recorder=recorder, semantic_indexer=indexer)
+    run = recorder.begin(query="what did we decide about the API?", channel_id="C123")
+    success, message = agent.handle_conversation(
+        "C123", "what did we decide about the API?", "111.227"
+    )
+    run.finish(status="ok" if success else "error", reply=message)
+
+    assert success is True
+    loaded = recorder.get(run.id)
+    slack_search = next(stage for stage in loaded["stages"] if stage["name"] == "slack_search")
+    assert slack_search["status"] == "ok"
+    assert "we decided the API is REST" in slack_search["detail"]["hits"][0]["content"]
+    prompt = next(stage for stage in loaded["stages"] if stage["name"] == "llm")["detail"]
+    assert "## Channel discussion" in prompt["system"]
+    assert "we decided the API is REST with versioned paths" in prompt["system"]
 
 
 def test_tool_registry_skips_tools_when_metadata_missing():

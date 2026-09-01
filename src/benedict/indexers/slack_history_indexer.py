@@ -18,6 +18,83 @@ from benedict.protocols.conversation_history_indexer import (
 logger = logging.getLogger(__name__)
 
 
+def _embedding_as_list(query_embedding: Any) -> List[float]:
+    """Accept numpy arrays from MiniLM and plain lists in tests."""
+    values = query_embedding.tolist() if hasattr(query_embedding, "tolist") else query_embedding
+    return [float(value) for value in values]
+
+
+def slack_channel_collection_name(channel_id: str) -> str:
+    """Chroma collection name for a Slack channel's embedded history."""
+    return f"slack_channel_{hashlib.md5(channel_id.encode()).hexdigest()[:16]}"
+
+
+def format_slack_channel_hits(results: Dict[str, Any], channel_id: str) -> List[Dict[str, Any]]:
+    """Turn a Chroma query payload into Slack retrieval hits."""
+    documents = (results.get("documents") or [[]])[0] or []
+    metadatas = (results.get("metadatas") or [[]])[0] or []
+    distances = (results.get("distances") or [[]])[0] or []
+    formatted: List[Dict[str, Any]] = []
+    for i, doc in enumerate(documents):
+        metadata = metadatas[i] if i < len(metadatas) and metadatas[i] else {}
+        distance = distances[i] if i < len(distances) else 0.0
+        score = 1.0 / (1.0 + float(distance))
+        message_ts = str(metadata.get("message_ts") or "")
+        formatted.append(
+            {
+                "file_path": f"slack:{channel_id}:{message_ts}",
+                "content": doc,
+                "score": score,
+                "channel_id": metadata.get("channel_id") or channel_id,
+                "message_ts": message_ts,
+                "user": metadata.get("user"),
+                "type": metadata.get("type") or "message",
+                "thread_ts": metadata.get("thread_ts"),
+            }
+        )
+    return formatted
+
+
+def search_indexed_slack_channel(
+    semantic_indexer: Any,
+    channel_id: str,
+    query: str,
+    top_k: int = 5,
+) -> List[Dict[str, Any]]:
+    """Query the Slack channel collection written on onboard / index update.
+
+    Test doubles may implement ``search_slack_channel``. Production Chroma is
+    queried through ``client`` and ``embedding_model`` only — the repo indexer
+    does not know about Slack.
+    """
+    if semantic_indexer is None or not channel_id or not str(query).strip():
+        return []
+
+    dedicated = getattr(semantic_indexer, "search_slack_channel", None)
+    if callable(dedicated):
+        return list(dedicated(channel_id, str(query).strip(), top_k=top_k) or [])
+
+    if not hasattr(semantic_indexer, "embedding_model") or not hasattr(semantic_indexer, "client"):
+        return []
+
+    collection_name = slack_channel_collection_name(channel_id)
+    try:
+        collection = semantic_indexer.client.get_collection(collection_name)
+    except Exception:
+        logger.debug("No Slack channel collection for %s", channel_id)
+        return []
+
+    if collection.count() == 0:
+        return []
+
+    query_embedding = semantic_indexer.embedding_model.encode([str(query).strip()])[0]
+    n_results = min(top_k, collection.count())
+    results = collection.query(
+        query_embeddings=[_embedding_as_list(query_embedding)], n_results=n_results
+    )
+    return format_slack_channel_hits(results, channel_id)
+
+
 class SlackConversationReader:
     """Reader for Slack conversations."""
 
@@ -439,8 +516,7 @@ class SlackConversationHistoryIndexer:
 
         try:
 
-            # Create a collection name for this channel
-            collection_name = f"slack_channel_{hashlib.md5(channel_id.encode()).hexdigest()[:16]}"
+            collection_name = slack_channel_collection_name(channel_id)
 
             # Get or create collection
             try:
