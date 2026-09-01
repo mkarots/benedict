@@ -11,7 +11,7 @@ from typing import Any
 from slack_bolt import App
 from benedict.agent import RepoAgent
 from benedict.operator_ui.recorder import NullActiveRun
-from benedict.slack.messages import format_and_send_message
+from benedict.slack.messages import send_reply
 from benedict.slack.payloads import (
     MarkdownPayload,
     SlackPayload,
@@ -143,7 +143,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                 if agent.is_progress_command(text_clean):
                     _route_run(run, kind="progress", route="handle_progress", label="command")
                     payload = agent.handle_progress(channel_id, text_clean)
-                    format_and_send_message(
+                    send_reply(
                         say,
                         payload,
                         thread_ts,
@@ -156,7 +156,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                         run, kind="command", route="handle_onboard_architect", label="command"
                     )
                     payload = agent.handle_onboard_architect(channel_id, user_id, text_clean)
-                    format_and_send_message(say, payload, thread_ts, message_type="command")
+                    send_reply(say, payload, thread_ts, message_type="command")
                     return
 
                 architect_channel = agent.get_architect_channel()
@@ -165,28 +165,28 @@ def create_slack_app(agent: RepoAgent) -> App:
                         run, kind="architect", route="handle_architect_query", label="architect"
                     )
                     payload = agent.handle_architect_query(channel_id, text_clean, thread_ts)
-                    format_and_send_message(say, payload, thread_ts, message_type="conversation")
+                    send_reply(say, payload, thread_ts, message_type="conversation")
                     return
 
                 if agent.is_onboard_command(text_clean):
                     _route_run(run, kind="command", route="handle_onboard", label="command")
                     payload = agent.handle_onboard(channel_id, user_id, text_clean)
-                    format_and_send_message(say, payload, thread_ts, message_type="command")
+                    send_reply(say, payload, thread_ts, message_type="command")
 
                 elif agent.is_unlink_notion_command(text_clean):
                     _route_run(run, kind="command", route="handle_unlink_notion", label="command")
                     payload = agent.handle_unlink_notion(channel_id)
-                    format_and_send_message(say, payload, thread_ts, message_type="command")
+                    send_reply(say, payload, thread_ts, message_type="command")
 
                 elif agent.is_link_notion_command(text_clean):
                     _route_run(run, kind="command", route="handle_link_notion", label="command")
                     payload = agent.handle_link_notion(channel_id, text_clean)
-                    format_and_send_message(say, payload, thread_ts, message_type="command")
+                    send_reply(say, payload, thread_ts, message_type="command")
 
                 elif agent.is_offboard_command(text_clean):
                     _route_run(run, kind="command", route="handle_offboard", label="command")
                     payload = agent.handle_offboard(channel_id, user_id)
-                    format_and_send_message(say, payload, thread_ts, message_type="command")
+                    send_reply(say, payload, thread_ts, message_type="command")
 
                 elif agent.is_status_command(text_clean):
                     _route_run(run, kind="command", route="handle_status", label="command")
@@ -197,14 +197,14 @@ def create_slack_app(agent: RepoAgent) -> App:
                             payload = with_channel_name(payload, channel_info["channel"]["name"])
                         except Exception:
                             pass
-                    format_and_send_message(say, payload, thread_ts)
+                    send_reply(say, payload, thread_ts)
 
                 elif agent.is_update_index_command(text_clean):
                     _route_run(
                         run, kind="index", route="handle_update_index", label="command · index"
                     )
                     payload = agent.handle_update_index(channel_id, user_id, text_clean)
-                    format_and_send_message(say, payload, thread_ts, message_type="command")
+                    send_reply(say, payload, thread_ts, message_type="command")
 
                 else:
                     _route_run(
@@ -214,14 +214,14 @@ def create_slack_app(agent: RepoAgent) -> App:
                         label="conversation",
                     )
                     payload = agent.handle_conversation(channel_id, text_clean, thread_ts)
-                    format_and_send_message(say, payload, thread_ts, message_type="conversation")
+                    send_reply(say, payload, thread_ts, message_type="conversation")
             finally:
                 _finish_run(run, payload)
 
         except Exception as e:
             logger.error(f"Error handling app_mention: {e}", exc_info=True)
             thread_ts = event.get("thread_ts") or event.get("ts")
-            format_and_send_message(
+            send_reply(
                 say,
                 error(
                     "Error",
@@ -329,9 +329,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                         )
                         payload = agent.handle_conversation(channel_id, text, conversation_ts)
 
-                    format_and_send_message(
-                        say, payload, conversation_ts, message_type="conversation"
-                    )
+                    send_reply(say, payload, conversation_ts, message_type="conversation")
                 except Exception as e:
                     logger.error(f"Error handling message directed at bot: {e}", exc_info=True)
                     payload = MarkdownPayload(success=False, markdown=str(e))

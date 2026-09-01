@@ -11,12 +11,12 @@ from .formatter import BlockKitFormatter, SlackFormatter
 from .payloads import ErrorPayload, SlackPayload, StatusPayload
 
 
-def format_message_payload(
+def render(
     payload: SlackPayload,
     message_type: str = "conversation",
     use_block_kit: Optional[bool] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Build a Slack ``say`` payload from a structured handler reply.
+    """Turn a handler reply into Slack ``say`` keyword arguments.
 
     Args:
         payload: Handler reply (status fields, error, or markdown).
@@ -49,14 +49,14 @@ def format_message_payload(
     return BlockKitFormatter.format_message(payload.markdown, use_block_kit=use_block_kit)
 
 
-def format_and_send_message(
+def send_reply(
     say: Any,
     payload: SlackPayload,
     thread_ts: Optional[str] = None,
     message_type: str = "conversation",
     use_block_kit: Optional[bool] = None,
 ) -> None:
-    """Format and send a handler reply to Slack.
+    """Send a handler reply through Bolt ``say``.
 
     Args:
         say: Slack say function
@@ -65,7 +65,7 @@ def format_and_send_message(
         message_type: Rendering hint for markdown (``conversation`` or ``command``)
         use_block_kit: Force Block Kit usage (auto-detect if None)
     """
-    formatted = format_message_payload(payload, message_type, use_block_kit)
+    formatted = render(payload, message_type, use_block_kit)
     if formatted is None:
         return
     _deliver_formatted(say, formatted, original_message=payload.text(), thread_ts=thread_ts)
