@@ -122,6 +122,45 @@ def test_build_architect_context_records_chunks(tmp_path: Path):
     assert search["detail"]["hits"][0]["project"] == "acme/one"
 
 
+def test_build_slack_channel_context_includes_hits(tmp_path: Path):
+    from benedict.utils.context import build_slack_channel_context
+
+    recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
+    indexer = MockSemanticIndexer()
+    indexer.add_slack_hit(
+        content="ship the v2 endpoint on Thursday",
+        score=0.84,
+        channel_id="Cchan",
+        user="Ualice",
+        message_ts="12.34",
+    )
+    run = recorder.begin(query="when do we ship v2?")
+    text = build_slack_channel_context(indexer, "Cchan", "when do we ship v2?")
+    run.finish(status="ok")
+
+    assert "## Channel discussion" in text
+    assert "ship the v2 endpoint on Thursday" in text
+    assert "Ualice" in text
+    loaded = recorder.get(run.id)
+    slack_search = next(stage for stage in loaded["stages"] if stage["name"] == "slack_search")
+    assert slack_search["detail"]["mode"] == "semantic"
+    assert slack_search["detail"]["hits"][0]["file_path"] == "slack:Cchan:12.34"
+
+
+def test_build_slack_channel_context_skips_when_empty(tmp_path: Path):
+    from benedict.utils.context import build_slack_channel_context
+
+    recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
+    run = recorder.begin(query="what did we decide?")
+    text = build_slack_channel_context(MockSemanticIndexer(), "Cnone", "what did we decide?")
+    run.finish(status="ok")
+
+    assert text == ""
+    loaded = recorder.get(run.id)
+    slack_search = next(stage for stage in loaded["stages"] if stage["name"] == "slack_search")
+    assert slack_search["status"] == "skip"
+
+
 def test_build_architect_context_records_empty_search(tmp_path: Path):
     recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
 

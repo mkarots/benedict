@@ -19,6 +19,7 @@ class MockSemanticIndexer:
         """Initialize mock semantic indexer."""
         self.indexed_repos: set[str] = set()
         self._relevant_files: List[Dict[str, Any]] = []
+        self._slack_hits: List[Dict[str, Any]] = []
         logger.info("Initialized MockSemanticIndexer")
 
     def add_relevant_file(
@@ -30,6 +31,29 @@ class MockSemanticIndexer:
                 "file_path": file_path,
                 "content": content if content is not None else f"[Mock content for {file_path}]",
                 "score": score,
+            }
+        )
+
+    def add_slack_hit(
+        self,
+        content: str,
+        score: float = 0.9,
+        channel_id: str = "C1",
+        message_ts: str = "1.0",
+        user: str = "U1",
+        message_type: str = "message",
+    ) -> None:
+        """Pre-populate a Slack channel search hit (test helper)."""
+        self._slack_hits.append(
+            {
+                "file_path": f"slack:{channel_id}:{message_ts}",
+                "content": content,
+                "score": score,
+                "channel_id": channel_id,
+                "message_ts": message_ts,
+                "user": user,
+                "type": message_type,
+                "thread_ts": None,
             }
         )
 
@@ -94,6 +118,12 @@ class MockSemanticIndexer:
             )
 
         return results
+
+    def search_slack_channel(
+        self, channel_id: str, query: str, top_k: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Return pre-populated Slack hits, if any."""
+        return self._slack_hits[:top_k]
 
     def is_indexed(self, repo: str) -> bool:
         """Check if repository is indexed.
