@@ -17,11 +17,12 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 from chromadb.config import Settings
 
-from benedict.protocols.repo_reader import RepoReader
-from benedict.protocols.repo_change_detector import RepoChangeDetector
-from benedict.metadata import MetadataGenerator, MetadataReader
-from benedict.metadata.directory_boost import apply_directory_boost
-from benedict.metadata.source_dir_skip import should_skip_source_directory
+from benedict.repo_reader.protocol import RepoReader
+from benedict.semantic_indexer.change_detector.protocol import RepoChangeDetector
+from benedict.semantic_indexer.metadata import MetadataGenerator, MetadataReader
+from benedict.semantic_indexer.metadata.directory_boost import apply_directory_boost
+from benedict.semantic_indexer.metadata.source_dir_skip import should_skip_source_directory
+from benedict.semantic_indexer.search_hit import SearchHit
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +158,7 @@ class ChromaDBSemanticIndexer:
         top_k: int = 5,
         workspace_path: Optional[Path] = None,
         metadata_reader: Any = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SearchHit]:
         """Search repository using semantic similarity.
 
         Args:
@@ -168,7 +169,7 @@ class ChromaDBSemanticIndexer:
             metadata_reader: Optional metadata reader for directory-level search
 
         Returns:
-            List of dicts with keys: 'file_path', 'content', 'score'
+            Ranked search hits
         """
         collection = self._get_collection(repo)
 
@@ -208,7 +209,7 @@ class ChromaDBSemanticIndexer:
         )
 
         # Format results and apply metadata-based boosting
-        formatted_results = []
+        formatted_results: List[SearchHit] = []
         if results["documents"] and len(results["documents"][0]) > 0:
             for i, doc in enumerate(results["documents"][0]):
                 metadata = results["metadatas"][0][i] if results["metadatas"] else {}
@@ -218,7 +219,7 @@ class ChromaDBSemanticIndexer:
                 score = 1.0 / (1.0 + distance)
 
                 file_path = metadata.get("file_path", "unknown")
-                formatted_results.append({"file_path": file_path, "content": doc, "score": score})
+                formatted_results.append(SearchHit(file_path=file_path, content=doc, score=score))
 
         if relevant_dir_paths:
             formatted_results = apply_directory_boost(formatted_results, relevant_dir_paths)

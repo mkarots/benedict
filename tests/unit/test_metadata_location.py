@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from benedict.metadata.metadata_location import (
+from benedict.semantic_indexer.metadata.metadata_location import (
     MetadataLocationError,
     relative_source_dir,
     sidecar_path,

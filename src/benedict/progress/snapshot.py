@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from benedict.commands.github_tools import RunGithubTool
+from benedict.tools.github_tools import RunGithubTool
 from benedict.progress.models import GithubItem, ProjectRef, ProjectSnapshot
 from benedict.progress.store import ProgressStore
 from benedict.workspace import ActionLogger

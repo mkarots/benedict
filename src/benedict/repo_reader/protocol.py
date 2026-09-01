@@ -47,27 +47,3 @@ class RepoReader(Protocol):
             True if file exists, False otherwise
         """
         ...
-
-
-def create_repo_reader(source: str = "local") -> RepoReader:
-    """Factory function to create RepoReader instance.
-
-    Args:
-        source: Source type ("local" or "mock")
-
-    Returns:
-        RepoReader instance
-
-    Raises:
-        ValueError: If source is unknown
-    """
-    if source == "local":
-        from benedict.repo_reader.repo_reader_local import LocalRepoReader
-
-        return LocalRepoReader()
-    elif source == "mock":
-        from benedict.repo_reader.repo_reader_mock import MockRepoReader
-
-        return MockRepoReader()
-    else:
-        raise ValueError(f"Unknown source: {source}")

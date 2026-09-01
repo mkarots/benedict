@@ -6,7 +6,7 @@ from pathlib import Path
 from benedict.llm.llm_mock import MockLLM
 from benedict.mcp.project import ProjectResolver, load_channel_state
 from benedict.mcp.service import BenedictMcpService
-from benedict.metadata import MetadataReader
+from benedict.semantic_indexer.metadata import MetadataReader
 from benedict.operator_ui.recorder import JsonlRunRecorder
 from benedict.semantic_indexer.semantic_indexer_mock import MockSemanticIndexer
 from benedict.workspace.action_logger import ActionLogger

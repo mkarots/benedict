@@ -48,57 +48,53 @@ For what happens on a user request (routing, prompt building, tool calls, Slack 
 ### Domain Models
 - **`models/conversation.py`** - Conversation and Message models, ConversationManager
 
-### Protocols (Interfaces)
-- **`protocols/llm.py`** - LLM protocol definition
-- **`protocols/repo_reader.py`** - Repository reader protocol
-- **`protocols/semantic_indexer.py`** - Semantic code search protocol
-- **`protocols/conversation_repository.py`** - Conversation persistence protocol
-- **`protocols/repo_change_detector.py`** - Repository change detection protocol
-- **`protocols/conversation_history_indexer.py`** - Conversation history indexing protocol
-
-### Implementations
+Each capability package holds its protocol, factory, and implementations together. Factories live on the package `__init__`, not in protocol modules.
 
 #### LLM
-- **`llm/llm_claude.py`** - Claude 3.5 Sonnet implementation
+- **`llm/protocol.py`** - LLM protocol
+- **`llm/llm_claude.py`** - Claude implementation
 - **`llm/llm_mock.py`** - Mock LLM for testing
 
 #### Repository Reader
+- **`repo_reader/protocol.py`** - RepoReader protocol
 - **`repo_reader/repo_reader_local.py`** - Local filesystem implementation
 - **`repo_reader/repo_reader_workspace.py`** - Workspace-aware repository reader
 - **`repo_reader/repo_reader_workspace_adapter.py`** - Adapter for workspace reader
 - **`repo_reader/repo_reader_mock.py`** - Mock repository reader for testing
 
-#### Semantic Indexer
+#### Semantic Indexer (repo knowledge pipeline)
+- **`semantic_indexer/protocol.py`** - SemanticIndexer protocol
+- **`semantic_indexer/search_hit.py`** - Ranked search-hit value object (`file_path`, `content`, `score`)
 - **`semantic_indexer/semantic_indexer_chromadb.py`** - ChromaDB + sentence-transformers implementation
 - **`semantic_indexer/semantic_indexer_mock.py`** - Mock semantic indexer for testing
+- **`semantic_indexer/change_detector/`** - Git change detection used for incremental index updates
+- **`semantic_indexer/metadata/`** - Sidecar overlays, directory boost, and skip rules the indexer writes and search uses
+  - Sidecar path: `workspaces/<channel>/metadata/<org>/<repo>/…`
+  - Generator writes overlays to the sidecar only (never through the repo symlink)
+  - Reader: sidecar first, then leftover in-tree `.metadata.benedict`
 
 #### Conversation Repository
+- **`conversation_repository/protocol.py`** - Conversation persistence protocol
 - **`conversation_repository/conversation_repository_json.py`** - JSON file persistence
 - **`conversation_repository/conversation_repository_mock.py`** - In-memory mock for testing
 
-#### Repository Change Detection
-- **`repo_change_detector/git_change_detector.py`** - Git-based change detection
-
 #### Conversation History Indexing
-- **`indexers/slack_history_indexer.py`** - Slack conversation history indexer
+- **`conversation_history_indexer/protocol.py`** - Conversation history indexer protocol
+- **`conversation_history_indexer/slack_history_indexer.py`** - Slack conversation history indexer
 
 ### Workspace System
 - **`workspace/workspace_manager.py`** - Manages workspace lifecycle and resources
 - **`workspace/action_logger.py`** - Logs workspace actions and operations
 
-### Metadata System
-- **`metadata/metadata_location.py`** - Sidecar path: `workspaces/<channel>/metadata/<org>/<repo>/…`
-- **`metadata/metadata_generator.py`** - Writes overlays to the sidecar only (never through the repo symlink)
-- **`metadata/metadata_reader.py`** - Sidecar first, then leftover in-tree `.metadata.benedict`
-- **`metadata/source_dir_skip.py`** - Skip venv/cache under the repo root only
-- **`metadata/content_handlers.py`** - Content-specific handlers for metadata generation
+### Tools
+- **`tools/`** - LLM tool loop, GitHub/Notion/metadata tools, and intent classification
 
 Benedict does not have a method-file subsystem. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
 
-### Utilities
+### Runtime helpers
+- **`context.py`** - Context building for agent and MCP answers (uses semantic search when available)
 - **`lib/logging.py`** - Process-wide logging setup (`setup_logging`, `get_logger`)
 - **`lib/dateutil.py`** - UTC normalization for incremental indexers
-- **`utils/context.py`** - Context building functions (uses semantic search when available)
 
 ## Dependency Flow
 

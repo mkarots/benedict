@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-09-01
+
+### Changed
+- Internal packages group by capability: protocols sit next to implementations, metadata and git change detection live under `semantic_indexer/`, Slack history indexing is `conversation_history_indexer/`, agent tools are `tools/`, and context building sits beside the agent instead of under `utils/`.
+- Semantic search returns a `SearchHit` value object instead of ad-hoc `{file_path, content, score}` dicts.
+
 ## [0.8.7] - 2026-09-01
 
 ### Changed

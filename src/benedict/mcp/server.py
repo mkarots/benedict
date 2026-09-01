@@ -63,8 +63,10 @@ def build_mcp_service(
     )
     copy_mode = os.environ.get("BENEDICT_WORKSPACE_COPY_MODE", "symlink")
 
-    from benedict.metadata import MetadataReader
-    from benedict.protocols import create_llm, create_repo_reader, create_semantic_indexer
+    from benedict.llm import create_llm
+    from benedict.repo_reader import create_repo_reader
+    from benedict.semantic_indexer import create_semantic_indexer
+    from benedict.semantic_indexer.metadata import MetadataReader
 
     workspace_manager = WorkspaceManager(workspaces_dir=str(workspaces), copy_mode=copy_mode)
     resolver = ProjectResolver(load_channel_state(state_path), workspaces)
@@ -84,8 +86,8 @@ def build_mcp_service(
 
     semantic_indexer = None
     try:
-        from benedict.metadata import MetadataGenerator
-        from benedict.protocols.repo_change_detector import create_repo_change_detector
+        from benedict.semantic_indexer.metadata import MetadataGenerator
+        from benedict.semantic_indexer.change_detector import create_repo_change_detector
 
         semantic_indexer = create_semantic_indexer(
             provider="chromadb",

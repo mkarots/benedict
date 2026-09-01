@@ -7,9 +7,9 @@ from types import SimpleNamespace
 import pytest
 
 from benedict.agent import RepoAgent
-from benedict.commands.command_definitions import COMMAND_DEFINITIONS, CommandType
-from benedict.commands.tool_registry_factory import create_tool_registry
-from benedict.utils.context import build_context
+from benedict.tools.command_definitions import COMMAND_DEFINITIONS, CommandType
+from benedict.tools.tool_registry_factory import create_tool_registry
+from benedict.context import build_context
 
 
 def test_method_package_is_gone():
@@ -19,7 +19,7 @@ def test_method_package_is_gone():
 
 def test_method_tools_module_is_gone():
     with pytest.raises(ModuleNotFoundError):
-        __import__("benedict.commands.method_tools")
+        __import__("benedict.tools.method_tools")
 
 
 def test_command_types_have_no_method_operations():
@@ -48,9 +48,9 @@ def test_tool_registry_registers_only_metadata_tools():
 
 
 def test_create_tool_registry_from_method_data_is_gone():
-    import benedict.commands as commands
+    import benedict.tools as tools
 
-    assert not hasattr(commands, "create_tool_registry_from_method_data")
+    assert not hasattr(tools, "create_tool_registry_from_method_data")
 
 
 def test_build_context_does_not_accept_method_reader():

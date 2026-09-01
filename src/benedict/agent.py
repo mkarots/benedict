@@ -12,32 +12,38 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-from benedict.protocols import (
-    LLM,
-    RepoReader,
-    SemanticIndexer,
-    ConversationRepository,
+from benedict.conversation_history_indexer.protocol import (
     ConversationHistoryIndexer,
-)
+)  # semantic index for the agent over conversations
+from benedict.conversation_repository.protocol import (
+    ConversationRepository,
+)  # conversation container for the agent
+from benedict.llm.protocol import LLM
+from benedict.repo_reader.protocol import RepoReader
+from benedict.semantic_indexer.protocol import SemanticIndexer
 from benedict.models import ConversationManager
-from benedict.utils import build_context
-from benedict.utils.context import build_architect_context, build_slack_channel_context
+from benedict.context import (
+    build_architect_context,
+    build_context,
+    build_slack_channel_context,
+)
 from benedict.architect.prompts import ARCHITECT_SYSTEM_PROMPT
 from benedict.workspace import WorkspaceManager, ActionLogger
-from benedict.metadata import MetadataGenerator
-from benedict.commands import (
+from benedict.semantic_indexer.metadata import MetadataGenerator
+
+from benedict.tools import (
     LLMCommandClassifier,
     ToolRegistry,
     create_tool_registry,
 )
-from benedict.commands.github_tools import RunGithubTool
-from benedict.commands.notion_tools import (
+from benedict.tools.github_tools import RunGithubTool
+from benedict.tools.notion_tools import (
     LINK_NOTION_EXAMPLE,
     RunNotionTool,
     parse_notion_id,
     probe_notion_id,
 )
-from benedict.commands.tool_loop import run_tool_loop
+from benedict.tools.tool_loop import run_tool_loop
 from benedict.operator_ui.recorder import record_llm_stage, record_stage
 from benedict.lib.dateutil import utc_now_iso
 
@@ -93,7 +99,7 @@ class RepoAgent:
 
         # Create conversation repository if not provided
         if conversation_repository is None:
-            from benedict.protocols.conversation_repository import create_conversation_repository
+            from benedict.conversation_repository import create_conversation_repository
 
             conversation_repository = create_conversation_repository(
                 provider="json", state_file=state_file
@@ -595,7 +601,7 @@ class RepoAgent:
                 workspace_path = self.workspace_manager.get_workspace_path(channel_id)
                 repo_path = workspace_path / repo
 
-                from benedict.metadata import MetadataReader
+                from benedict.semantic_indexer.metadata import MetadataReader
 
                 metadata_reader = MetadataReader()
                 tool_registry = create_tool_registry(
@@ -740,7 +746,7 @@ class RepoAgent:
             if self.workspace_manager:
                 ctx_workspace = self.workspace_manager.get_workspace_path(channel_id)
                 action_logger = ActionLogger(ctx_workspace)
-                from benedict.metadata import MetadataReader
+                from benedict.semantic_indexer.metadata import MetadataReader
 
                 ctx_metadata = MetadataReader()
 

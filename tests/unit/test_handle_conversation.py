@@ -4,7 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from benedict.agent import RepoAgent
-from benedict.commands.tool_registry_factory import create_tool_registry
+from benedict.tools.tool_registry_factory import create_tool_registry
 from benedict.conversation_repository.conversation_repository_mock import (
     MockConversationRepository,
 )

@@ -3,7 +3,7 @@
 import subprocess
 from unittest.mock import patch
 
-from benedict.commands.github_tools import RunGithubTool, _normalize_argv, _redact_tokens, _truncate
+from benedict.tools.github_tools import RunGithubTool, _normalize_argv, _redact_tokens, _truncate
 
 
 def test_normalize_argv_list_and_strip_gh():
@@ -44,7 +44,7 @@ def test_requires_workspace_dir(tmp_path):
     assert missing_dir.success is False
 
 
-@patch("benedict.commands.github_tools.shutil.which", return_value=None)
+@patch("benedict.tools.github_tools.shutil.which", return_value=None)
 def test_missing_gh_binary(mock_which, tmp_path):
     tool = RunGithubTool()
     result = tool.execute({"argv": ["pr", "list"]}, {"workspace_path": str(tmp_path)})
@@ -53,8 +53,8 @@ def test_missing_gh_binary(mock_which, tmp_path):
     mock_which.assert_called()
 
 
-@patch("benedict.commands.github_tools.shutil.which", return_value="/usr/bin/gh")
-@patch("benedict.commands.github_tools.subprocess.run")
+@patch("benedict.tools.github_tools.shutil.which", return_value="/usr/bin/gh")
+@patch("benedict.tools.github_tools.subprocess.run")
 def test_runs_gh_with_locked_cwd(mock_run, mock_which, tmp_path):
     mock_run.return_value = subprocess.CompletedProcess(
         args=["gh", "pr", "list"], returncode=0, stdout='[{"title":"x"}]', stderr=""
@@ -73,8 +73,8 @@ def test_runs_gh_with_locked_cwd(mock_run, mock_which, tmp_path):
     assert kwargs.get("shell") in (None, False)
 
 
-@patch("benedict.commands.github_tools.shutil.which", return_value="/usr/bin/gh")
-@patch("benedict.commands.github_tools.subprocess.run")
+@patch("benedict.tools.github_tools.shutil.which", return_value="/usr/bin/gh")
+@patch("benedict.tools.github_tools.subprocess.run")
 def test_cannot_switch_binary(mock_run, mock_which, tmp_path):
     mock_run.return_value = subprocess.CompletedProcess(
         args=["gh", "rm", "-rf", "/"], returncode=1, stdout="", stderr="unknown command"
@@ -91,8 +91,8 @@ def args_started_with_gh(mock_run):
     return mock_run.call_args[0][0][0] == "gh"
 
 
-@patch("benedict.commands.github_tools.shutil.which", return_value="/usr/bin/gh")
-@patch("benedict.commands.github_tools.subprocess.run")
+@patch("benedict.tools.github_tools.shutil.which", return_value="/usr/bin/gh")
+@patch("benedict.tools.github_tools.subprocess.run")
 def test_timeout(mock_run, mock_which, tmp_path):
     mock_run.side_effect = subprocess.TimeoutExpired(cmd="gh", timeout=30)
     tool = RunGithubTool(timeout_s=30)
@@ -101,8 +101,8 @@ def test_timeout(mock_run, mock_which, tmp_path):
     assert "timed out" in result.error
 
 
-@patch("benedict.commands.github_tools.shutil.which", return_value="/usr/bin/gh")
-@patch("benedict.commands.github_tools.subprocess.run")
+@patch("benedict.tools.github_tools.shutil.which", return_value="/usr/bin/gh")
+@patch("benedict.tools.github_tools.subprocess.run")
 def test_redacts_tokens_in_output(mock_run, mock_which, tmp_path):
     mock_run.return_value = subprocess.CompletedProcess(
         args=["gh", "pr", "list"],

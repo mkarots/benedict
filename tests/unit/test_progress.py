@@ -4,7 +4,7 @@ import json
 from unittest.mock import Mock
 
 from benedict.agent import RepoAgent
-from benedict.commands.tool_framework import ToolResult
+from benedict.tools.tool_framework import ToolResult
 from benedict.progress.cycle import ProgressService, format_cycle_message
 from benedict.progress.decide import ActionDecider, parse_decision, snapshot_to_prompt
 from benedict.progress.execute import ActionExecutor, NullPoster

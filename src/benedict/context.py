@@ -6,9 +6,12 @@ Pure functions for building context from repository files using semantic search.
 import logging
 import re
 import time
+from dataclasses import replace
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from benedict.protocols import RepoReader, SemanticIndexer
+from benedict.repo_reader.protocol import RepoReader
+from benedict.semantic_indexer.protocol import SemanticIndexer
+from benedict.semantic_indexer.search_hit import SearchHit
 from benedict.operator_ui.recorder import hits_for_recorder, record_stage
 
 logger = logging.getLogger(__name__)
@@ -149,7 +152,7 @@ def build_context(
                 seen_files.add(requested_file)
 
             for result in results:
-                file_path = result["file_path"]
+                file_path = result.file_path
                 if file_path in seen_files:
                     continue
                 seen_files.add(file_path)
@@ -162,7 +165,7 @@ def build_context(
                     context_files.append(file_path)
                     context_items.append({"path": file_path, "reason": "semantic hit"})
                     logger.debug(
-                        f"Added {file_path} to context (semantic match, score: {result['score']:.2f})"
+                        f"Added {file_path} to context (semantic match, score: {result.score:.2f})"
                     )
                 except Exception as e:
                     logger.warning(f"Error reading {file_path}: {e}")
@@ -183,7 +186,7 @@ def build_context(
     # Fallback to keyword matching if semantic search not available or failed
     if not semantic_indexer or len(parts) == 1:  # Only README added
         keywords = extract_keywords(question)
-        keyword_hits: List[Dict[str, Any]] = []
+        keyword_hits: List[SearchHit] = []
         if keywords:
             try:
                 all_files = repo_reader.list_files(repo)
@@ -197,7 +200,7 @@ def build_context(
                         parts.append(f"# {file_path}\n{content}")
                         context_files.append(file_path)
                         context_items.append({"path": file_path, "reason": "keyword match"})
-                        keyword_hits.append({"file_path": file_path, "score": 0, "content": ""})
+                        keyword_hits.append(SearchHit(file_path=file_path, content="", score=0))
                         logger.debug(f"Added {file_path} to context (keyword match)")
                     except Exception as e:
                         logger.warning(f"Error reading {file_path}: {e}")
@@ -214,7 +217,7 @@ def build_context(
                         "query": question,
                         "mode": "keyword",
                         "stuffed": "full_files",
-                        "hits": keyword_hits,
+                        "hits": hits_for_recorder(keyword_hits),
                     },
                 )
             else:
@@ -253,7 +256,7 @@ def build_slack_channel_context(
     Always queries the Slack collection when an indexer is present. Does not
     require the question to mention conversations.
     """
-    from benedict.indexers.slack_history_indexer import search_indexed_slack_channel
+    from benedict.conversation_history_indexer.slack_history_indexer import search_indexed_slack_channel
 
     started = time.perf_counter()
     try:
@@ -484,7 +487,7 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
         parts.append("# Projects Managed by Benedict\n\nNo projects currently onboarded.")
 
     # 4. Search across all projects' RAG
-    all_results = []
+    all_results: List[SearchHit] = []
     if agent.semantic_indexer and projects:
         for project in projects:
             repo = project["repo"]
@@ -497,8 +500,7 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
                 # Perform semantic search
                 results = agent.semantic_indexer.search(repo, query, top_k=5)
                 for result in results:
-                    result["project"] = repo
-                    all_results.append(result)
+                    all_results.append(replace(result, project=repo))
             except Exception as e:
                 logger.warning(f"Error searching repository {repo} for architect query: {e}")
                 continue
@@ -506,7 +508,7 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
     # 5. Combine search results into context
     if all_results:
         # Sort by score (descending) and take top 10
-        all_results.sort(key=lambda x: x.get("score", 0), reverse=True)
+        all_results.sort(key=lambda hit: hit.score, reverse=True)
         top_results = all_results[:10]
         record_stage(
             "search",
@@ -521,12 +523,12 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
 
         results_context = f"\n# Relevant Code Across Projects ({len(all_results)} total results, showing top {len(top_results)})\n\n"
         for result in top_results:
-            project = result.get("project", "unknown")
-            file_path = result.get("file_path", "unknown")
-            content = result.get("content", "")
-            score = result.get("score", 0)
+            repo_name = result.project or "unknown"
+            file_path = result.file_path
+            content = result.content
+            score = result.score
 
-            results_context += f"## [{project}] {file_path} (score: {score:.2f})\n"
+            results_context += f"## [{repo_name}] {file_path} (score: {score:.2f})\n"
             results_context += f"```\n{content[:500]}{'...' if len(content) > 500 else ''}\n```\n\n"
 
         parts.append(results_context)
@@ -534,7 +536,7 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
             "context",
             label=f"{len(top_results)} chunks",
             detail={
-                "files": [f"{item.get('project')}/{item.get('file_path')}" for item in top_results],
+                "files": [f"{item.project}/{item.file_path}" for item in top_results],
                 "note": "Architect stuffs matching chunk text, not full files.",
             },
         )

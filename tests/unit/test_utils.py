@@ -3,7 +3,7 @@
 Tests context building and other utility functions.
 """
 
-from benedict.utils.context import truncate_to_tokens
+from benedict.context import truncate_to_tokens
 
 
 class TestContextUtilities:

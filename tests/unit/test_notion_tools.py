@@ -4,7 +4,7 @@ import json
 import subprocess
 from unittest.mock import patch
 
-from benedict.commands.notion_tools import (
+from benedict.tools.notion_tools import (
     RunNotionTool,
     _normalize_argv,
     _redact_tokens,
@@ -12,7 +12,7 @@ from benedict.commands.notion_tools import (
     parse_notion_id,
     probe_notion_id,
 )
-from benedict.commands.tool_framework import ToolResult
+from benedict.tools.tool_framework import ToolResult
 
 
 def _ok(stdout: str, exit_code: int = 0) -> ToolResult:
@@ -102,7 +102,7 @@ def test_runs_ntn_argv_and_follows_up_query():
     ]
 
 
-@patch("benedict.commands.notion_tools.shutil.which", return_value=None)
+@patch("benedict.tools.notion_tools.shutil.which", return_value=None)
 def test_missing_ntn_binary(mock_which):
     result = RunNotionTool().execute({"argv": ["pages", "get", "x"]})
     assert result.success is False
@@ -110,8 +110,8 @@ def test_missing_ntn_binary(mock_which):
     mock_which.assert_called()
 
 
-@patch("benedict.commands.notion_tools.shutil.which", return_value="/usr/bin/ntn")
-@patch("benedict.commands.notion_tools.subprocess.run")
+@patch("benedict.tools.notion_tools.shutil.which", return_value="/usr/bin/ntn")
+@patch("benedict.tools.notion_tools.subprocess.run")
 def test_passes_api_key_as_ntn_token(mock_run, mock_which):
     mock_run.return_value = subprocess.CompletedProcess(
         args=["ntn", "pages", "get", "x"], returncode=0, stdout="ok", stderr=""
@@ -125,8 +125,8 @@ def test_passes_api_key_as_ntn_token(mock_run, mock_which):
     assert mock_run.call_args.kwargs.get("shell") in (None, False)
 
 
-@patch("benedict.commands.notion_tools.shutil.which", return_value="/usr/bin/ntn")
-@patch("benedict.commands.notion_tools.subprocess.run")
+@patch("benedict.tools.notion_tools.shutil.which", return_value="/usr/bin/ntn")
+@patch("benedict.tools.notion_tools.subprocess.run")
 def test_timeout(mock_run, mock_which):
     mock_run.side_effect = subprocess.TimeoutExpired(cmd="ntn", timeout=45)
     result = RunNotionTool(timeout_s=45).execute({"argv": ["pages", "get", "x"]})

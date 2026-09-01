@@ -13,7 +13,9 @@ import uuid
 from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
+
+from benedict.semantic_indexer.search_hit import SearchHit
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +123,7 @@ def current_run() -> Optional["ActiveRun"]:
     return _current.get()
 
 
-def hits_for_recorder(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def hits_for_recorder(results: Optional[Sequence[SearchHit]]) -> List[Dict[str, Any]]:
     """Serialize semantic-search hits for a run stage.
 
     Keeps path, score, and a short chunk preview so the operator console can
@@ -129,18 +131,18 @@ def hits_for_recorder(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     hits: List[Dict[str, Any]] = []
     for item in list(results or [])[:SEARCH_HIT_LIMIT]:
-        content = str(item.get("content") or "")
+        content = item.content or ""
         omitted = max(0, len(content) - SEARCH_HIT_PREVIEW_CHARS)
         preview = content[:SEARCH_HIT_PREVIEW_CHARS]
         if omitted:
             preview = preview + f"\n...[{omitted} chars omitted]"
         hit: Dict[str, Any] = {
-            "file_path": item.get("file_path") or "unknown",
-            "score": round(float(item.get("score") or 0), 2),
+            "file_path": item.file_path or "unknown",
+            "score": round(float(item.score or 0), 2),
             "content": preview,
         }
-        if item.get("project"):
-            hit["project"] = item["project"]
+        if item.project:
+            hit["project"] = item.project
         hits.append(hit)
     return hits
 

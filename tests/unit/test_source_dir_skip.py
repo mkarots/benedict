@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from benedict.metadata.source_dir_skip import should_skip_source_directory
+from benedict.semantic_indexer.metadata.source_dir_skip import should_skip_source_directory
 
 
 def test_repo_under_hidden_data_dir_is_not_skipped(tmp_path: Path):
