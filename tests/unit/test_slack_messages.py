@@ -4,18 +4,18 @@ from unittest.mock import Mock
 
 from benedict.slack.messages import (
     _deliver_formatted,
-    format_and_send_message,
-    format_message_payload,
+    post_reply,
+    render,
 )
-from benedict.slack.payloads import error, markdown, status
+from benedict.slack.payloads import command, error, markdown, status
 
 
-def test_format_message_payload_empty_markdown_returns_none():
-    assert format_message_payload(markdown(True, "")) is None
+def test_render_empty_markdown_returns_none():
+    assert render(markdown(True, "")) is None
 
 
-def test_format_message_payload_status_uses_header_and_fields():
-    payload = format_message_payload(
+def test_render_status_uses_header_and_fields():
+    payload = render(
         status(title="Channel Status", fields={"Repository": "`org/repo`"}),
     )
     assert payload is not None
@@ -28,14 +28,14 @@ def test_format_message_payload_status_uses_header_and_fields():
     assert "`org/repo`" in field_text
 
 
-def test_format_message_payload_status_falls_back_without_fields():
-    payload = format_message_payload(status(title="Empty", fields={}))
+def test_render_status_falls_back_without_fields():
+    payload = render(status(title="Empty", fields={}))
     assert payload is not None
     assert "blocks" in payload or "text" in payload
 
 
-def test_format_message_payload_error_does_not_double_wrap_header():
-    payload = format_message_payload(
+def test_render_error_does_not_double_wrap_header():
+    payload = render(
         error("Some operations failed", "- Metadata file not found"),
     )
     assert payload is not None
@@ -43,8 +43,8 @@ def test_format_message_payload_error_does_not_double_wrap_header():
     assert headers == ["⚠️ Some operations failed"]
 
 
-def test_format_message_payload_error_puts_next_steps_in_own_section():
-    payload = format_message_payload(
+def test_render_error_puts_next_steps_in_own_section():
+    payload = render(
         error(
             "Not Onboarded",
             "This channel hasn't been onboarded yet.",
@@ -62,36 +62,31 @@ def test_format_message_payload_error_puts_next_steps_in_own_section():
     assert sum("*Next steps:*" in text for text in texts) == 1
 
 
-def test_format_message_payload_command_uses_block_kit():
-    payload = format_message_payload(
-        markdown(True, "Onboarded `org/repo`."),
-        message_type="command",
-    )
+def test_render_command_uses_block_kit():
+    payload = render(command(True, "Onboarded `org/repo`."))
     assert payload is not None
     assert "blocks" in payload
 
 
-def test_format_and_send_message_skips_empty():
+def test_post_reply_skips_empty():
     say = Mock()
-    format_and_send_message(say, markdown(True, ""))
+    post_reply(markdown(True, ""), say=say)
     say.assert_not_called()
 
 
-def test_format_and_send_message_conversation_passes_thread_ts():
+def test_post_reply_passes_thread_ts():
     say = Mock()
-    format_and_send_message(
-        say, markdown(True, "hello"), thread_ts="123.456", message_type="conversation"
-    )
+    post_reply(markdown(True, "hello"), say=say, thread_ts="123.456")
     say.assert_called_once()
     kwargs = say.call_args.kwargs
     assert kwargs["thread_ts"] == "123.456"
 
 
-def test_format_and_send_message_status_sends_blocks():
+def test_post_reply_status_sends_blocks():
     say = Mock()
-    format_and_send_message(
-        say,
+    post_reply(
         status(title="Channel Status", fields={"Repository": "`org/repo`"}),
+        say=say,
         thread_ts="9.9",
     )
     say.assert_called_once()
@@ -114,13 +109,11 @@ def test_deliver_formatted_plain_text_chunks_when_over_limit():
     assert say.call_args_list[0].kwargs["thread_ts"] == "1.0"
 
 
-def test_format_and_send_message_block_kit_chunks_when_over_limit():
+def test_post_reply_block_kit_chunks_when_over_limit():
     say = Mock()
-    format_and_send_message(
-        say,
-        markdown(True, "paragraph of details about the repo. " * 200),
-        message_type="conversation",
-        use_block_kit=True,
+    post_reply(
+        markdown(True, "paragraph of details about the repo. " * 200, force_block_kit=True),
+        say=say,
     )
     assert say.call_count > 1
     first_blocks = say.call_args_list[0].kwargs["blocks"]

@@ -11,18 +11,8 @@ from .formatter import BlockKitFormatter, SlackFormatter
 from .payloads import ErrorPayload, SlackPayload, StatusPayload
 
 
-def format_message_payload(
-    payload: SlackPayload,
-    message_type: str = "conversation",
-    use_block_kit: Optional[bool] = None,
-) -> Optional[Dict[str, Any]]:
-    """Build a Slack ``say`` payload from a structured handler reply.
-
-    Args:
-        payload: Handler reply (status fields, error, or markdown).
-        message_type: For ``MarkdownPayload`` only: ``conversation`` or
-            ``command`` (command forces Block Kit).
-        use_block_kit: Force Block Kit on markdown (auto-detect if None).
+def render(payload: SlackPayload) -> Optional[Dict[str, Any]]:
+    """Turn a handler reply into Slack ``say`` keyword arguments.
 
     Returns:
         Keyword arguments for ``say`` (without ``thread_ts``), or ``None``
@@ -33,7 +23,7 @@ def format_message_payload(
             return BlockKitFormatter.format_status_message(
                 payload.title, payload.fields, payload.emoji
             )
-        return BlockKitFormatter.format_message(payload.text(), use_block_kit=use_block_kit)
+        return BlockKitFormatter.format_message(payload.text())
 
     if isinstance(payload, ErrorPayload):
         next_steps = list(payload.next_steps) if payload.next_steps else None
@@ -44,28 +34,21 @@ def format_message_payload(
     if not payload.markdown:
         return None
 
-    if message_type == "command":
-        return BlockKitFormatter.format_message(payload.markdown, use_block_kit=True)
-    return BlockKitFormatter.format_message(payload.markdown, use_block_kit=use_block_kit)
+    return BlockKitFormatter.format_message(payload.markdown, use_block_kit=payload.force_block_kit)
 
 
-def format_and_send_message(
-    say: Any,
+def post_reply(
     payload: SlackPayload,
+    *,
+    say: Any,
     thread_ts: Optional[str] = None,
-    message_type: str = "conversation",
-    use_block_kit: Optional[bool] = None,
 ) -> None:
-    """Format and send a handler reply to Slack.
+    """Post this handler reply to Slack, in ``thread_ts`` when given.
 
-    Args:
-        say: Slack say function
-        payload: Structured handler reply
-        thread_ts: Optional thread timestamp for replies
-        message_type: Rendering hint for markdown (``conversation`` or ``command``)
-        use_block_kit: Force Block Kit usage (auto-detect if None)
+    ``say`` is Bolt's post function. The payload already knows whether it is
+    status, error, command, or conversation markdown.
     """
-    formatted = format_message_payload(payload, message_type, use_block_kit)
+    formatted = render(payload)
     if formatted is None:
         return
     _deliver_formatted(say, formatted, original_message=payload.text(), thread_ts=thread_ts)

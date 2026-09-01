@@ -46,7 +46,7 @@ from benedict.tools.notion_tools import (
 from benedict.tools.tool_loop import run_tool_loop
 from benedict.operator_ui.recorder import record_llm_stage, record_stage
 from benedict.lib.dateutil import utc_now_iso
-from benedict.slack.payloads import SlackPayload, error, markdown, status
+from benedict.slack.payloads import SlackPayload, command, error, markdown, status
 
 logger = logging.getLogger(__name__)
 
@@ -189,14 +189,14 @@ class RepoAgent:
     def handle_link_notion(self, channel_id: str, text: str) -> SlackPayload:
         """Link a Notion page or database URL to this channel."""
         if not self.get_channel_repo(channel_id):
-            return markdown(
+            return command(
                 False,
                 "Onboard a repository before linking Notion.\n\n"
                 f"Use `@benedict onboard repo org/repo`, then `{LINK_NOTION_EXAMPLE}`.",
             )
         notion_id = parse_notion_id(text)
         if not notion_id:
-            return markdown(
+            return command(
                 False,
                 "⚠️ Notion URL Not Found\n\n"
                 "I couldn't find a Notion page or database id in your message.\n\n"
@@ -205,7 +205,7 @@ class RepoAgent:
             )
         ok, message, notion_state = probe_notion_id(notion_id)
         if not ok:
-            return markdown(False, f"⚠️ Notion Not Reachable\n\n{message}")
+            return command(False, f"⚠️ Notion Not Reachable\n\n{message}")
         self.set_channel_notion(channel_id, notion_state)
         title = notion_state.get("title") or message
         kind = (
@@ -216,7 +216,7 @@ class RepoAgent:
         extra = ""
         if notion_state.get("page_id") and notion_state.get("database_id"):
             extra = " (page is in a database)"
-        return markdown(
+        return command(
             True,
             f"✅ Linked Notion {kind}: *{title}*{extra}\n"
             f"I'll use this as the default for `run_notion` in this channel.",
@@ -225,11 +225,11 @@ class RepoAgent:
     def handle_unlink_notion(self, channel_id: str) -> SlackPayload:
         """Forget the channel's Notion mapping. Does not revoke Notion access."""
         if not self.get_channel_repo(channel_id):
-            return markdown(False, "This channel is not onboarded.")
+            return command(False, "This channel is not onboarded.")
         if not self.get_channel_notion(channel_id):
-            return markdown(True, "No Notion page is linked to this channel.")
+            return command(True, "No Notion page is linked to this channel.")
         self.clear_channel_notion(channel_id)
-        return markdown(
+        return command(
             True,
             "✅ Unlinked Notion from this channel. The repo mapping is unchanged.\n"
             "Remove the connection from the page in Notion if you also want to revoke access.",
@@ -284,7 +284,7 @@ class RepoAgent:
         repo = self.extract_repo_name(text)
 
         if not repo:
-            return markdown(
+            return command(
                 False,
                 "⚠️ Repository Not Found\n\n"
                 "I couldn't find a repository name in your message.\n\n"
@@ -348,7 +348,7 @@ class RepoAgent:
                 if not repo_source:
                     # Build error message with tried paths
                     tried_paths_str = "\n".join([f"• `{p}`" for p in tried_paths])
-                    return markdown(
+                    return command(
                         False,
                         f"⚠️ Repository Not Found\n\n"
                         f"Could not find repository `{repo}` locally.\n\n"
@@ -426,7 +426,7 @@ class RepoAgent:
 
             except Exception as e:
                 logger.error(f"Error setting up workspace for {repo}: {e}", exc_info=True)
-                return markdown(
+                return command(
                     False,
                     f"⚠️ Workspace Setup Error\n\n"
                     f"Error setting up workspace: {str(e)}\n\n"
@@ -443,7 +443,7 @@ class RepoAgent:
             f"I'll remember this repo for all our conversations here.\n"
         )
 
-        return markdown(True, message)
+        return command(True, message)
 
     def handle_offboard(self, channel_id: str, user_id: str) -> SlackPayload:
         """Handle offboard command to remove channel from repository.
@@ -459,7 +459,7 @@ class RepoAgent:
         channels = state.get("channels", {})
 
         if channel_id not in channels:
-            return markdown(
+            return command(
                 False,
                 "⚠️ Channel Not Onboarded\n\n"
                 "This channel is not currently onboarded to any repository.\n\n"
@@ -482,7 +482,7 @@ class RepoAgent:
             f"To re-onboard, use `@agent onboard repo {repo}`"
         )
 
-        return markdown(True, message)
+        return command(True, message)
 
     def handle_status(self, channel_id: str) -> SlackPayload:
         """Handle status command.
@@ -552,7 +552,7 @@ class RepoAgent:
             results = self.progress_service.run_all(force=force)
         else:
             results = [self.progress_service.run_one(channel_id, force=force)]
-        return markdown(True, format_cycle_message(results))
+        return command(True, format_cycle_message(results))
 
     def handle_conversation(self, channel_id: str, text: str, thread_ts: str) -> SlackPayload:
         """Handle conversation with LLM, maintaining conversation history.
@@ -1106,7 +1106,7 @@ class RepoAgent:
         repo = self.get_channel_repo(channel_id)
 
         if not repo:
-            return markdown(
+            return command(
                 False,
                 "⚠️ Not Onboarded\n\n"
                 "This channel hasn't been onboarded yet.\n\n"
@@ -1115,7 +1115,7 @@ class RepoAgent:
             )
 
         if not self.semantic_indexer or not self.repo_reader:
-            return markdown(
+            return command(
                 False,
                 "⚠️ Indexer Not Available\n\n"
                 "Semantic indexer or repo reader not available.\n\n"
@@ -1155,7 +1155,7 @@ class RepoAgent:
                     action_logger.log_action(
                         action="force_reindex_repository", content_type="code", resource=repo
                     )
-                return markdown(
+                return command(
                     True,
                     f"✅ Force reindexed repository `{repo}`.\n"
                     f"All files have been re-indexed for semantic search.",
@@ -1228,7 +1228,7 @@ class RepoAgent:
                         since=since.isoformat() if since else None,
                     )
 
-                return markdown(
+                return command(
                     True,
                     f"✅ Updated index for repository `{repo}`.\n"
                     f"New and changed files have been indexed for semantic search.",
@@ -1236,7 +1236,7 @@ class RepoAgent:
 
         except Exception as e:
             logger.error(f"Error updating index for {repo}: {e}", exc_info=True)
-            return markdown(
+            return command(
                 False,
                 f"⚠️ Index Update Error\n\n"
                 f"Error updating index: {str(e)}\n\n"
@@ -1276,7 +1276,7 @@ class RepoAgent:
     def handle_onboard_architect(self, channel_id: str, user_id: str, text: str) -> SlackPayload:
         """Handle architect onboarding."""
         self.set_architect_channel(channel_id, user_id)
-        return markdown(
+        return command(
             True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
         )
 

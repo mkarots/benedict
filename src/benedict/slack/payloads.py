@@ -46,19 +46,31 @@ class ErrorPayload:
 
 @dataclass(frozen=True)
 class MarkdownPayload:
-    """Command copy or LLM markdown. Slack chooses Block Kit vs auto."""
+    """Command copy or LLM markdown.
+
+    ``force_block_kit`` True is a Slack command (always Block Kit).
+    None lets Slack pick Block Kit from the text (conversation).
+    """
 
     success: bool
     markdown: str
+    force_block_kit: Optional[bool] = None
 
     def text(self) -> str:
         """Plain-text form for the operator log."""
         return self.markdown
 
 
-def markdown(success: bool, text: str) -> MarkdownPayload:
-    """Build a markdown reply (commands and conversation)."""
-    return MarkdownPayload(success=success, markdown=text)
+def markdown(
+    success: bool, text: str, *, force_block_kit: Optional[bool] = None
+) -> MarkdownPayload:
+    """Build a conversation markdown reply."""
+    return MarkdownPayload(success=success, markdown=text, force_block_kit=force_block_kit)
+
+
+def command(success: bool, text: str) -> MarkdownPayload:
+    """Build a command reply (always Block Kit)."""
+    return MarkdownPayload(success=success, markdown=text, force_block_kit=True)
 
 
 def error(

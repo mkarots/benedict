@@ -8,6 +8,7 @@ from benedict.slack.payloads import (
     ErrorPayload,
     MarkdownPayload,
     StatusPayload,
+    command,
     error,
     markdown,
     status,
@@ -61,6 +62,13 @@ def test_markdown_payload_text_is_the_markdown():
     payload = markdown(True, "✅ Onboarded `org/repo`.")
     assert isinstance(payload, MarkdownPayload)
     assert payload.success is True
+    assert payload.force_block_kit is None
+    assert payload.text() == "✅ Onboarded `org/repo`."
+
+
+def test_command_payload_forces_block_kit():
+    payload = command(True, "✅ Onboarded `org/repo`.")
+    assert payload.force_block_kit is True
     assert payload.text() == "✅ Onboarded `org/repo`."
 
 
