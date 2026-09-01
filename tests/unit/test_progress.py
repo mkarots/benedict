@@ -417,15 +417,15 @@ def test_is_progress_command(temp_state_file):
 
 def test_handle_progress_without_service(temp_state_file):
     agent = RepoAgent(state_file=str(temp_state_file))
-    ok, message = agent.handle_progress("C1", "progress")
-    assert ok is False
-    assert "not running" in message.lower()
+    reply = agent.handle_progress("C1", "progress")
+    assert reply.success is False
+    assert "not running" in reply.text().lower()
 
 
 def test_handle_progress_this_channel(tmp_path, temp_state_file):
-    reply = json.dumps({"action": "skip", "reason": "Idle."})
-    service, _, _, _, _ = _service(tmp_path, reply)
+    reply_json = json.dumps({"action": "skip", "reason": "Idle."})
+    service, _, _, _, _ = _service(tmp_path, reply_json)
     agent = RepoAgent(state_file=str(temp_state_file), progress_service=service)
-    ok, message = agent.handle_progress("C1", "progress")
-    assert ok is True
-    assert "skip" in message
+    reply = agent.handle_progress("C1", "progress")
+    assert reply.success is True
+    assert "skip" in reply.text()

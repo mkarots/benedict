@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Design plan and ADR for Operator UI token usage: billed counts on every LLM stage, turn totals, and a spend ledger that survives `runs.jsonl` rotation ([#131](https://github.com/mkarots/benedict/issues/131)). See [docs/TOKEN_USAGE.md](docs/TOKEN_USAGE.md).
 
+## [0.8.10] - 2026-09-01
+
+### Changed
+- Slack posts a handler reply with `post_reply(payload, say=say, thread_ts=thread_ts)`. Command vs conversation Block Kit lives on the payload (`command()` vs `markdown()`), not a `message_type` argument.
+
+## [0.8.9] - 2026-09-01
+
+### Changed
+- Slack handlers return structured payloads (`StatusPayload`, `ErrorPayload`, `MarkdownPayload`) instead of emoji-prefixed strings. Block Kit rendering no longer regex-parses those strings ([#117](https://github.com/mkarots/benedict/issues/117)).
+
 ## [0.8.8] - 2026-09-01
 
 ### Changed

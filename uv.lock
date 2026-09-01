@@ -240,7 +240,7 @@ wheels = [
 
 [[package]]
 name = "benedict"
-version = "0.8.8"
+version = "0.8.10"
 source = { editable = "." }
 dependencies = [
     { name = "anthropic" },

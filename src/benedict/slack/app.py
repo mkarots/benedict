@@ -7,11 +7,18 @@ import json
 import logging
 import re
 import os
-from typing import Any, Optional
+from typing import Any
 from slack_bolt import App
 from benedict.agent import RepoAgent
 from benedict.operator_ui.recorder import NullActiveRun
-from benedict.slack.messages import format_and_send_message
+from benedict.slack.messages import post_reply
+from benedict.slack.payloads import (
+    MarkdownPayload,
+    SlackPayload,
+    StatusPayload,
+    error,
+    with_channel_name,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +57,9 @@ def _route_run(run: Any, *, kind: str, route: str, label: str, repo: Any = None)
     run.add_stage("route", label=label, detail={"matched": route})
 
 
-def _finish_run(run: Any, success: bool, message: Optional[str]) -> None:
+def _finish_run(run: Any, payload: SlackPayload) -> None:
+    message = payload.text()
+    success = payload.success
     try:
         run.add_stage(
             "reply",
@@ -122,7 +131,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                 user_id=user_id,
                 thread_ts=thread_ts,
             )
-            success, message = False, ""
+            payload: SlackPayload = MarkdownPayload(success=False, markdown="")
 
             try:
                 try:
@@ -133,23 +142,16 @@ def create_slack_app(agent: RepoAgent) -> App:
 
                 if agent.is_progress_command(text_clean):
                     _route_run(run, kind="progress", route="handle_progress", label="command")
-                    success, message = agent.handle_progress(channel_id, text_clean)
-                    format_and_send_message(
-                        say,
-                        message,
-                        thread_ts,
-                        message_type="command" if success else "error",
-                    )
+                    payload = agent.handle_progress(channel_id, text_clean)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
                     return
 
                 if agent.is_architect_onboard_command(text_clean):
                     _route_run(
                         run, kind="command", route="handle_onboard_architect", label="command"
                     )
-                    success, message = agent.handle_onboard_architect(
-                        channel_id, user_id, text_clean
-                    )
-                    format_and_send_message(say, message, thread_ts, message_type="command")
+                    payload = agent.handle_onboard_architect(channel_id, user_id, text_clean)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
                     return
 
                 architect_channel = agent.get_architect_channel()
@@ -157,57 +159,47 @@ def create_slack_app(agent: RepoAgent) -> App:
                     _route_run(
                         run, kind="architect", route="handle_architect_query", label="architect"
                     )
-                    success, message = agent.handle_architect_query(
-                        channel_id, text_clean, thread_ts
-                    )
-                    if not success and "⚠️" in message:
-                        format_and_send_message(say, message, thread_ts, message_type="error")
-                    else:
-                        format_and_send_message(
-                            say, message, thread_ts, message_type="conversation"
-                        )
+                    payload = agent.handle_architect_query(channel_id, text_clean, thread_ts)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
                     return
 
                 if agent.is_onboard_command(text_clean):
                     _route_run(run, kind="command", route="handle_onboard", label="command")
-                    success, message = agent.handle_onboard(channel_id, user_id, text_clean)
-                    format_and_send_message(say, message, thread_ts, message_type="command")
+                    payload = agent.handle_onboard(channel_id, user_id, text_clean)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
 
                 elif agent.is_unlink_notion_command(text_clean):
                     _route_run(run, kind="command", route="handle_unlink_notion", label="command")
-                    success, message = agent.handle_unlink_notion(channel_id)
-                    format_and_send_message(say, message, thread_ts, message_type="command")
+                    payload = agent.handle_unlink_notion(channel_id)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
 
                 elif agent.is_link_notion_command(text_clean):
                     _route_run(run, kind="command", route="handle_link_notion", label="command")
-                    success, message = agent.handle_link_notion(channel_id, text_clean)
-                    format_and_send_message(say, message, thread_ts, message_type="command")
+                    payload = agent.handle_link_notion(channel_id, text_clean)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
 
                 elif agent.is_offboard_command(text_clean):
                     _route_run(run, kind="command", route="handle_offboard", label="command")
-                    success, message = agent.handle_offboard(channel_id, user_id)
-                    format_and_send_message(say, message, thread_ts, message_type="command")
+                    payload = agent.handle_offboard(channel_id, user_id)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
 
                 elif agent.is_status_command(text_clean):
                     _route_run(run, kind="command", route="handle_status", label="command")
-                    success, message, channel_config = agent.handle_status(channel_id)
-                    try:
-                        channel_info = client.conversations_info(channel=channel_id)
-                        channel_name = channel_info["channel"]["name"]
-                        message = message.replace(
-                            "📊 *Channel Status*",
-                            f"📊 *Channel Status*\n📺 Channel: #{channel_name}",
-                        )
-                    except Exception:
-                        pass
-                    format_and_send_message(say, message, thread_ts, message_type="status")
+                    payload = agent.handle_status(channel_id)
+                    if isinstance(payload, StatusPayload):
+                        try:
+                            channel_info = client.conversations_info(channel=channel_id)
+                            payload = with_channel_name(payload, channel_info["channel"]["name"])
+                        except Exception:
+                            pass
+                    post_reply(payload, say=say, thread_ts=thread_ts)
 
                 elif agent.is_update_index_command(text_clean):
                     _route_run(
                         run, kind="index", route="handle_update_index", label="command · index"
                     )
-                    success, message = agent.handle_update_index(channel_id, user_id, text_clean)
-                    format_and_send_message(say, message, thread_ts, message_type="command")
+                    payload = agent.handle_update_index(channel_id, user_id, text_clean)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
 
                 else:
                     _route_run(
@@ -216,23 +208,22 @@ def create_slack_app(agent: RepoAgent) -> App:
                         route="handle_conversation",
                         label="conversation",
                     )
-                    success, message = agent.handle_conversation(channel_id, text_clean, thread_ts)
-                    if not success and "⚠️" in message:
-                        format_and_send_message(say, message, thread_ts, message_type="error")
-                    else:
-                        format_and_send_message(
-                            say, message, thread_ts, message_type="conversation"
-                        )
+                    payload = agent.handle_conversation(channel_id, text_clean, thread_ts)
+                    post_reply(payload, say=say, thread_ts=thread_ts)
             finally:
-                _finish_run(run, success, message)
+                _finish_run(run, payload)
 
         except Exception as e:
             logger.error(f"Error handling app_mention: {e}", exc_info=True)
             thread_ts = event.get("thread_ts") or event.get("ts")
-            error_message = (
-                f"⚠️ Error\n\nSorry, I encountered an error processing your request: {str(e)}"
+            post_reply(
+                error(
+                    "Error",
+                    f"Sorry, I encountered an error processing your request: {str(e)}",
+                ),
+                say=say,
+                thread_ts=thread_ts,
             )
-            format_and_send_message(say, error_message, thread_ts, message_type="error")
 
     # Register message event handler for automatic background indexing and thread replies
     @app.event("message")
@@ -314,7 +305,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                     user_id=user_id,
                     thread_ts=conversation_ts,
                 )
-                success, message = False, ""
+                payload: SlackPayload = MarkdownPayload(success=False, markdown="")
                 try:
                     if is_architect_channel:
                         _route_run(
@@ -323,9 +314,7 @@ def create_slack_app(agent: RepoAgent) -> App:
                             route="handle_architect_query",
                             label="architect",
                         )
-                        success, message = agent.handle_architect_query(
-                            channel_id, text, conversation_ts
-                        )
+                        payload = agent.handle_architect_query(channel_id, text, conversation_ts)
                     else:
                         _route_run(
                             run,
@@ -333,21 +322,14 @@ def create_slack_app(agent: RepoAgent) -> App:
                             route="handle_conversation",
                             label="conversation",
                         )
-                        success, message = agent.handle_conversation(
-                            channel_id, text, conversation_ts
-                        )
+                        payload = agent.handle_conversation(channel_id, text, conversation_ts)
 
-                    if not success and "⚠️" in message:
-                        format_and_send_message(say, message, conversation_ts, message_type="error")
-                    else:
-                        format_and_send_message(
-                            say, message, conversation_ts, message_type="conversation"
-                        )
+                    post_reply(payload, say=say, thread_ts=conversation_ts)
                 except Exception as e:
                     logger.error(f"Error handling message directed at bot: {e}", exc_info=True)
-                    message = str(e)
+                    payload = MarkdownPayload(success=False, markdown=str(e))
                 finally:
-                    _finish_run(run, success, message)
+                    _finish_run(run, payload)
 
             # Trigger background indexing of new messages
             # This runs asynchronously and doesn't block the response
