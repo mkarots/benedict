@@ -66,6 +66,7 @@ nav:
       - Troubleshooting: troubleshooting.md
   - Maintain:
       - Docs process: PROCESS.md
+      - Operator UI token usage: TOKEN_USAGE.md
       - Continuous integration: ci.md
       - Changelog: changelog.md
 
