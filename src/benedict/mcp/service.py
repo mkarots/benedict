@@ -202,9 +202,9 @@ class BenedictMcpService:
         for item in raw_results:
             results.append(
                 {
-                    "file_path": item.get("file_path"),
-                    "score": item.get("score"),
-                    "content": _truncate(str(item.get("content") or ""), MAX_SEARCH_CONTENT_CHARS),
+                    "file_path": item.file_path,
+                    "score": item.score,
+                    "content": _truncate(item.content or "", MAX_SEARCH_CONTENT_CHARS),
                 }
             )
         record_stage(
@@ -276,7 +276,7 @@ class BenedictMcpService:
         if repo_reader is None:
             return _err("No repository reader is configured.")
 
-        from benedict.utils.context import build_context
+        from benedict.context import build_context
 
         action_logger = ActionLogger(project.workspace_path)
         context = build_context(

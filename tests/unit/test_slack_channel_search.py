@@ -3,7 +3,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from benedict.indexers.slack_history_indexer import (
+from benedict.conversation_history_indexer.slack_history_indexer import (
     format_slack_channel_hits,
     search_indexed_slack_channel,
     slack_channel_collection_name,

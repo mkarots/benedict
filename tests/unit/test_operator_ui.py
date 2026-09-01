@@ -121,16 +121,17 @@ def test_record_llm_stage_snapshots_prompt(tmp_path: Path):
 
 def test_hits_for_recorder_includes_chunk_preview():
     from benedict.operator_ui.recorder import SEARCH_HIT_PREVIEW_CHARS, hits_for_recorder
+    from benedict.semantic_indexer.search_hit import SearchHit
 
     hits = hits_for_recorder(
         [
-            {
-                "file_path": "src/index.py",
-                "score": 0.9123,
-                "content": "def index_repository():\n    pass\n",
-                "project": "acme/x",
-            },
-            {"score": None, "content": ""},
+            SearchHit(
+                file_path="src/index.py",
+                score=0.9123,
+                content="def index_repository():\n    pass\n",
+                project="acme/x",
+            ),
+            SearchHit(file_path="unknown", score=0, content=""),
         ]
     )
     assert hits[0]["file_path"] == "src/index.py"
@@ -142,11 +143,11 @@ def test_hits_for_recorder_includes_chunk_preview():
     assert hits[1]["content"] == ""
 
     long = "x" * (SEARCH_HIT_PREVIEW_CHARS + 50)
-    trimmed = hits_for_recorder([{"file_path": "a.py", "score": 1, "content": long}])
+    trimmed = hits_for_recorder([SearchHit(file_path="a.py", score=1, content=long)])
     assert trimmed[0]["content"].startswith("x")
     assert "50 chars omitted" in trimmed[0]["content"]
     assert hits_for_recorder([]) == []
-    assert hits_for_recorder(None) == []  # type: ignore[arg-type]
+    assert hits_for_recorder(None) == []
 
 
 def test_record_stage_attaches_to_current_run(tmp_path: Path):

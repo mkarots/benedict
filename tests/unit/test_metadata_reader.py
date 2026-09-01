@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from benedict.metadata import MetadataReader
-from benedict.metadata.metadata_location import sidecar_path
+from benedict.semantic_indexer.metadata import MetadataReader
+from benedict.semantic_indexer.metadata.metadata_location import sidecar_path
 
 
 def test_read_prefers_sidecar_over_in_tree(tmp_path: Path):

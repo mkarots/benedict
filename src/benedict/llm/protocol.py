@@ -3,7 +3,7 @@
 Defines the interface for Large Language Model providers.
 """
 
-from typing import Protocol, Optional, List, Dict, Any, Union
+from typing import Protocol, List, Dict, Any, Union, Optional
 
 
 class LLM(Protocol):
@@ -33,28 +33,3 @@ class LLM(Protocol):
                 Generated text response string
         """
         ...
-
-
-def create_llm(provider: str = "claude", model: Optional[str] = None) -> LLM:
-    """Factory function to create LLM instance.
-
-    Args:
-        provider: Provider name ("claude" or "mock")
-        model: Optional model name (for Claude, defaults to ANTHROPIC_MODEL env var or claude-3-5-sonnet-20241022)
-
-    Returns:
-        LLM instance
-
-    Raises:
-        ValueError: If provider is unknown
-    """
-    if provider == "claude":
-        from benedict.llm.llm_claude import ClaudeLLM
-
-        return ClaudeLLM(model=model)
-    elif provider == "mock":
-        from benedict.llm.llm_mock import MockLLM
-
-        return MockLLM()
-    else:
-        raise ValueError(f"Unknown provider: {provider}")

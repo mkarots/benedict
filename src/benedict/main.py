@@ -12,13 +12,11 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from benedict.agent import RepoAgent
 from benedict.paths import get_data_dir, load_runtime_env
-from benedict.protocols import (
-    create_llm,
-    create_repo_reader,
-    create_semantic_indexer,
-    create_conversation_repository,
-    create_conversation_history_indexer,
-)
+from benedict.conversation_history_indexer import create_conversation_history_indexer
+from benedict.conversation_repository import create_conversation_repository
+from benedict.llm import create_llm
+from benedict.repo_reader import create_repo_reader
+from benedict.semantic_indexer import create_semantic_indexer
 from benedict.slack.app import create_slack_app
 from benedict.workspace import WorkspaceManager
 from benedict.lib.logging import setup_logging, get_logger
@@ -99,8 +97,8 @@ def main() -> None:
         # Use configurable path for ChromaDB (defaults to data_dir/.chroma_db)
         chroma_db_path = os.environ.get("BENEDICT_CHROMA_DB_DIR", str(data_dir / ".chroma_db"))
         # Create metadata generator for semantic indexer
-        from benedict.metadata import MetadataGenerator
-        from benedict.protocols.repo_change_detector import create_repo_change_detector
+        from benedict.semantic_indexer.metadata import MetadataGenerator
+        from benedict.semantic_indexer.change_detector import create_repo_change_detector
 
         metadata_generator = MetadataGenerator()
         change_detector = create_repo_change_detector(detector_type="git")

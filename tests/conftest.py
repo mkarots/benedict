@@ -12,12 +12,10 @@ from unittest.mock import Mock, MagicMock
 import pytest
 
 from benedict.models import Message, Conversation, ConversationManager
-from benedict.protocols import (
-    LLM,
-    RepoReader,
-    SemanticIndexer,
-    ConversationRepository,
-)
+from benedict.conversation_repository.protocol import ConversationRepository
+from benedict.llm.protocol import LLM
+from benedict.repo_reader.protocol import RepoReader
+from benedict.semantic_indexer.protocol import SemanticIndexer
 from benedict.llm import MockLLM
 from benedict.repo_reader import MockRepoReader
 from benedict.semantic_indexer import MockSemanticIndexer

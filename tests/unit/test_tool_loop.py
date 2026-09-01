@@ -2,8 +2,8 @@
 
 from typing import Any, Dict, List, Optional, Union
 
-from benedict.commands.tool_framework import Tool, ToolRegistry, ToolResult
-from benedict.commands.tool_loop import format_tool_result, run_tool_loop
+from benedict.tools.tool_framework import Tool, ToolRegistry, ToolResult
+from benedict.tools.tool_loop import format_tool_result, run_tool_loop
 
 
 class StubTool(Tool):

@@ -7,7 +7,8 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from benedict.protocols.repo_reader import RepoReader
+from benedict.repo_reader.protocol import RepoReader
+from benedict.semantic_indexer.search_hit import SearchHit
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class MockSemanticIndexer:
     def __init__(self) -> None:
         """Initialize mock semantic indexer."""
         self.indexed_repos: set[str] = set()
-        self._relevant_files: List[Dict[str, Any]] = []
+        self._relevant_files: List[SearchHit] = []
         self._slack_hits: List[Dict[str, Any]] = []
         logger.info("Initialized MockSemanticIndexer")
 
@@ -27,11 +28,11 @@ class MockSemanticIndexer:
     ) -> None:
         """Pre-populate a search hit (test helper)."""
         self._relevant_files.append(
-            {
-                "file_path": file_path,
-                "content": content if content is not None else f"[Mock content for {file_path}]",
-                "score": score,
-            }
+            SearchHit(
+                file_path=file_path,
+                content=content if content is not None else f"[Mock content for {file_path}]",
+                score=score,
+            )
         )
 
     def add_slack_hit(
@@ -86,7 +87,7 @@ class MockSemanticIndexer:
         top_k: int = 5,
         workspace_path: Any = None,
         metadata_reader: Any = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SearchHit]:
         """Mock semantic search.
 
         Args:
@@ -95,7 +96,7 @@ class MockSemanticIndexer:
             top_k: Number of results
 
         Returns:
-            Mock results
+            Mock search hits
         """
         if self._relevant_files:
             return self._relevant_files[:top_k]
@@ -110,11 +111,11 @@ class MockSemanticIndexer:
         results = []
         for i, file_path in enumerate(mock_files[:top_k]):
             results.append(
-                {
-                    "file_path": file_path,
-                    "content": f"[Mock content for {file_path} related to: {query}]",
-                    "score": 0.9 - (i * 0.1),
-                }
+                SearchHit(
+                    file_path=file_path,
+                    content=f"[Mock content for {file_path} related to: {query}]",
+                    score=0.9 - (i * 0.1),
+                )
             )
 
         return results

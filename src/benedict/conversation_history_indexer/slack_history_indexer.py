@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 from benedict.lib.dateutil import normalize_to_utc
-from benedict.protocols.conversation_history_indexer import (
+from benedict.conversation_history_indexer.protocol import (
     ConversationReader,
 )
 

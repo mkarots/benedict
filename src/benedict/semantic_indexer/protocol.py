@@ -4,7 +4,9 @@ Defines interface for semantic code search and indexing.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, List, Optional, Protocol
+
+from benedict.semantic_indexer.search_hit import SearchHit
 
 
 class SemanticIndexer(Protocol):
@@ -47,7 +49,7 @@ class SemanticIndexer(Protocol):
         top_k: int = 5,
         workspace_path: Any = None,
         metadata_reader: Any = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SearchHit]:
         """Search repository using semantic similarity.
 
         Args:
@@ -56,7 +58,7 @@ class SemanticIndexer(Protocol):
             top_k: Number of results to return
 
         Returns:
-            List of dicts with keys: 'file_path', 'content', 'score'
+            Ranked search hits
         """
         ...
 
@@ -70,43 +72,3 @@ class SemanticIndexer(Protocol):
             True if repository is indexed
         """
         ...
-
-
-def create_semantic_indexer(
-    provider: str = "chromadb",
-    persist_directory: Optional[str] = None,
-    metadata_generator: Any = None,
-    change_detector: Any = None,
-) -> SemanticIndexer:
-    """Factory function to create SemanticIndexer instance.
-
-    Args:
-        provider: Provider name ("chromadb" or "mock")
-        persist_directory: Optional directory path for ChromaDB persistence
-        metadata_generator: Optional metadata generator for creating METADATA overlays
-        change_detector: Optional change detector for git-based incremental updates
-
-    Returns:
-        SemanticIndexer instance
-
-    Raises:
-        ValueError: If provider is unknown
-    """
-    if provider == "chromadb":
-        from benedict.semantic_indexer.semantic_indexer_chromadb import ChromaDBSemanticIndexer
-
-        if persist_directory:
-            return ChromaDBSemanticIndexer(
-                persist_directory=persist_directory,
-                metadata_generator=metadata_generator,
-                change_detector=change_detector,
-            )
-        return ChromaDBSemanticIndexer(
-            metadata_generator=metadata_generator, change_detector=change_detector
-        )
-    elif provider == "mock":
-        from benedict.semantic_indexer.semantic_indexer_mock import MockSemanticIndexer
-
-        return MockSemanticIndexer()
-    else:
-        raise ValueError(f"Unknown provider: {provider}")

@@ -5,7 +5,7 @@ from pathlib import Path
 from benedict.operator_ui.recorder import JsonlRunRecorder
 from benedict.repo_reader.repo_reader_mock import MockRepoReader
 from benedict.semantic_indexer.semantic_indexer_mock import MockSemanticIndexer
-from benedict.utils.context import build_architect_context, build_context
+from benedict.context import build_architect_context, build_context
 
 
 def test_build_context_records_chunk_hits(tmp_path: Path):
@@ -123,7 +123,7 @@ def test_build_architect_context_records_chunks(tmp_path: Path):
 
 
 def test_build_slack_channel_context_includes_hits(tmp_path: Path):
-    from benedict.utils.context import build_slack_channel_context
+    from benedict.context import build_slack_channel_context
 
     recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
     indexer = MockSemanticIndexer()
@@ -148,7 +148,7 @@ def test_build_slack_channel_context_includes_hits(tmp_path: Path):
 
 
 def test_build_slack_channel_context_skips_when_empty(tmp_path: Path):
-    from benedict.utils.context import build_slack_channel_context
+    from benedict.context import build_slack_channel_context
 
     recorder = JsonlRunRecorder(tmp_path / "runs.jsonl")
     run = recorder.begin(query="what did we decide?")

@@ -52,23 +52,3 @@ class RepoChangeDetector(Protocol):
             True if git repository, False otherwise
         """
         ...
-
-
-def create_repo_change_detector(detector_type: str = "git") -> RepoChangeDetector:
-    """Factory function to create RepoChangeDetector instance.
-
-    Args:
-        detector_type: Type of detector. Currently only "git" is supported.
-
-    Returns:
-        RepoChangeDetector instance
-
-    Raises:
-        ValueError: If detector_type is unknown
-    """
-    if detector_type == "git":
-        from benedict.repo_change_detector.git_change_detector import GitChangeDetector
-
-        return GitChangeDetector()
-    else:
-        raise ValueError(f"Unknown detector_type: {detector_type}")

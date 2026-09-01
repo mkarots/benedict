@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, List, Optional, Protocol
 
-from benedict.commands.github_tools import RunGithubTool
+from benedict.tools.github_tools import RunGithubTool
 from benedict.progress.models import ActionResult, Decision, GithubItem, ProjectSnapshot
 
 logger = logging.getLogger(__name__)

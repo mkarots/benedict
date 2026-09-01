@@ -1,7 +1,6 @@
-"""Command Classification System
+"""Agent tools and intent classification.
 
-Provides intent-based command routing for Benedict.
-Commands are declaratively defined and automatically classified from user input.
+LLM tool loop, GitHub/Notion/metadata tools, and declarative command routing.
 """
 
 from .command_classifier import CommandClassifier, CommandIntent, CommandType

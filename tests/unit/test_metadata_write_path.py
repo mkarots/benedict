@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from benedict.metadata import MetadataGenerator
-from benedict.metadata.metadata_location import MetadataLocationError, sidecar_path
+from benedict.semantic_indexer.metadata import MetadataGenerator
+from benedict.semantic_indexer.metadata.metadata_location import MetadataLocationError, sidecar_path
 from benedict.workspace.workspace_manager import WorkspaceManager
 
 

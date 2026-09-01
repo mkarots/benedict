@@ -1,29 +1,31 @@
 """Directory boost applied after embedding search."""
 
+from dataclasses import replace
 from pathlib import Path
-from typing import Any
+
+from benedict.semantic_indexer.search_hit import SearchHit
 
 DEFAULT_DIRECTORY_BOOST = 1.2
 
 
 def apply_directory_boost(
-    hits: list[dict[str, Any]],
+    hits: list[SearchHit],
     relevant_dirs: set[str],
     factor: float = DEFAULT_DIRECTORY_BOOST,
-) -> list[dict[str, Any]]:
+) -> list[SearchHit]:
     """Multiply a hit's score when its directory matched a metadata search.
 
     ``relevant_dirs`` must be source-relative (``src/auth``), not sidecar paths.
     Hits are re-sorted by score descending. ``top_k`` is the caller's job.
     """
-    boosted: list[dict[str, Any]] = []
+    boosted: list[SearchHit] = []
     for hit in hits:
-        score = hit["score"]
-        file_dir = _source_dir(hit.get("file_path", ""))
+        score = hit.score
+        file_dir = _source_dir(hit.file_path)
         if _directory_matches(file_dir, relevant_dirs):
             score = score * factor
-        boosted.append({**hit, "score": score})
-    boosted.sort(key=lambda row: row["score"], reverse=True)
+        boosted.append(replace(hit, score=score))
+    boosted.sort(key=lambda row: row.score, reverse=True)
     return boosted
 
 
