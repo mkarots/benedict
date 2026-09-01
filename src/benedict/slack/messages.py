@@ -2,13 +2,13 @@
 
 Owns how Benedict replies look in Slack: message type, Block Kit vs plain text,
 chunking to API limits, and calling Bolt ``say``. Event handlers stay in
-``slack_app``; mrkdwn and Block Kit construction stay in ``slack_formatter``.
+``slack.app``; mrkdwn and Block Kit construction stay in ``slack.formatter``.
 """
 
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from benedict.utils import BlockKitFormatter, SlackFormatter
+from .formatter import BlockKitFormatter, SlackFormatter
 
 # Agent status strings use these title emojis: "📊 *Channel Status*"
 _STATUS_TITLE_EMOJIS = ("📊", "✅", "⚠️")

@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-from benedict.slack_messages import (
+from benedict.slack.messages import (
     _deliver_formatted,
     format_and_send_message,
     format_message_payload,

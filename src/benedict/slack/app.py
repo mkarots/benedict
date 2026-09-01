@@ -11,7 +11,7 @@ from typing import Any, Optional
 from slack_bolt import App
 from benedict.agent import RepoAgent
 from benedict.operator_ui.recorder import NullActiveRun
-from benedict.slack_messages import format_and_send_message
+from benedict.slack.messages import format_and_send_message
 
 logger = logging.getLogger(__name__)
 

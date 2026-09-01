@@ -55,21 +55,21 @@ class TestSlackFormatter:
 
     def test_format_basic_text(self):
         """Test formatting basic text for Slack."""
-        from benedict.utils.slack_formatter import SlackFormatter
+        from benedict.slack.formatter import SlackFormatter
 
         assert SlackFormatter.markdown_to_mrkdwn("hello") == "hello"
         assert SlackFormatter.markdown_to_mrkdwn("") == ""
 
     def test_format_code_block(self):
         """Test formatting code blocks for Slack."""
-        from benedict.utils.slack_formatter import SlackFormatter
+        from benedict.slack.formatter import SlackFormatter
 
         block = "```python\nprint('hi')\n```"
         assert SlackFormatter.markdown_to_mrkdwn(block) == block
 
     def test_escape_special_characters(self):
         """Test markdown markers convert to Slack mrkdwn."""
-        from benedict.utils.slack_formatter import SlackFormatter
+        from benedict.slack.formatter import SlackFormatter
 
         assert SlackFormatter.markdown_to_mrkdwn("~~old~~") == "~old~"
         assert SlackFormatter.markdown_to_mrkdwn("[docs](https://example.com)") == (
