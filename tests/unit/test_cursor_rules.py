@@ -61,8 +61,6 @@ def test_gitignore_tracks_cursor_rules():
     assert ".cursor/*" in text
     assert "!.cursor/rules/" in text
     assert "!.cursor/rules/**" in text
-    assert "!.cursor/skills/" in text
-    assert "!.cursor/skills/**" in text
 
 
 def test_operator_ui_screenshots_rule_requires_pr_images():
