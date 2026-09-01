@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 from benedict.slack.messages import (
     _deliver_formatted,
+    post_reply,
     render,
-    send_reply,
 )
-from benedict.slack.payloads import error, markdown, status
+from benedict.slack.payloads import command, error, markdown, status
 
 
 def test_render_empty_markdown_returns_none():
@@ -63,33 +63,30 @@ def test_render_error_puts_next_steps_in_own_section():
 
 
 def test_render_command_uses_block_kit():
-    payload = render(
-        markdown(True, "Onboarded `org/repo`."),
-        message_type="command",
-    )
+    payload = render(command(True, "Onboarded `org/repo`."))
     assert payload is not None
     assert "blocks" in payload
 
 
-def test_send_reply_skips_empty():
+def test_post_reply_skips_empty():
     say = Mock()
-    send_reply(say, markdown(True, ""))
+    post_reply(markdown(True, ""), say=say)
     say.assert_not_called()
 
 
-def test_send_reply_conversation_passes_thread_ts():
+def test_post_reply_passes_thread_ts():
     say = Mock()
-    send_reply(say, markdown(True, "hello"), thread_ts="123.456", message_type="conversation")
+    post_reply(markdown(True, "hello"), say=say, thread_ts="123.456")
     say.assert_called_once()
     kwargs = say.call_args.kwargs
     assert kwargs["thread_ts"] == "123.456"
 
 
-def test_send_reply_status_sends_blocks():
+def test_post_reply_status_sends_blocks():
     say = Mock()
-    send_reply(
-        say,
+    post_reply(
         status(title="Channel Status", fields={"Repository": "`org/repo`"}),
+        say=say,
         thread_ts="9.9",
     )
     say.assert_called_once()
@@ -112,13 +109,11 @@ def test_deliver_formatted_plain_text_chunks_when_over_limit():
     assert say.call_args_list[0].kwargs["thread_ts"] == "1.0"
 
 
-def test_send_reply_block_kit_chunks_when_over_limit():
+def test_post_reply_block_kit_chunks_when_over_limit():
     say = Mock()
-    send_reply(
-        say,
-        markdown(True, "paragraph of details about the repo. " * 200),
-        message_type="conversation",
-        use_block_kit=True,
+    post_reply(
+        markdown(True, "paragraph of details about the repo. " * 200, force_block_kit=True),
+        say=say,
     )
     assert say.call_count > 1
     first_blocks = say.call_args_list[0].kwargs["blocks"]

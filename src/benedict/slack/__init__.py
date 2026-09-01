@@ -1,7 +1,7 @@
 """Slack integration: Bolt app, message delivery, and Block Kit formatting."""
 
 from .formatter import BlockKitFormatter, SlackFormatter
-from .messages import render, send_reply
+from .messages import post_reply, render
 from .payloads import ErrorPayload, MarkdownPayload, SlackPayload, StatusPayload
 
 __all__ = [
@@ -11,6 +11,6 @@ __all__ = [
     "SlackFormatter",
     "SlackPayload",
     "StatusPayload",
+    "post_reply",
     "render",
-    "send_reply",
 ]

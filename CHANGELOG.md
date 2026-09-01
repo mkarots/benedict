@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.10] - 2026-09-01
 
 ### Changed
-- Slack delivery is `send_reply`. It renders a payload, then posts. The conjunction name `format_and_send_message` is gone.
+- Slack posts a handler reply with `post_reply(payload, say=say, thread_ts=thread_ts)`. Command vs conversation Block Kit lives on the payload (`command()` vs `markdown()`), not a `message_type` argument.
 
 ## [0.8.9] - 2026-09-01
 
