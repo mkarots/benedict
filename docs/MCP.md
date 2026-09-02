@@ -11,7 +11,7 @@ Benedict exposes its onboarded project memory over MCP so Cursor, Claude Code, a
 A stdio MCP server (`benedict-mcp`) that reads the same `state.json`, workspaces, metadata, and semantic index as the Slack bot.
 
 **Why:**
-MCP is the same Benedict, not a second product. You already talk in Slack. In Cursor or Claude Code you still want that repo's index, metadata, and Q&A. MCP is the protocol those tools already speak.
+You already talk to Benedict in Slack. When you are in Cursor or Claude Code, you still want indexed code, metadata, and project Q&A. MCP is the protocol those tools already speak.
 
 **When to use:**
 - Cursor or Claude Code needs Benedict's project memory

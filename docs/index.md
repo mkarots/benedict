@@ -11,11 +11,11 @@ Status: Current
 
 # Benedict
 
-Benedict is a Slack app. Invite the bot, connect a repo, that channel has an agent whose job is to maintain the repo.
+Benedict is an agent that knows your code and the Slack conversations you have about it — and can help you plan the work.
 
 Each channel is one project. You point the channel at a local folder. After that, Benedict can answer from the code *and* from what the team already said in Slack: how a feature works, what you decided last week, what to do next.
 
-MCP in Cursor or Claude Code is the same agent, not a second product. When you want a next step, Benedict can ask a clarifying question, open a GitHub issue, or mark something as ready to implement.
+You can ask the same questions from Cursor or Claude Code. When you want a next step, Benedict can ask a clarifying question, open a GitHub issue, or mark something as ready to implement.
 
 ## A normal day
 

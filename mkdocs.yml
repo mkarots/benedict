@@ -1,5 +1,5 @@
 site_name: Benedict
-site_description: A Slack app that gives each onboarded repo its own agent
+site_description: An agent that knows your code, your Slack project talk, and can help you plan
 repo_url: https://github.com/mkarots/benedict
 repo_name: mkarots/benedict
 edit_uri: edit/main/docs/
