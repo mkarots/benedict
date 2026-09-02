@@ -1,0 +1,17 @@
+---
+description: One independent agent per repo; Slack-first; MCP included
+alwaysApply: true
+---
+
+# Product shape
+
+Benedict is a Slack app. Invite the bot, connect a repo, that channel has a brain.
+
+- One independent agent per onboarded repo. Its job is to **maintain that repo**.
+- Isolate memory, index, and actions per repo. Do not build a workspace-wide general assistant.
+- MCP in the IDE is the same product and the same memory. Not a second SKU, index, or name.
+- Price by Slack workspace or by onboarded repo. Do not propose seat-based pricing.
+- Stay local-folder-first. Do not clone from GitHub for the customer. That is why enterprise can run the same agent in their VPC.
+- The architect channel is the only cross-project exception.
+
+The decision record is `docs/adr/0004-product-shape.md`.

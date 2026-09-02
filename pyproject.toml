@@ -1,7 +1,7 @@
 [project]
 name = "benedict"
 version = "0.8.10"
-description = "A Slack bot that links channels to repositories and provides intelligent, repo-scoped AI agent conversations"
+description = "A Slack app that gives each onboarded repo its own agent — in the channel and in the IDE via MCP"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [

@@ -1,7 +1,7 @@
 """Benedict - Slack Repo Agent
 
-A Slack bot that links channels to repositories and provides intelligent,
-repo-scoped AI agent conversations.
+A Slack app that gives each onboarded repo its own agent — in the channel
+and in the IDE via MCP.
 """
 
 __version__ = "0.8.10"
