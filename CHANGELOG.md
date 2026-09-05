@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.12] - 2026-09-01
+
+### Changed
+- Code and conversation history share one Chroma client (`.chroma_db`). They stay in separate collections (`repo_*` vs `conversation_*`). The composition root opens the client; neither indexer owns the database.
+
+## [0.8.11] - 2026-09-01
+
+### Changed
+- Conversation history has its own Chroma store (`BENEDICT_CONVERSATION_CHROMA_DIR`, default `{data_dir}/.conversation_chroma`). Code search stays in `.chroma_db`. Slack is only the ingest adapter; the agent owns conversation search. Existing channel collections in `.chroma_db` are unused; the next history update backfills from workspace JSON.
+
 ## [0.8.10] - 2026-09-01
 
 ### Changed

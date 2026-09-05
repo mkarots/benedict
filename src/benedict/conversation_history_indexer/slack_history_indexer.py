@@ -5,7 +5,6 @@ Implements ConversationHistoryIndexer protocol for Slack.
 
 import json
 import logging
-import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -14,85 +13,9 @@ from benedict.lib.dateutil import normalize_to_utc
 from benedict.conversation_history_indexer.protocol import (
     ConversationReader,
 )
+from benedict.conversation_history_indexer.store import ConversationHistoryStore
 
 logger = logging.getLogger(__name__)
-
-
-def _embedding_as_list(query_embedding: Any) -> List[float]:
-    """Accept numpy arrays from MiniLM and plain lists in tests."""
-    values = query_embedding.tolist() if hasattr(query_embedding, "tolist") else query_embedding
-    return [float(value) for value in values]
-
-
-def slack_channel_collection_name(channel_id: str) -> str:
-    """Chroma collection name for a Slack channel's embedded history."""
-    return f"slack_channel_{hashlib.md5(channel_id.encode()).hexdigest()[:16]}"
-
-
-def format_slack_channel_hits(results: Dict[str, Any], channel_id: str) -> List[Dict[str, Any]]:
-    """Turn a Chroma query payload into Slack retrieval hits."""
-    documents = (results.get("documents") or [[]])[0] or []
-    metadatas = (results.get("metadatas") or [[]])[0] or []
-    distances = (results.get("distances") or [[]])[0] or []
-    formatted: List[Dict[str, Any]] = []
-    for i, doc in enumerate(documents):
-        metadata = metadatas[i] if i < len(metadatas) and metadatas[i] else {}
-        distance = distances[i] if i < len(distances) else 0.0
-        score = 1.0 / (1.0 + float(distance))
-        message_ts = str(metadata.get("message_ts") or "")
-        formatted.append(
-            {
-                "file_path": f"slack:{channel_id}:{message_ts}",
-                "content": doc,
-                "score": score,
-                "channel_id": metadata.get("channel_id") or channel_id,
-                "message_ts": message_ts,
-                "user": metadata.get("user"),
-                "type": metadata.get("type") or "message",
-                "thread_ts": metadata.get("thread_ts"),
-            }
-        )
-    return formatted
-
-
-def search_indexed_slack_channel(
-    semantic_indexer: Any,
-    channel_id: str,
-    query: str,
-    top_k: int = 5,
-) -> List[Dict[str, Any]]:
-    """Query the Slack channel collection written on onboard / index update.
-
-    Test doubles may implement ``search_slack_channel``. Production Chroma is
-    queried through ``client`` and ``embedding_model`` only — the repo indexer
-    does not know about Slack.
-    """
-    if semantic_indexer is None or not channel_id or not str(query).strip():
-        return []
-
-    dedicated = getattr(semantic_indexer, "search_slack_channel", None)
-    if callable(dedicated):
-        return list(dedicated(channel_id, str(query).strip(), top_k=top_k) or [])
-
-    if not hasattr(semantic_indexer, "embedding_model") or not hasattr(semantic_indexer, "client"):
-        return []
-
-    collection_name = slack_channel_collection_name(channel_id)
-    try:
-        collection = semantic_indexer.client.get_collection(collection_name)
-    except Exception:
-        logger.debug("No Slack channel collection for %s", channel_id)
-        return []
-
-    if collection.count() == 0:
-        return []
-
-    query_embedding = semantic_indexer.embedding_model.encode([str(query).strip()])[0]
-    n_results = min(top_k, collection.count())
-    results = collection.query(
-        query_embeddings=[_embedding_as_list(query_embedding)], n_results=n_results
-    )
-    return format_slack_channel_hits(results, channel_id)
 
 
 class SlackConversationReader:
@@ -108,7 +31,10 @@ class SlackConversationReader:
         self.conversation_dir = self.workspace_path / "conversation_history"
 
     def read_conversations(
-        self, context_id: str, since: Optional[datetime] = None, limit: Optional[int] = None
+        self,
+        context_id: str,
+        since: Optional[datetime] = None,
+        limit: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """Read Slack conversations from workspace.
 
@@ -174,23 +100,48 @@ class SlackConversationReader:
 
 
 class SlackConversationHistoryIndexer:
-    """Indexes Slack conversations into workspace."""
+    """Slack ingest adapter for the agent's conversation-history store."""
 
-    def __init__(self, slack_client: Any = None):
+    def __init__(
+        self,
+        slack_client: Any = None,
+        persist_directory: Optional[str] = None,
+        store: Optional[ConversationHistoryStore] = None,
+        embedding_model: Any = None,
+        client: Any = None,
+    ):
         """Initialize Slack conversation history indexer.
 
         Args:
-            slack_client: Optional Slack client (for future use with Slack API)
+            slack_client: Slack WebClient for fetching channel history
+            persist_directory: Fallback Chroma path when ``client`` is omitted
+            store: Optional store (tests inject a fake)
+            embedding_model: Optional embedder (tests inject a fake; production lazy-loads MiniLM)
+            client: Shared Chroma client (same database as code search)
         """
         self.slack_client = slack_client
+        self.store = store or ConversationHistoryStore(
+            persist_directory=persist_directory,
+            embedding_model=embedding_model,
+            client=client,
+        )
         logger.info("Initialized SlackConversationHistoryIndexer")
+
+    def search(self, context_id: str, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Search this context's conversation embeddings."""
+        if not context_id or not str(query).strip():
+            return []
+        try:
+            return self.store.search(context_id, str(query).strip(), top_k=top_k)
+        except Exception as exc:
+            logger.warning("Conversation history search failed for %s: %s", context_id, exc)
+            return []
 
     def index_conversations(
         self,
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer: Any = None,
     ) -> None:
         """Index Slack conversations into workspace.
 
@@ -198,7 +149,6 @@ class SlackConversationHistoryIndexer:
             context_id: Context identifier (Slack channel_id)
             workspace_path: Path to workspace directory
             since: Optional datetime to index conversations since
-            semantic_indexer: Optional semantic indexer to also index conversations for search
         """
         if not self.slack_client:
             logger.warning("Slack client not available, cannot index conversations")
@@ -253,19 +203,14 @@ class SlackConversationHistoryIndexer:
 
         logger.info(f"Stored {len(all_messages)} messages to {output_file}")
 
-        # Optionally index into semantic indexer
-        if semantic_indexer:
-            keyed_threads = {key: replies for key, replies in threaded_messages.items() if key}
-            self._index_into_semantic_indexer(
-                context_id, all_messages, keyed_threads, semantic_indexer
-            )
+        keyed_threads = {key: replies for key, replies in threaded_messages.items() if key}
+        self._index_into_store(context_id, all_messages, keyed_threads)
 
     def update_index(
         self,
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer: Any = None,
     ) -> None:
         """Incrementally update conversation index with new messages.
 
@@ -273,7 +218,6 @@ class SlackConversationHistoryIndexer:
             context_id: Context identifier (Slack channel_id)
             workspace_path: Path to workspace directory
             since: Datetime to index conversations since (required for incremental updates)
-            semantic_indexer: Optional semantic indexer to also index conversations for search
         """
         if not self.slack_client:
             logger.warning("Slack client not available, cannot update conversation index")
@@ -289,6 +233,8 @@ class SlackConversationHistoryIndexer:
 
         logger.info(f"Updating conversation index for channel {context_id} since {since}")
 
+        output_file = conversation_dir / f"{context_id}.json"
+
         # Convert datetime to Slack timestamp (normalize to UTC first)
         since_utc = normalize_to_utc(since)
         oldest_ts = str(since_utc.timestamp())
@@ -298,12 +244,12 @@ class SlackConversationHistoryIndexer:
 
         if not new_messages:
             logger.info(f"No new messages found for channel {context_id} since {since}")
+            self._backfill_store_if_empty(context_id, output_file)
             return
 
         logger.info(f"Fetched {len(new_messages)} new messages from channel {context_id}")
 
         # Load existing messages if file exists
-        output_file = conversation_dir / f"{context_id}.json"
         existing_messages = []
         existing_threads = {}
 
@@ -322,6 +268,7 @@ class SlackConversationHistoryIndexer:
 
         if not unique_new_messages:
             logger.info("No new unique messages to add")
+            self._backfill_store_if_empty(context_id, output_file)
             return
 
         # Fetch thread replies for new threaded messages
@@ -354,11 +301,11 @@ class SlackConversationHistoryIndexer:
             f"(total: {len(all_messages)} messages)"
         )
 
-        # Optionally index new messages into semantic indexer
-        if semantic_indexer:
-            self._index_into_semantic_indexer(
-                context_id, unique_new_messages, existing_threads, semantic_indexer
-            )
+        # Empty store after the code/conversation split: embed the full JSON, not only new rows.
+        if self.store.document_count(context_id) == 0:
+            self._index_into_store(context_id, all_messages, existing_threads)
+        else:
+            self._index_into_store(context_id, unique_new_messages, existing_threads)
 
     def get_conversation_reader(self, workspace_path: Path) -> ConversationReader:
         """Get reader for accessing conversations.
@@ -489,140 +436,39 @@ class SlackConversationHistoryIndexer:
 
         return True
 
-    def _index_into_semantic_indexer(
+    def _backfill_store_if_empty(self, context_id: str, output_file: Path) -> None:
+        """Embed existing JSON when the conversation store is empty (post-split)."""
+        if self.store.document_count(context_id) > 0 or not output_file.exists():
+            return
+        try:
+            with open(output_file, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+        except Exception as exc:
+            logger.warning("Error reading conversation file for backfill: %s", exc)
+            return
+        messages = data.get("messages") or []
+        threads = data.get("threads") or {}
+        if messages:
+            self._index_into_store(context_id, messages, threads)
+
+    def _index_into_store(
         self,
-        channel_id: str,
+        context_id: str,
         messages: List[Dict[str, Any]],
         threads: Dict[str, List[Dict[str, Any]]],
-        semantic_indexer: Any,
     ) -> None:
-        """Index messages into semantic indexer for search with embeddings.
-
-        Args:
-            channel_id: Slack channel ID
-            messages: List of message dictionaries
-            threads: Dictionary mapping thread_ts to thread replies
-            semantic_indexer: Semantic indexer instance (ChromaDBSemanticIndexer)
-        """
-        if not semantic_indexer:
+        """Write messages into the conversation embedding store."""
+        if not self.store.available:
             return
-
-        # Check if semantic indexer has the necessary attributes
-        if not hasattr(semantic_indexer, "embedding_model") or not hasattr(
-            semantic_indexer, "client"
-        ):
-            logger.debug("Semantic indexer does not support channel message indexing, skipping")
-            return
-
         try:
-
-            collection_name = slack_channel_collection_name(channel_id)
-
-            # Get or create collection
-            try:
-                collection = semantic_indexer.client.get_collection(collection_name)
-            except Exception:
-                collection = semantic_indexer.client.create_collection(
-                    name=collection_name,
-                    metadata={"channel_id": channel_id, "type": "slack_channel"},
-                )
-
-            # Prepare documents for indexing
-            documents = []
-            metadatas = []
-            ids = []
-
-            # Index main messages
-            for msg in messages:
-                text = msg.get("text", "")
-                if not text:
-                    continue
-
-                msg_ts = msg.get("ts", "")
-                doc_id = f"{channel_id}:{msg_ts}"
-                documents.append(text)
-
-                # Build metadata, filtering out None values (ChromaDB doesn't accept None)
-                metadata = {
-                    "channel_id": channel_id,
-                    "message_ts": msg_ts,
-                    "type": "message",
-                    "repo": "slack_channel",  # Use special repo identifier for channels
-                }
-                # Only add optional fields if they're not None
-                if msg.get("thread_ts"):
-                    metadata["thread_ts"] = msg.get("thread_ts")
-                if msg.get("user"):
-                    metadata["user"] = msg.get("user")
-
-                metadatas.append(metadata)
-                ids.append(doc_id)
-
-            # Index thread replies
-            for thread_ts, thread_messages in threads.items():
-                for msg in thread_messages:
-                    text = msg.get("text", "")
-                    if not text:
-                        continue
-
-                    msg_ts = msg.get("ts", "")
-                    doc_id = f"{channel_id}:{msg_ts}:thread"
-                    documents.append(text)
-
-                    # Build metadata, filtering out None values (ChromaDB doesn't accept None)
-                    metadata = {
-                        "channel_id": channel_id,
-                        "message_ts": msg_ts,
-                        "thread_ts": thread_ts,
-                        "type": "thread_reply",
-                        "repo": "slack_channel",
-                    }
-                    # Only add optional fields if they're not None
-                    if msg.get("user"):
-                        metadata["user"] = msg.get("user")
-
-                    metadatas.append(metadata)
-                    ids.append(doc_id)
-
-            if not documents:
-                logger.debug("No documents to index into semantic indexer")
-                return
-
-            logger.info(
-                f"Indexing {len(documents)} messages from channel {channel_id} "
-                f"into semantic indexer with embeddings"
-            )
-
-            # Generate embeddings
-            embeddings = semantic_indexer.embedding_model.encode(documents, show_progress_bar=False)
-
-            # Add to collection in batches (ChromaDB has max batch size limit of ~5461)
-            batch_size = 5000
-            total_batches = (len(documents) + batch_size - 1) // batch_size
-
-            for batch_idx in range(total_batches):
-                start_idx = batch_idx * batch_size
-                end_idx = min(start_idx + batch_size, len(documents))
-
-                batch_documents = documents[start_idx:end_idx]
-                batch_embeddings = embeddings[start_idx:end_idx]
-                batch_metadatas = metadatas[start_idx:end_idx]
-                batch_ids = ids[start_idx:end_idx]
-
-                collection.add(
-                    embeddings=batch_embeddings.tolist(),
-                    documents=batch_documents,
-                    metadatas=batch_metadatas,
-                    ids=batch_ids,
-                )
-
-            logger.info(
-                f"✅ Indexed {len(documents)} messages from channel {channel_id} "
-                f"into semantic indexer with embeddings"
-            )
-
+            self.store.add_messages(context_id, messages, threads)
         except Exception as e:
-            logger.warning(f"Error indexing messages into semantic indexer: {e}", exc_info=True)
+            logger.warning(
+                "Error indexing conversation messages for %s: %s",
+                context_id,
+                e,
+                exc_info=True,
+            )
 
 
 class MockConversationHistoryIndexer:
@@ -630,14 +476,38 @@ class MockConversationHistoryIndexer:
 
     def __init__(self) -> None:
         """Initialize mock conversation history indexer."""
+        self._hits: List[Dict[str, Any]] = []
         logger.info("Initialized MockConversationHistoryIndexer")
+
+    def add_hit(
+        self,
+        content: str,
+        score: float = 0.9,
+        context_id: str = "C1",
+        message_ts: str = "1.0",
+        user: str = "U1",
+        message_type: str = "message",
+    ) -> None:
+        """Pre-populate a conversation search hit (test helper)."""
+        self._hits.append(
+            {
+                "file_path": f"conversation:{context_id}:{message_ts}",
+                "content": content,
+                "score": score,
+                "channel_id": context_id,
+                "context_id": context_id,
+                "message_ts": message_ts,
+                "user": user,
+                "type": message_type,
+                "thread_ts": None,
+            }
+        )
 
     def index_conversations(
         self,
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer: Any = None,
     ) -> None:
         """Mock index conversations."""
         logger.debug(f"Mock indexing conversations for context {context_id}")
@@ -647,17 +517,25 @@ class MockConversationHistoryIndexer:
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer: Any = None,
     ) -> None:
         """Mock incremental update."""
-        self.index_conversations(context_id, workspace_path, since, semantic_indexer)
+        self.index_conversations(context_id, workspace_path, since)
+
+    def search(self, context_id: str, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Return pre-populated hits, if any."""
+        if not context_id or not str(query).strip():
+            return []
+        return self._hits[:top_k]
 
     def get_conversation_reader(self, workspace_path: Path) -> ConversationReader:
         """Get mock conversation reader."""
 
         class MockReader:
             def read_conversations(
-                self, context_id: str, since: Optional[datetime] = None, limit: Optional[int] = None
+                self,
+                context_id: str,
+                since: Optional[datetime] = None,
+                limit: Optional[int] = None,
             ) -> List[Dict[str, Any]]:
                 return []
 

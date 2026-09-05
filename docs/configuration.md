@@ -22,7 +22,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_DATA_DIR` | `~/.benedict` | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
 | `BENEDICT_WORKSPACES_DIR` | `{data_dir}/workspaces` | Per-channel workspaces |
 | `BENEDICT_WORKSPACE_COPY_MODE` | `symlink` | `symlink` or `copy` |
-| `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Vector index |
+| `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Shared Chroma database. Code uses `repo_*` collections; conversation history uses `conversation_*`. |
 | `BENEDICT_STATE_FILE` | `{data_dir}/state.json` | Channel mappings and conversations |
 | `BENEDICT_ENV_FILE` | `{repo}/.env` | dotenv path |
 | `BENEDICT_REPO_SOURCE_DIRS` | `~/Projects` | Comma-separated roots used during onboard |

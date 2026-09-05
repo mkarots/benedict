@@ -87,13 +87,18 @@ def build_mcp_service(
     semantic_indexer = None
     try:
         from benedict.semantic_indexer.metadata import MetadataGenerator
-        from benedict.semantic_indexer.change_detector import create_repo_change_detector
+        from benedict.semantic_indexer.change_detector import (
+            create_repo_change_detector,
+        )
+
+        from benedict.lib.chroma import create_chroma_client
 
         semantic_indexer = create_semantic_indexer(
             provider="chromadb",
             persist_directory=str(chroma_path),
             metadata_generator=MetadataGenerator(),
             change_detector=create_repo_change_detector(detector_type="git"),
+            client=create_chroma_client(chroma_path),
         )
         logger.info("Semantic indexer initialized (%s)", chroma_path)
     except Exception as exc:

@@ -91,24 +91,32 @@ def main() -> None:
         f"✅ Workspace manager initialized (workspaces_dir={workspaces_dir}, copy_mode={copy_mode})"
     )
 
+    from benedict.lib.chroma import create_chroma_client
+
+    chroma_db_path = os.environ.get("BENEDICT_CHROMA_DB_DIR", str(data_dir / ".chroma_db"))
+    chroma_client = None
+    try:
+        chroma_client = create_chroma_client(chroma_db_path)
+        logger.info(f"✅ Chroma client initialized ({chroma_db_path})")
+    except Exception as e:
+        logger.warning(f"⚠️ Chroma client not available: {e}")
+
     # Create semantic indexer (optional - falls back to keyword matching if None)
     semantic_indexer = None
     try:
-        # Use configurable path for ChromaDB (defaults to data_dir/.chroma_db)
-        chroma_db_path = os.environ.get("BENEDICT_CHROMA_DB_DIR", str(data_dir / ".chroma_db"))
-        # Create metadata generator for semantic indexer
         from benedict.semantic_indexer.metadata import MetadataGenerator
-        from benedict.semantic_indexer.change_detector import create_repo_change_detector
+        from benedict.semantic_indexer.change_detector import (
+            create_repo_change_detector,
+        )
 
-        metadata_generator = MetadataGenerator()
-        change_detector = create_repo_change_detector(detector_type="git")
         semantic_indexer = create_semantic_indexer(
             provider="chromadb",
             persist_directory=chroma_db_path,
-            metadata_generator=metadata_generator,
-            change_detector=change_detector,
+            metadata_generator=MetadataGenerator(),
+            change_detector=create_repo_change_detector(detector_type="git"),
+            client=chroma_client,
         )
-        logger.info(f"✅ Semantic indexer initialized (ChromaDB at {chroma_db_path})")
+        logger.info("✅ Semantic indexer initialized (code collections)")
     except Exception as e:
         logger.warning(f"⚠️ Semantic indexer not available: {e}")
         logger.info("Falling back to keyword-based file matching")
@@ -126,14 +134,20 @@ def main() -> None:
     conversation_history_indexer = None
     try:
         conversation_history_indexer = create_conversation_history_indexer(
-            platform="slack", slack_client=slack_client
+            platform="slack",
+            slack_client=slack_client,
+            client=chroma_client,
         )
-        logger.info("✅ Conversation history indexer initialized (Slack)")
+        logger.info("✅ Conversation history indexer initialized")
     except Exception as e:
         logger.warning(f"⚠️ Conversation history indexer not available: {e}")
-        logger.info("Slack history indexing will not be available")
+        logger.info("Conversation history indexing will not be available")
 
-    from benedict.operator_ui.server import StatusMonitor, create_recorder, start_operator_ui
+    from benedict.operator_ui.server import (
+        StatusMonitor,
+        create_recorder,
+        start_operator_ui,
+    )
     from benedict.progress import (
         ActionDecider,
         ActionExecutor,

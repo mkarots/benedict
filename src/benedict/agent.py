@@ -20,16 +20,25 @@ from benedict.conversation_repository.protocol import (
 )  # conversation container for the agent
 from benedict.llm.protocol import LLM  # language model for the agent
 from benedict.repo_reader.protocol import RepoReader  # repository reader for the agent
-from benedict.semantic_indexer.protocol import SemanticIndexer  # semantic indexer for the agent
+from benedict.semantic_indexer.protocol import (
+    SemanticIndexer,
+)  # semantic indexer for the agent
 from benedict.models import ConversationManager  # conversation manager for the agent
 from benedict.context import (
     build_architect_context,
     build_context,
-    build_slack_channel_context,
+    build_conversation_history_context,
 )  # context for the agent
-from benedict.architect.prompts import ARCHITECT_SYSTEM_PROMPT  # prompts for the architect
-from benedict.workspace import WorkspaceManager, ActionLogger  # workspace manager for the agent
-from benedict.semantic_indexer.metadata import MetadataGenerator  # metadata generator for the agent
+from benedict.architect.prompts import (
+    ARCHITECT_SYSTEM_PROMPT,
+)  # prompts for the architect
+from benedict.workspace import (
+    WorkspaceManager,
+    ActionLogger,
+)  # workspace manager for the agent
+from benedict.semantic_indexer.metadata import (
+    MetadataGenerator,
+)  # metadata generator for the agent
 
 from benedict.tools import (
     LLMCommandClassifier,  # command classifier for the agent
@@ -78,7 +87,8 @@ class RepoAgent:
             semantic_indexer: Optional semantic indexer for intelligent file selection
             conversation_repository: Optional conversation repository (created from state_file if None)
             workspace_manager: Optional workspace manager for workspace operations
-            conversation_history_indexer: Optional conversation history indexer for Slack history
+        conversation_history_indexer: Optional conversation history indexer
+
             run_recorder: Optional operator-UI run recorder
             progress_service: Optional unattended progress loop
         """
@@ -390,7 +400,9 @@ class RepoAgent:
                                 repo=repo,
                             )
                             action_logger.log_action(
-                                action="generate_metadata", content_type="code", resource=repo
+                                action="generate_metadata",
+                                content_type="code",
+                                resource=repo,
                             )
                     except Exception as e:
                         logger.warning(f"Error generating initial metadata for {repo}: {e}")
@@ -406,7 +418,6 @@ class RepoAgent:
                             context_id=channel_id,
                             workspace_path=workspace_path,
                             since=None,  # Index from the beginning (no date filter)
-                            semantic_indexer=self.semantic_indexer,
                         )
                         action_logger.log_action(
                             action="index_slack_history",
@@ -610,7 +621,9 @@ class RepoAgent:
                     # Initialize LLM classifier with tool registry
                     if not self.llm_classifier:
                         self.llm_classifier = LLMCommandClassifier(
-                            llm=self.llm, tool_registry=tool_registry, fallback_to_query=True
+                            llm=self.llm,
+                            tool_registry=tool_registry,
+                            fallback_to_query=True,
                         )
                     else:
                         # Update tool registry in case metadata changed
@@ -747,7 +760,9 @@ class RepoAgent:
                 # Use workspace-aware repo reader if workspace manager is available
                 # This ensures we read from the workspace symlinks, not direct paths
                 try:
-                    from benedict.repo_reader.repo_reader_workspace import WorkspaceRepoReader
+                    from benedict.repo_reader.repo_reader_workspace import (
+                        WorkspaceRepoReader,
+                    )
                     from benedict.repo_reader.repo_reader_workspace_adapter import (
                         WorkspaceRepoReaderAdapter,
                     )
@@ -780,8 +795,8 @@ class RepoAgent:
                 ],
             )
 
-        slack_channel_context = build_slack_channel_context(
-            self.semantic_indexer,
+        conversation_history_context = build_conversation_history_context(
+            self.conversation_history_indexer,
             channel_id,
             combined_text or text,
         )
@@ -834,7 +849,7 @@ class RepoAgent:
                         # Build conversation context
                         conversations_text = "\n\n".join(
                             [
-                                f"=== Conversation {i+1} (Thread: {conv.thread_ts}) ===\n"
+                                f"=== Conversation {i + 1} (Thread: {conv.thread_ts}) ===\n"
                                 f"Repo: {conv.repo}\n"
                                 f"Updated: {conv.updated_at}\n"
                                 + "\n".join([f"{msg.role}: {msg.content}" for msg in conv.messages])
@@ -903,7 +918,7 @@ class RepoAgent:
             f"## Repository Context\n\n"
             f"The following context has been automatically gathered from the repository:\n\n"
             f"{repo_context}\n"
-            f"{slack_channel_context}\n"
+            f"{conversation_history_context}\n"
             f"{conversation_context}\n\n"
             f"## Instructions\n\n"
             f"- Answer questions about the repository code, architecture, and implementation based on the context above.\n"
@@ -1134,7 +1149,9 @@ class RepoAgent:
                 action_logger = ActionLogger(workspace_path)
 
                 # Use workspace-aware repo reader when workspaces are available
-                from benedict.repo_reader.repo_reader_workspace import WorkspaceRepoReader
+                from benedict.repo_reader.repo_reader_workspace import (
+                    WorkspaceRepoReader,
+                )
                 from benedict.repo_reader.repo_reader_workspace_adapter import (
                     WorkspaceRepoReaderAdapter,
                 )
@@ -1153,7 +1170,9 @@ class RepoAgent:
                 )
                 if action_logger:
                     action_logger.log_action(
-                        action="force_reindex_repository", content_type="code", resource=repo
+                        action="force_reindex_repository",
+                        content_type="code",
+                        resource=repo,
                     )
                 return command(
                     True,
@@ -1187,13 +1206,19 @@ class RepoAgent:
                 # Use update_index method (uses git-based detection if available)
                 if hasattr(self.semantic_indexer, "update_index"):
                     self.semantic_indexer.update_index(
-                        repo, repo_reader_to_use, workspace_path=workspace_path, since=since
+                        repo,
+                        repo_reader_to_use,
+                        workspace_path=workspace_path,
+                        since=since,
                     )
                 else:
                     # Fallback: full reindex
                     logger.warning("update_index not available, performing full index")
                     self.semantic_indexer.index_repository(
-                        repo, repo_reader_to_use, workspace_path=workspace_path, force=True
+                        repo,
+                        repo_reader_to_use,
+                        workspace_path=workspace_path,
+                        force=True,
                     )
 
                 # Log git diff if available
@@ -1277,7 +1302,8 @@ class RepoAgent:
         """Handle architect onboarding."""
         self.set_architect_channel(channel_id, user_id)
         return command(
-            True, "✅ Architect channel onboarded!\n\nI can now answer cross-project questions."
+            True,
+            "✅ Architect channel onboarded!\n\nI can now answer cross-project questions.",
         )
 
     @staticmethod
@@ -1348,7 +1374,6 @@ class RepoAgent:
                     context_id=channel_id,
                     workspace_path=workspace_path,
                     since=since,
-                    semantic_indexer=self.semantic_indexer,
                 )
             else:
                 # No previous index found, do full index (shouldn't happen if onboard worked)
@@ -1359,7 +1384,6 @@ class RepoAgent:
                 self.conversation_history_indexer.index_conversations(
                     context_id=channel_id,
                     workspace_path=workspace_path,
-                    semantic_indexer=self.semantic_indexer,
                 )
 
             if action_logger:
@@ -1373,7 +1397,8 @@ class RepoAgent:
 
         except Exception as e:
             logger.warning(
-                f"Error in background indexing for channel {channel_id}: {e}", exc_info=True
+                f"Error in background indexing for channel {channel_id}: {e}",
+                exc_info=True,
             )
             # Don't raise - background indexing failures shouldn't affect the app
 

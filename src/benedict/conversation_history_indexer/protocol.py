@@ -5,14 +5,17 @@ Abstract interface for indexing conversation history from any platform.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Protocol
+from typing import Any, Dict, List, Optional, Protocol
 
 
 class ConversationReader(Protocol):
     """Protocol for reading conversations."""
 
     def read_conversations(
-        self, context_id: str, since: Optional[datetime] = None, limit: Optional[int] = None
+        self,
+        context_id: str,
+        since: Optional[datetime] = None,
+        limit: Optional[int] = None,
     ) -> list:
         """Read conversations.
 
@@ -35,15 +38,13 @@ class ConversationHistoryIndexer(Protocol):
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer: Any = None,
     ) -> None:
-        """Index conversations into workspace.
+        """Index conversations into workspace and the conversation embedding store.
 
         Args:
             context_id: Context identifier
             workspace_path: Path to workspace directory
             since: Optional datetime to index conversations since (for incremental updates)
-            semantic_indexer: Optional semantic indexer to also index conversations for search
         """
         ...
 
@@ -52,7 +53,6 @@ class ConversationHistoryIndexer(Protocol):
         context_id: str,
         workspace_path: Path,
         since: Optional[datetime] = None,
-        semantic_indexer: Any = None,
     ) -> None:
         """Incrementally update conversation index with new messages.
 
@@ -60,7 +60,16 @@ class ConversationHistoryIndexer(Protocol):
             context_id: Context identifier
             workspace_path: Path to workspace directory
             since: Datetime to index conversations since (required for incremental updates)
-            semantic_indexer: Optional semantic indexer to also index conversations for search
+        """
+        ...
+
+    def search(self, context_id: str, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Search indexed conversation history for this context.
+
+        Args:
+            context_id: Context identifier
+            query: Natural-language query
+            top_k: Maximum hits to return
         """
         ...
 
