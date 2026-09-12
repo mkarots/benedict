@@ -9,6 +9,7 @@ import time
 from dataclasses import replace
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from benedict.method import METHOD_FILENAME, format_method_overlay, load_method_from_text
 from benedict.repo_reader.protocol import RepoReader
 from benedict.semantic_indexer.protocol import SemanticIndexer
 from benedict.semantic_indexer.search_hit import SearchHit
@@ -80,6 +81,18 @@ def build_context(
                 parts.append(metadata_summary)
         except Exception as e:
             logger.warning(f"Error reading metadata: {e}")
+
+    try:
+        method_raw = repo_reader.read_file(repo, METHOD_FILENAME)
+        overlay = format_method_overlay(load_method_from_text(method_raw))
+        if overlay:
+            parts.append(overlay)
+            context_files.append(METHOD_FILENAME)
+            context_items.append({"path": METHOD_FILENAME, "reason": "process overlay"})
+    except FileNotFoundError:
+        logger.debug("No method file for %s", repo)
+    except Exception as e:
+        logger.warning("Error reading method file for %s: %s", repo, e)
 
     # Check if user is asking for a specific file - read it directly
     requested_file = _extract_file_request(question)

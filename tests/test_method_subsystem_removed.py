@@ -12,9 +12,14 @@ from benedict.tools.tool_registry_factory import create_tool_registry
 from benedict.context import build_context
 
 
-def test_method_package_is_gone():
-    with pytest.raises((ModuleNotFoundError, ImportError)):
-        from benedict.method import MethodReader  # noqa: F401
+def test_method_package_exposes_temporal_memory_not_legacy_io():
+    from benedict import method as method_pkg
+
+    assert hasattr(method_pkg, "TemporalMemory")
+    assert hasattr(method_pkg, "create_temporal_memory")
+    assert hasattr(method_pkg, "YamlFileTemporalMemory")
+    assert not hasattr(method_pkg, "MethodWriter")
+    assert not hasattr(method_pkg, "MethodReader")
 
 
 def test_method_tools_module_is_gone():
@@ -58,10 +63,11 @@ def test_build_context_does_not_accept_method_reader():
     assert "method_reader" not in signature.parameters
 
 
-def test_repo_agent_has_no_method_io(tmp_path):
+def test_repo_agent_has_no_method_slack_commands(tmp_path):
     agent = RepoAgent(state_file=str(tmp_path / "state.json"))
     assert not hasattr(agent, "method_reader")
     assert not hasattr(agent, "method_writer")
     assert not hasattr(agent, "handle_create_method")
     assert not hasattr(agent, "handle_method_update")
     assert not hasattr(agent, "is_create_method_command")
+    assert hasattr(agent, "temporal_memory")

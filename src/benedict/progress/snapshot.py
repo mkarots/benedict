@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from benedict.method import YamlFileTemporalMemory, format_method_overlay
+from benedict.method.protocol import TemporalMemory
 from benedict.tools.github_tools import RunGithubTool
 from benedict.progress.models import GithubItem, ProjectRef, ProjectSnapshot
 from benedict.progress.store import ProgressStore
@@ -125,16 +127,27 @@ class SnapshotCollector:
     """Collect code + GitHub facts for one project. No Slack history."""
 
     def __init__(
-        self, github: Optional[RunGithubTool] = None, store: Optional[ProgressStore] = None
+        self,
+        github: Optional[RunGithubTool] = None,
+        store: Optional[ProgressStore] = None,
+        memory: Optional[TemporalMemory] = None,
     ):
         self.github = github or RunGithubTool()
         self.store = store
+        self.memory = memory or YamlFileTemporalMemory()
 
     def collect(self, project: ProjectRef) -> ProjectSnapshot:
         repo_path = Path(project.repo_path)
+        state = None
+        try:
+            state = self.memory.ensure(repo_path)
+        except Exception:
+            logger.warning("Failed to ensure lifecycle memory for %s", repo_path, exc_info=True)
+            state = self.memory.get(repo_path)
         snapshot = ProjectSnapshot(
             project=project,
             purpose=_purpose_from_metadata(repo_path),
+            method=format_method_overlay(state),
             readme=_read_text(repo_path / "README.md", README_CHARS),
             roadmap=_roadmap(repo_path),
         )

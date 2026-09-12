@@ -199,11 +199,16 @@ def test_cycle_creates_issue_and_posts(tmp_path):
         }
     )
     github = FakeGithub()
-    service, store, github, _, _ = _service(tmp_path, reply, github=github, poster=poster)
+    service, store, github, _, repo_dir = _service(tmp_path, reply, github=github, poster=poster)
     result = service.run_one("C1")
     assert result.ok is True
     assert result.action == "issue"
     assert result.url == "https://example/issues/2"
+    from benedict.method import load_method_from_path
+
+    clock = load_method_from_path(repo_dir)
+    assert clock is not None
+    assert clock.last_action == "issue"
     create = [c for c in github.calls if c[:2] == ["issue", "create"]][0]
     assert "--title" in create
     assert "does-not-exist" not in create
@@ -229,12 +234,17 @@ def test_cycle_skips_duplicate_issue_title(tmp_path):
             "body": "Duplicate.",
         }
     )
-    service, _, _, _, _ = _service(tmp_path, reply, github=github, poster=poster)
+    service, _, _, _, repo_dir = _service(tmp_path, reply, github=github, poster=poster)
     result = service.run_one("C1")
     assert result.skipped is True
     assert result.action == "skip"
     poster.post.assert_not_called()
     assert not any(c[:2] == ["issue", "create"] for c in github.calls)
+    from benedict.method import load_method_from_path
+
+    clock = load_method_from_path(repo_dir)
+    assert clock is not None
+    assert clock.last_action == ""
 
 
 def test_cycle_asks_and_blocks_until_reply(tmp_path):

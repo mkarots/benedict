@@ -35,6 +35,7 @@ class ProjectSnapshot:
 
     project: ProjectRef
     purpose: str = ""
+    method: str = ""
     readme: str = ""
     roadmap: str = ""
     recent_actions: List[str] = field(default_factory=list)

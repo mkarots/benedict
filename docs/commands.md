@@ -18,7 +18,7 @@ Mention `@benedict` (or `@agent`) in the channel.
 
 GitHub issue/PR requests stay on the conversation path. Asking for `.metadata.benedict` contents (file metadata, list key files, repository summary) may use a short metadata-tool shortcut. That shortcut does not run GitHub; if it fails, Benedict falls through to conversation.
 
-There is no method-file command. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
+There is no method-file Slack command. `.benedict.method.yaml` is the agent's lifecycle clock for that repo (phase, step, concern states, last action). Onboard and the progress loop create it if missing and stamp the last action after they act. Slack Q&A and MCP `ask_benedict` read it. MCP does not write it.
 
 MCP is not a Slack command. See [MCP](MCP.md).
 

@@ -7,6 +7,7 @@ import threading
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from benedict.method.protocol import LifecyclePatch
 from benedict.progress.decide import ActionDecider
 from benedict.progress.execute import ActionExecutor
 from benedict.progress.models import ActionResult, Decision, ProjectRef
@@ -134,6 +135,7 @@ class ProgressService:
             )
             result = self.executor.execute(snapshot, decision)
             self._record_store(result, decision)
+            self._stamp_lifecycle(project, result)
             self._log_workspace(channel_id, result)
             run.add_stage(
                 "execute",
@@ -166,6 +168,17 @@ class ProgressService:
             thread_ts=result.thread_ts,
             pending=pending,
         )
+
+    def _stamp_lifecycle(self, project: ProjectRef, result: ActionResult) -> None:
+        if not result.ok or result.skipped:
+            return
+        try:
+            self.collector.memory.update(
+                project.repo_path,
+                LifecyclePatch(last_action=result.action),
+            )
+        except Exception:
+            logger.warning("Failed to update lifecycle memory for %s", project.repo, exc_info=True)
 
     def _log_workspace(self, channel_id: str, result: ActionResult) -> None:
         if not result.ok or result.skipped:

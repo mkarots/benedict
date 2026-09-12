@@ -8,7 +8,7 @@ While the Slack process is running, Benedict surveys each onboarded project on a
 ## 1. Overview
 
 **What:**
-A background cycle in the Slack process. For every onboarded channel it builds a snapshot (README, roadmap, GitHub issues/PRs, recent workspace actions), asks Claude for one next action, and executes it.
+A background cycle in the Slack process. For every onboarded channel it builds a snapshot (README, roadmap, lifecycle clock, GitHub issues/PRs, recent workspace actions), asks Claude for one next action, and executes it.
 
 **Why:**
 Benedict was a reactive Q&A bot. Nothing happened unless you @mentioned it or Cursor called MCP. Projects did not move overnight. This loop is how Benedict spends idle time on the next milestone step.
@@ -26,6 +26,7 @@ Not responsible for:
 - Calling Cursor. MCP is still Cursor → Benedict (read-only)
 - Notion pages, Google Docs, or Slack history in the snapshot (Slack chat can still use `run_notion`)
 - Replacing Slack conversation or MCP `ask_benedict`
+- Being a durable timeline of every phase change (the YAML clock is the first temporal-memory store, not the last)
 
 Out of scope: a general shell, force-push, closing issues, or acting on a repo that is not onboarded.
 
@@ -33,7 +34,7 @@ Out of scope: a general shell, force-push, closing issues, or acting on a repo t
 
 | Term | Meaning |
 |------|---------|
-| Snapshot | Facts for one project: README, roadmap, open issues/PRs, action log |
+| Snapshot | Facts for one project: README, roadmap, lifecycle clock, open issues/PRs, action log |
 | Decision | JSON from the model: `skip`, `ask`, `issue`, or `implement` |
 | Ask | A blocking Slack question. Further unattended actions wait for a reply in that thread |
 | Issue | `gh issue create` in the workspace checkout, then a Slack notice |
@@ -58,7 +59,7 @@ timer / @benedict progress
 
 **Main components** (`src/benedict/progress/`):
 
-- `snapshot.py` — read local files, list GitHub issues/PRs via `RunGithubTool`
+- `snapshot.py` — read local files, ensure lifecycle memory, list GitHub issues/PRs via `RunGithubTool`
 - `decide.py` — constrained JSON decision
 - `execute.py` — Slack poster + issue create
 - `cycle.py` — one action per project, lock, operator-UI run
@@ -100,7 +101,7 @@ Requires `ANTHROPIC_API_KEY` and `gh` authenticated on the host. The scheduler s
 
 ### Decision JSON
 
-Input: snapshot text (repo, purpose, README, roadmap, open issues/PRs, labels, last action).
+Input: snapshot text (repo, purpose, lifecycle clock, README, roadmap, open issues/PRs, labels, last action). The decider treats phase, step, and current-phase rules as policy (locked sprint scope, docs gate delivery). After a successful action the loop stamps `last_action` on that clock.
 
 Output:
 

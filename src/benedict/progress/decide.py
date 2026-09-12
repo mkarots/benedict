@@ -28,6 +28,9 @@ Rules:
 2. ask if you need a human decision, preference, or missing product fact before the next milestone step. Ask one concrete question. Do not ask something the snapshot already answers.
 3. issue if the next milestone step is clear and no open issue already covers it. Write a scoped GitHub issue (title + body with context and acceptance). Prefer one small step over a large epic.
 4. implement if an existing open issue is ready to turn into a pull request, or the next step is a bounded code change with enough context. Set issue_number when an issue already exists.
+5. If a process overlay is present, treat phase, step, and rules as policy. Do not invent a next step that violates them.
+6. In sprint with locked scope, do not file a new-feature issue. New ideas wait for review. skip unless a documented roadmap step has no issue.
+7. If the current step is document, or documentation is not complete, do not choose implement. Only documented software should be delivered.
 
 Do not duplicate titles already in open issues. Notion is not available. Cursor cannot be invoked from this loop.
 """
@@ -45,6 +48,8 @@ def snapshot_to_prompt(snapshot: ProjectSnapshot) -> str:
     ]
     if snapshot.purpose:
         lines.append(f"Purpose: {snapshot.purpose}")
+    if snapshot.method:
+        lines.append(snapshot.method)
     if snapshot.last_kind:
         lines.append(f"Last progress action: {snapshot.last_kind}")
     if snapshot.pending_thread_ts:
