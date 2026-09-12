@@ -68,6 +68,7 @@ class RepoAgent:
         conversation_history_indexer: Optional[ConversationHistoryIndexer] = None,
         run_recorder: Any = None,
         progress_service: Any = None,
+        temporal_memory: Any = None,
     ) -> None:
         """Initialize repository agent.
 
@@ -81,6 +82,7 @@ class RepoAgent:
             conversation_history_indexer: Optional conversation history indexer for Slack history
             run_recorder: Optional operator-UI run recorder
             progress_service: Optional unattended progress loop
+            temporal_memory: Optional repo-scoped lifecycle store
         """
         self.state_file = Path(state_file)
         self.llm = llm
@@ -89,6 +91,7 @@ class RepoAgent:
         self.workspace_manager = workspace_manager
         self.conversation_history_indexer = conversation_history_indexer
         self.progress_service = progress_service
+        self.temporal_memory = temporal_memory
         if run_recorder is None:
             from benedict.operator_ui.recorder import NullRunRecorder
 
@@ -394,6 +397,19 @@ class RepoAgent:
                             )
                     except Exception as e:
                         logger.warning(f"Error generating initial metadata for {repo}: {e}")
+
+                if self.temporal_memory:
+                    try:
+                        repo_path = workspace_path / repo
+                        if repo_path.exists():
+                            self.temporal_memory.ensure(repo_path)
+                            action_logger.log_action(
+                                action="ensure_lifecycle",
+                                content_type="progress",
+                                resource=repo,
+                            )
+                    except Exception as e:
+                        logger.warning(f"Error ensuring lifecycle memory for {repo}: {e}")
 
                 # Index Slack conversation history from the beginning of the channel
                 if self.conversation_history_indexer:
@@ -907,6 +923,7 @@ class RepoAgent:
             f"{conversation_context}\n\n"
             f"## Instructions\n\n"
             f"- Answer questions about the repository code, architecture, and implementation based on the context above.\n"
+            f"- If a project process overlay is in the context, treat the current phase, step, and rules as policy for this repo.\n"
             f"- You can reference specific files, functions, and code patterns from the context.\n"
             f"- Use channel discussion messages when they answer the question (decisions, debates, agreements).\n"
             f"- If asked about conversations, summarize them, extract key topics, decisions, and action items.\n"

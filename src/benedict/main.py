@@ -134,6 +134,7 @@ def main() -> None:
         logger.info("Slack history indexing will not be available")
 
     from benedict.operator_ui.server import StatusMonitor, create_recorder, start_operator_ui
+    from benedict.method import create_temporal_memory
     from benedict.progress import (
         ActionDecider,
         ActionExecutor,
@@ -147,6 +148,7 @@ def main() -> None:
 
     recorder = create_recorder(data_dir)
     chroma_db_path = os.environ.get("BENEDICT_CHROMA_DB_DIR", str(data_dir / ".chroma_db"))
+    temporal_memory = create_temporal_memory()
 
     # Create agent with dependencies
     agent = RepoAgent(
@@ -158,6 +160,7 @@ def main() -> None:
         workspace_manager=workspace_manager,
         conversation_history_indexer=conversation_history_indexer,
         run_recorder=recorder,
+        temporal_memory=temporal_memory,
     )
 
     progress_scheduler = None
@@ -166,7 +169,7 @@ def main() -> None:
         agent.progress_service = ProgressService(
             load_state=agent.load_state,
             workspace_path_for=workspace_manager.get_workspace_path,
-            collector=SnapshotCollector(store=progress_store),
+            collector=SnapshotCollector(store=progress_store, memory=temporal_memory),
             decider=ActionDecider(llm),
             executor=ActionExecutor(SlackWebClientPoster(slack_client)),
             store=progress_store,

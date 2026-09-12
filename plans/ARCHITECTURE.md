@@ -89,7 +89,7 @@ Each capability package holds its protocol, factory, and implementations togethe
 ### Tools
 - **`tools/`** - LLM tool loop, GitHub/Notion/metadata tools, and intent classification
 
-Benedict does not have a method-file subsystem. A `.benedict.method.yaml` in a repository is an ordinary file, not a runtime feature.
+Lifecycle memory is a `TemporalMemory` store per onboarded repo. The first implementation writes `.benedict.method.yaml`. Onboard and the progress loop create and stamp it. Conversation and MCP read it. There is no Slack method command.
 
 ### Runtime helpers
 - **`context.py`** - Context building for agent and MCP answers (uses semantic search when available)
