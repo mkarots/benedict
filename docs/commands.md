@@ -55,7 +55,7 @@ Benedict embeds the question, retrieves similar chunks from the Chroma index, th
 
 Open `http://127.0.0.1:8765` to see the retrieved chunks and the files that went into the prompt.
 
-How that request is routed: `artifacts/REQUEST_PATH.html`.
+How that request is routed: [System design](architecture.md). A clickable trace of one request also lives in `artifacts/REQUEST_PATH.html`.
 
 ## GitHub CLI
 

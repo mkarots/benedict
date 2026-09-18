@@ -87,7 +87,7 @@ python -m benedict.main
 # after install: benedict
 ```
 
-You should see: `Bot is running! Press Ctrl+C to stop.` and `Operator UI http://127.0.0.1:8765`. After a mention, that page shows the chunks retrieved for the answer.
+You should see: `Bot is running! Press Ctrl+C to stop.` and `Operator UI http://127.0.0.1:8765`. After a mention, that page shows the chunks retrieved for the answer. The same process also serves a localhost chat API at `http://127.0.0.1:8766` (`POST /v1/chat`, `GET /health`) for a phone cell or other local client. Set `BENEDICT_CHAT_API=0` to disable it.
 
 Then invite the bot, onboard a repo, and ask. See [Slack commands](commands.md).
 
@@ -107,7 +107,7 @@ Or `make mcp` / `python -m benedict.mcp`. Setup: [MCP](MCP.md). Slack and MCP mu
 make docs
 ```
 
-Serves this site at `http://127.0.0.1:8000`. If that port is busy: `DOCS_PORT=8001 make docs`.
+Serves this site at `http://127.0.0.1:8000`. If that port is busy: `DOCS_PORT=8001 make docs`. How the running system is built: [System design](architecture.md).
 
 ## Checks
 
