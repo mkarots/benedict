@@ -55,7 +55,7 @@ Benedict embeds the question, retrieves similar chunks from the Chroma index, th
 
 Open `http://127.0.0.1:8765` to see the retrieved chunks and the files that went into the prompt.
 
-How that request is routed: `artifacts/REQUEST_PATH.html`.
+How that request is routed: [System design](architecture.md). A clickable trace of one request also lives in `artifacts/REQUEST_PATH.html`.
 
 ## GitHub CLI
 
@@ -83,4 +83,4 @@ Channel mappings and thread conversations live in `~/.benedict/state.json`:
 }
 ```
 
-Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and indexed Slack history. If you previously ran Benedict from the git checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.
+Each onboarded channel also gets a directory under `~/.benedict/workspaces/<channel_id>/` containing a symlink (or copy) of the repo plus action logs and conversation history. If you previously ran Benedict from the git checkout, move `state.json`, `workspaces/`, `.chroma_db/`, and `runs.jsonl` into `~/.benedict`, or set `BENEDICT_DATA_DIR` to the old location.

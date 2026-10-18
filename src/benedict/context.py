@@ -245,52 +245,58 @@ def build_context(
     return truncate_to_tokens(full_context, max_tokens)
 
 
-def build_slack_channel_context(
-    semantic_indexer: Optional[Any],
-    channel_id: str,
+def build_conversation_history_context(
+    conversation_history_indexer: Optional[Any],
+    context_id: str,
     question: str,
     top_k: int = 5,
 ) -> str:
-    """Build context from indexed Slack channel messages.
+    """Build context from indexed conversation history.
 
-    Always queries the Slack collection when an indexer is present. Does not
+    Always queries the conversation store when an indexer is present. Does not
     require the question to mention conversations.
     """
-    from benedict.conversation_history_indexer.slack_history_indexer import (
-        search_indexed_slack_channel,
-    )
-
     started = time.perf_counter()
-    try:
-        hits = search_indexed_slack_channel(semantic_indexer, channel_id, question, top_k=top_k)
-    except Exception as exc:
-        logger.warning("Error searching Slack channel history: %s", exc)
+    if conversation_history_indexer is None:
         record_stage(
-            "slack_search",
+            "conversation_search",
+            status="skip",
+            duration_ms=0,
+            label="no conversation indexer",
+            detail={"query": question, "context_id": context_id, "hits": []},
+        )
+        return ""
+
+    try:
+        hits = conversation_history_indexer.search(context_id, question, top_k=top_k)
+    except Exception as exc:
+        logger.warning("Error searching conversation history: %s", exc)
+        record_stage(
+            "conversation_search",
             status="error",
             duration_ms=int((time.perf_counter() - started) * 1000),
-            label="slack search failed",
-            detail={"error": str(exc), "channel_id": channel_id},
+            label="conversation search failed",
+            detail={"error": str(exc), "context_id": context_id},
         )
         return ""
 
     if not hits:
         record_stage(
-            "slack_search",
+            "conversation_search",
             status="skip",
             duration_ms=int((time.perf_counter() - started) * 1000),
-            label="no channel hits",
-            detail={"query": question, "channel_id": channel_id, "hits": []},
+            label="no conversation hits",
+            detail={"query": question, "context_id": context_id, "hits": []},
         )
         return ""
 
     record_stage(
-        "slack_search",
+        "conversation_search",
         duration_ms=int((time.perf_counter() - started) * 1000),
-        label=f"{len(hits)} channel messages",
+        label=f"{len(hits)} conversation messages",
         detail={
             "query": question,
-            "channel_id": channel_id,
+            "context_id": context_id,
             "mode": "semantic",
             "stuffed": "chunks",
             "hits": hits_for_recorder([SearchHit.from_mapping(hit) for hit in hits]),
@@ -298,9 +304,9 @@ def build_slack_channel_context(
     )
 
     lines = [
-        "## Channel discussion",
+        "## Conversation history",
         "",
-        "Relevant messages from this Slack channel:",
+        "Relevant messages from this project's conversation history:",
         "",
     ]
     for hit in hits:
@@ -476,7 +482,11 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
         repo = config.get("repo")
         if repo:
             projects.append(
-                {"channel_id": channel_id, "repo": repo, "onboarded_at": config.get("onboarded_at")}
+                {
+                    "channel_id": channel_id,
+                    "repo": repo,
+                    "onboarded_at": config.get("onboarded_at"),
+                }
             )
 
     # 3. Add project list to context
@@ -548,7 +558,12 @@ def build_architect_context(agent: Any, query: str, state: Dict[str, Any]) -> st
             "search",
             status="skip",
             label="no cross-repo chunks",
-            detail={"query": query, "mode": "semantic", "stuffed": "chunks", "hits": []},
+            detail={
+                "query": query,
+                "mode": "semantic",
+                "stuffed": "chunks",
+                "hits": [],
+            },
         )
 
     return "\n".join(parts)

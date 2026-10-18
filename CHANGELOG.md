@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Design plan and ADR for Operator UI token usage: billed counts on every LLM stage, turn totals, and a spend ledger that survives `runs.jsonl` rotation ([#131](https://github.com/mkarots/benedict/issues/131)). See [docs/TOKEN_USAGE.md](docs/TOKEN_USAGE.md).
 
+## [0.8.13] - 2026-09-18
+
+### Fixed
+- Conversation-history embedding matrices from MiniLM typecheck as `list[list[float]]`. `tolist()` is no longer returned as `Any`.
+
+### Added
+- Localhost chat API (`POST /v1/chat` on `127.0.0.1:8766`) so a phone cell or other process can talk to the same `RepoAgent` as Slack. Set `BENEDICT_CHAT_API=0` to disable.
+- System design page (`docs/architecture.md`): current processes, surfaces, components, data stores, and request paths.
+- Product-shape decision (`docs/adr/0004-product-shape.md`): one independent agent per onboarded repo; MCP is the same product.
+
+## [0.8.12] - 2026-09-01
+
+### Changed
+- Code and conversation history share one Chroma client (`.chroma_db`). They stay in separate collections (`repo_*` vs `conversation_*`). The composition root opens the client; neither indexer owns the database.
+
+## [0.8.11] - 2026-09-01
+
+### Changed
+- Conversation history has its own Chroma store (`BENEDICT_CONVERSATION_CHROMA_DIR`, default `{data_dir}/.conversation_chroma`). Code search stays in `.chroma_db`. Slack is only the ingest adapter; the agent owns conversation search. Existing channel collections in `.chroma_db` are unused; the next history update backfills from workspace JSON.
+
 ## [0.8.10] - 2026-09-01
 
 ### Changed

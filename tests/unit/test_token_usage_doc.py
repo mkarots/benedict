@@ -53,10 +53,10 @@ def test_token_usage_plan_covers_every_generate_site():
     assert "mcp/service.py" in text
 
 
-def test_token_usage_adr_is_proposed_and_points_at_the_plan():
+def test_token_usage_adr_is_accepted_and_points_at_the_plan():
     assert ADR.is_file(), "docs/adr/0003-operator-ui-token-usage.md is missing"
     text = ADR.read_text(encoding="utf-8")
-    assert "Status: Proposed" in text
+    assert "Status: Accepted" in text
     assert "TOKEN_USAGE.md" in text
     assert "#131" in text
     assert "ClaudeLLM" in text

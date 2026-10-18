@@ -5,7 +5,7 @@ Mock semantic indexer for testing purposes.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from benedict.repo_reader.protocol import RepoReader
 from benedict.semantic_indexer.search_hit import SearchHit
@@ -20,7 +20,6 @@ class MockSemanticIndexer:
         """Initialize mock semantic indexer."""
         self.indexed_repos: set[str] = set()
         self._relevant_files: List[SearchHit] = []
-        self._slack_hits: List[Dict[str, Any]] = []
         logger.info("Initialized MockSemanticIndexer")
 
     def add_relevant_file(
@@ -35,31 +34,12 @@ class MockSemanticIndexer:
             )
         )
 
-    def add_slack_hit(
-        self,
-        content: str,
-        score: float = 0.9,
-        channel_id: str = "C1",
-        message_ts: str = "1.0",
-        user: str = "U1",
-        message_type: str = "message",
-    ) -> None:
-        """Pre-populate a Slack channel search hit (test helper)."""
-        self._slack_hits.append(
-            {
-                "file_path": f"slack:{channel_id}:{message_ts}",
-                "content": content,
-                "score": score,
-                "channel_id": channel_id,
-                "message_ts": message_ts,
-                "user": user,
-                "type": message_type,
-                "thread_ts": None,
-            }
-        )
-
     def index_repository(
-        self, repo: str, repo_reader: RepoReader, workspace_path: Any = None, force: bool = False
+        self,
+        repo: str,
+        repo_reader: RepoReader,
+        workspace_path: Any = None,
+        force: bool = False,
     ) -> None:
         """Mock repository indexing.
 
@@ -119,12 +99,6 @@ class MockSemanticIndexer:
             )
 
         return results
-
-    def search_slack_channel(
-        self, channel_id: str, query: str, top_k: int = 5
-    ) -> List[Dict[str, Any]]:
-        """Return pre-populated Slack hits, if any."""
-        return self._slack_hits[:top_k]
 
     def is_indexed(self, repo: str) -> bool:
         """Check if repository is indexed.

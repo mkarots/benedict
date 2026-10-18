@@ -22,7 +22,7 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_DATA_DIR` | `~/.benedict` | Root for state, workspaces, and ChromaDB. Slack bot and `benedict-mcp` must share this. |
 | `BENEDICT_WORKSPACES_DIR` | `{data_dir}/workspaces` | Per-channel workspaces |
 | `BENEDICT_WORKSPACE_COPY_MODE` | `symlink` | `symlink` or `copy` |
-| `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Vector index |
+| `BENEDICT_CHROMA_DB_DIR` | `{data_dir}/.chroma_db` | Shared Chroma database. Code uses `repo_*` collections; conversation history uses `conversation_*`. |
 | `BENEDICT_STATE_FILE` | `{data_dir}/state.json` | Channel mappings and conversations |
 | `BENEDICT_ENV_FILE` | `{repo}/.env` | dotenv path |
 | `BENEDICT_REPO_SOURCE_DIRS` | `~/Projects` | Comma-separated roots used during onboard |
@@ -31,9 +31,12 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `BENEDICT_OPERATOR_UI` | `1` | Local debug console. Set `0` to disable. |
 | `BENEDICT_OPERATOR_UI_HOST` | `127.0.0.1` | Bind address |
 | `BENEDICT_OPERATOR_UI_PORT` | `8765` | Console port |
+| `BENEDICT_CHAT_API` | `1` | Localhost JSON chat for phone/other clients. Set `0` to disable. |
+| `BENEDICT_CHAT_API_HOST` | `127.0.0.1` | Chat API bind address (keep loopback) |
+| `BENEDICT_CHAT_API_PORT` | `8766` | Chat API port. `POST /v1/chat`, `GET /health`. |
 | `BENEDICT_PROGRESS` | `1` | Unattended progress loop. Set `0` to disable. |
 | `BENEDICT_PROGRESS_INTERVAL_S` | `21600` | Seconds between full progress cycles |
 | `BENEDICT_PROGRESS_START_DELAY_S` | `120` | Seconds to wait after startup before the first cycle |
 | `NOTION_API_KEY` | unset | Optional. Copied to `NOTION_API_TOKEN` for `ntn` if that var is unset. `ntn login` also works. |
 
-Install and start: [Install and run](install.md).
+Install and start: [Install and run](install.md). How those knobs fit the running system: [System design](architecture.md).

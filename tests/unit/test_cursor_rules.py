@@ -13,6 +13,7 @@ RULE_FILES = (
     "code-architecture.mdc",
     "version-bump.mdc",
     "operator-ui-screenshots.mdc",
+    "product-shape.mdc",
 )
 
 

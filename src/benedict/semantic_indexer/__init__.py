@@ -19,6 +19,7 @@ def create_semantic_indexer(
     persist_directory: Optional[str] = None,
     metadata_generator: Any = None,
     change_detector: Any = None,
+    client: Any = None,
 ) -> SemanticIndexer:
     """Factory function to create SemanticIndexer instance.
 
@@ -27,6 +28,7 @@ def create_semantic_indexer(
         persist_directory: Optional directory path for ChromaDB persistence
         metadata_generator: Optional metadata generator for creating METADATA overlays
         change_detector: Optional change detector for git-based incremental updates
+        client: Shared Chroma client. When omitted, one is created from persist_directory.
 
     Returns:
         SemanticIndexer instance
@@ -37,15 +39,14 @@ def create_semantic_indexer(
     if provider == "chromadb":
         from .semantic_indexer_chromadb import ChromaDBSemanticIndexer
 
+        kwargs: dict = {
+            "metadata_generator": metadata_generator,
+            "change_detector": change_detector,
+            "client": client,
+        }
         if persist_directory:
-            return ChromaDBSemanticIndexer(
-                persist_directory=persist_directory,
-                metadata_generator=metadata_generator,
-                change_detector=change_detector,
-            )
-        return ChromaDBSemanticIndexer(
-            metadata_generator=metadata_generator, change_detector=change_detector
-        )
+            kwargs["persist_directory"] = persist_directory
+        return ChromaDBSemanticIndexer(**kwargs)
     if provider == "mock":
         return MockSemanticIndexer()
     raise ValueError(f"Unknown provider: {provider}")

@@ -62,6 +62,7 @@ nav:
       - Slack commands: commands.md
       - Progress loop: PROGRESS.md
   - Reference:
+      - System design: architecture.md
       - Configuration: configuration.md
       - Troubleshooting: troubleshooting.md
   - Maintain:

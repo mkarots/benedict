@@ -142,6 +142,7 @@ def test_ask_records_operator_run(tmp_path: Path):
     prompt = llm_stages[-1]["detail"]
     assert "Repository context" in prompt["system"]
     assert "does not include Slack conversation history" in prompt["system"]
+    assert "## Conversation history" not in prompt["system"]
     assert "## Channel discussion" not in prompt["system"]
     assert prompt["messages"][0]["role"] == "user"
     assert "What does this repo do?" in prompt["messages"][0]["content"]

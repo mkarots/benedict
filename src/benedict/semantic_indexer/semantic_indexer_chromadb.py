@@ -4,24 +4,24 @@ Uses sentence-transformers for embeddings and ChromaDB for vector storage.
 """
 
 import logging
-import hashlib
 import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
+import chromadb
 import numpy as np
 from benedict.lib.dateutil import normalize_to_utc
 from sentence_transformers import SentenceTransformer
-import chromadb
-from chromadb.config import Settings
-
+from benedict.lib.chroma import code_collection_name, create_chroma_client
 from benedict.repo_reader.protocol import RepoReader
 from benedict.semantic_indexer.change_detector.protocol import RepoChangeDetector
 from benedict.semantic_indexer.metadata import MetadataGenerator, MetadataReader
 from benedict.semantic_indexer.metadata.directory_boost import apply_directory_boost
-from benedict.semantic_indexer.metadata.source_dir_skip import should_skip_source_directory
+from benedict.semantic_indexer.metadata.source_dir_skip import (
+    should_skip_source_directory,
+)
 from benedict.semantic_indexer.search_hit import SearchHit
 
 logger = logging.getLogger(__name__)
@@ -35,13 +35,16 @@ class ChromaDBSemanticIndexer:
         persist_directory: str = "./.chroma_db",
         metadata_generator: Optional[MetadataGenerator] = None,
         change_detector: Optional[RepoChangeDetector] = None,
+        client: Any = None,
     ):
         """Initialize ChromaDB semantic indexer.
 
         Args:
-            persist_directory: Directory to persist ChromaDB data
+            persist_directory: Directory to persist ChromaDB data when ``client`` is omitted
             metadata_generator: Optional metadata generator for creating .metadata.benedict overlays
             change_detector: Optional change detector for git-based incremental updates
+            client: Shared Chroma client (composition root). Created from
+                ``persist_directory`` when omitted.
         """
         self.persist_directory = Path(persist_directory)
         self.persist_directory.mkdir(exist_ok=True)
@@ -51,10 +54,7 @@ class ChromaDBSemanticIndexer:
         self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
         logger.info("Loaded sentence-transformers model: all-MiniLM-L6-v2")
 
-        # Initialize ChromaDB client
-        self.client = chromadb.PersistentClient(
-            path=str(self.persist_directory), settings=Settings(anonymized_telemetry=False)
-        )
+        self.client = client if client is not None else create_chroma_client(self.persist_directory)
 
         # Collection name is based on repo name, created on-demand
         self.collections: Dict[str, chromadb.Collection] = {}
@@ -81,7 +81,7 @@ class ChromaDBSemanticIndexer:
             ChromaDB collection for this repository
         """
         # Sanitize repo name for collection name
-        collection_name = f"repo_{hashlib.md5(repo.encode()).hexdigest()[:16]}"
+        collection_name = code_collection_name(repo)
 
         if collection_name not in self.collections:
             try:
@@ -322,7 +322,11 @@ class ChromaDBSemanticIndexer:
         files_to_index = self._filter_code_files(added_files + modified_files)
         if files_to_index:
             self._index_files(
-                repo, repo_reader, collection, files_to_index, workspace_path=repo_full_path.parent
+                repo,
+                repo_reader,
+                collection,
+                files_to_index,
+                workspace_path=repo_full_path.parent,
             )
         else:
             logger.info(f"No new code files to index for {repo}")
@@ -383,7 +387,11 @@ class ChromaDBSemanticIndexer:
         files_to_index = self._filter_code_files(modified_files)
         if files_to_index:
             self._index_files(
-                repo, repo_reader, collection, files_to_index, workspace_path=repo_full_path.parent
+                repo,
+                repo_reader,
+                collection,
+                files_to_index,
+                workspace_path=repo_full_path.parent,
             )
         else:
             logger.info(f"No new code files to index for {repo}")
@@ -468,7 +476,7 @@ class ChromaDBSemanticIndexer:
                 for file_path, chunk_count, file_size in top_chunkers:
                     logger.info(
                         f"  {file_path}: {chunk_count} chunks "
-                        f"({file_size:,} chars, {file_size/chunk_count:.0f} chars/chunk)"
+                        f"({file_size:,} chars, {file_size / chunk_count:.0f} chars/chunk)"
                     )
 
         # Generate embeddings with progress logging

@@ -36,6 +36,7 @@ state.json
 state.watcher.json
 state.watcher.json.backup
 .chroma_db/
+.conversation_chroma/
 .metadata.benedict
 runs.jsonl
 mcp.pid
