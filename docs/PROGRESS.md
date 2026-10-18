@@ -18,6 +18,8 @@ Benedict was a reactive Q&A bot. Nothing happened unless you @mentioned it or Cu
 - Force a cycle from Slack: `@benedict progress` (this channel) or `@benedict progress all` (every onboarded repo).
 - Reply in a progress-question thread when Benedict is blocked on a decision.
 
+How this loop sits next to Slack conversation and MCP: [System design](architecture.md).
+
 ## 2. Non-Goals
 
 Not responsible for:

@@ -18,7 +18,7 @@ You already talk to Benedict in Slack. When you are in Cursor or Claude Code, yo
 - You want repo-scoped answers from the IDE without a second Slack thread
 - You do not want a second Notion/GitHub-style integration inside the IDE
 
-The Slack bot does **not** need to be running. The MCP process must see the same data directory the bot uses.
+The Slack bot does **not** need to be running. The MCP process must see the same data directory the bot uses. How that fits the rest of the system: [System design](architecture.md).
 
 ## 2. Non-Goals
 

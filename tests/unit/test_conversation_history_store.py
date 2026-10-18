@@ -6,9 +6,23 @@ from benedict.conversation_history_indexer import (
 )
 from benedict.conversation_history_indexer.store import (
     ConversationHistoryStore,
+    _embeddings_as_matrix,
     conversation_collection_name,
     format_conversation_hits,
 )
+
+
+class _Matrix:
+    def __init__(self, rows: list[list[float]]) -> None:
+        self._rows = rows
+
+    def tolist(self) -> list[list[float]]:
+        return self._rows
+
+
+def test_embeddings_as_matrix_converts_tolist_and_plain_rows():
+    assert _embeddings_as_matrix([[1, 2], [3.5, 4]]) == [[1.0, 2.0], [3.5, 4.0]]
+    assert _embeddings_as_matrix(_Matrix([[1, 0], [0, 1]])) == [[1.0, 0.0], [0.0, 1.0]]
 
 
 def test_conversation_collection_name_is_stable():

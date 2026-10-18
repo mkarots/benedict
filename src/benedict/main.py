@@ -207,6 +207,10 @@ def main() -> None:
         )
     )
 
+    from benedict.chat_api import start_chat_api
+
+    start_chat_api(agent)
+
     # Initialize state file if it doesn't exist
     state_path = Path(state_file)
     if not state_path.exists():
