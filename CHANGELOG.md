@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.13] - 2026-09-18
 
+### Fixed
+- Conversation-history embedding matrices from MiniLM typecheck as `list[list[float]]`. `tolist()` is no longer returned as `Any`.
+
 ### Added
 - Localhost chat API (`POST /v1/chat` on `127.0.0.1:8766`) so a phone cell or other process can talk to the same `RepoAgent` as Slack. Set `BENEDICT_CHAT_API=0` to disable.
 - System design page (`docs/architecture.md`): current processes, surfaces, components, data stores, and request paths.

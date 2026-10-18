@@ -24,9 +24,13 @@ def _embedding_as_list(query_embedding: Any) -> List[float]:
 
 
 def _embeddings_as_matrix(embeddings: Any) -> List[List[float]]:
-    if hasattr(embeddings, "tolist"):
-        return embeddings.tolist()
-    return [_embedding_as_list(row) for row in embeddings]
+    """Accept a MiniLM matrix (numpy) or a list of rows from tests.
+
+    ``tolist()`` on a numpy matrix is typed as ``Any``. Convert each row so the
+    return value is ``list[list[float]]``.
+    """
+    rows = embeddings.tolist() if hasattr(embeddings, "tolist") else embeddings
+    return [_embedding_as_list(row) for row in rows]
 
 
 def format_conversation_hits(results: Dict[str, Any], context_id: str) -> List[Dict[str, Any]]:
